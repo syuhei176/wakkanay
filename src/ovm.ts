@@ -85,6 +85,7 @@ class OVM {
   }
 
   /**
+   * TODO: implement
    * withdraw depositted state to ethereum account
    * @param {any} state state to withdraw from contract address
    * @param {Address} depositContractAddress deposit contract address
@@ -97,6 +98,7 @@ class OVM {
   }
 
   /**
+   * TODO: implement
    * subscribe decision event of a property
    * @param {IProperty} property property to subscribe decision event
    * @param {(decision: IDecision) => undefined} handler
@@ -109,6 +111,7 @@ class OVM {
   }
 
   /**
+   * TODO: implement
    * unsubscribe decision event of a property
    * @param {IProperty} property
    */
@@ -117,6 +120,7 @@ class OVM {
   }
 
   /**
+   * TODO: implement
    * get kvs witness store prefix with given key
    * @param {Bytes} key prefix
    */
@@ -125,6 +129,7 @@ class OVM {
   }
 
   /**
+   * TODO: implement
    * get range witness store prefix with given key
    * @param {Bytes} key prefix
    */
