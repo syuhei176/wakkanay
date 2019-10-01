@@ -1,14 +1,10 @@
-export type Address = String
-export type Bytes = String
-export interface Decision {
+export type Address = string
+export type Bytes = string
+export interface IDecision {
   outcome: boolean
 }
 
-class Property {
-  public deciderAddress: Address
-  public inputs: Bytes[]
-  constructor(deciderAddress: Address, inputs: Bytes[]) {
-    this.deciderAddress = deciderAddress
-    this.inputs = inputs
-  }
+export interface IProperty {
+  deciderAddress: Address
+  inputs: Bytes[]
 }

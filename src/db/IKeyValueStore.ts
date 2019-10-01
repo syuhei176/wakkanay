@@ -1,6 +1,6 @@
-import { Bytes } from '../types/types'
+import { Bytes } from '../types'
 
-export interface KeyValueStoreInterface {
+export interface IKeyValueStore {
   get(key: Bytes): Promise<Bytes>
   put(key: Bytes, value: Bytes): Promise<Bytes>
   del(key: Bytes): Promise<void>
