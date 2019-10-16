@@ -1,10 +1,10 @@
-export { IKeyValueStore } from './IKeyValueStore'
-export { IRangeStore } from './IRangeStore'
+export { KeyValueStore } from './KeyValueStore'
+export { RangeStore } from './RangeStore'
 export {
-  IWitnessStore,
+  WitnessStore,
   createWitnessStore,
-  IRangeWitnessStore,
+  RangeWitnessStore,
   createRangeWitnessStore
-} from './IWitnessStore'
-
-export { InMemoryKeyValueStore } from './inMemoryKeyValueStore'
+} from './WitnessStore'
+export { InMemoryKeyValueStore } from './InMemoryKeyValueStore'
+export { RangeDb } from './RangeDb'
