@@ -1,5 +1,5 @@
 import { InMemoryKeyValueStore, RangeDb } from '../../src/db'
-import { EventDb } from '../../src/events-watcher'
+import { EventDb } from '../../src/events'
 
 describe('EventDb', () => {
   it('default last logged block should be 0', async () => {
