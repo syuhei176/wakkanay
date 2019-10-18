@@ -1,5 +1,5 @@
 import { Iterator, KeyValueStore, BatchOperation } from './KeyValueStore'
-import { Bytes, Option } from '../types'
+import { Bytes } from '../types'
 import levelup from 'levelup'
 import memdown from 'memdown'
 import { AbstractIterator } from 'abstract-leveldown'
@@ -9,16 +9,16 @@ export class MemoryIterator implements Iterator {
   constructor(iter: AbstractIterator<Bytes, Bytes>) {
     this.iter = iter
   }
-  public next(): Promise<Option<{ key: Bytes; value: Bytes }>> {
+  public next(): Promise<{ key: Bytes; value: Bytes } | null> {
     return new Promise((resolve, reject) => {
       this.iter.next((err, key, value) => {
         if (err) {
           reject(err)
         } else {
           if (key) {
-            resolve(Option.Some({ key, value }))
+            resolve({ key, value })
           } else {
-            resolve(Option.None())
+            resolve(null)
           }
         }
       })
@@ -34,13 +34,13 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     this.prefix = prefix
   }
 
-  public async get(key: Bytes): Promise<Option<Bytes>> {
+  public async get(key: Bytes): Promise<Bytes | null> {
     return new Promise((resolve, reject) => {
       this.db.get(this.getKey(key), { asBuffer: false }, (err, value) => {
         if (err) {
-          return resolve(Option.None())
+          return resolve(null)
         } else {
-          return resolve(Option.Some(value))
+          return resolve(value)
         }
       })
     })
@@ -70,9 +70,9 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     return new Promise((resolve, reject) => {
       let batch = this.db.batch()
       operations.forEach(op => {
-        if (op.type == 'Put') {
+        if (op.type === 'Put') {
           batch = batch.put(this.getKey(op.key), op.value)
-        } else if (op.type == 'Del') {
+        } else if (op.type === 'Del') {
           batch = batch.del(this.getKey(op.key))
         }
       })

@@ -3,8 +3,8 @@ import { Address, IProperty, IDecision, Bytes } from './types'
 
 class OVM {
   private adjudicationContractAddress: Address
-  private database: DB.IKeyValueStore
-  private rangeDatabase: DB.IRangeStore
+  private database: DB.KeyValueStore
+  private rangeDatabase: DB.RangeStore
 
   /**
    * constructor of OVM instance
@@ -17,8 +17,8 @@ class OVM {
     rangeDatabase
   }: {
     adjudicationContractAddress: Address
-    database: DB.IKeyValueStore
-    rangeDatabase: DB.IRangeStore
+    database: DB.KeyValueStore
+    rangeDatabase: DB.RangeStore
   }) {
     this.adjudicationContractAddress = adjudicationContractAddress
     this.database = database
@@ -124,7 +124,7 @@ class OVM {
    * get kvs witness store prefix with given key
    * @param {Bytes} key prefix
    */
-  public store(key: Bytes): DB.IWitnessStore {
+  public store(key: Bytes): DB.WitnessStore {
     return DB.createWitnessStore(this.database.bucket(key))
   }
 
@@ -133,7 +133,7 @@ class OVM {
    * get range witness store prefix with given key
    * @param {Bytes} key prefix
    */
-  public rangeStore(key: Bytes): DB.IRangeWitnessStore {
+  public rangeStore(key: Bytes): DB.RangeWitnessStore {
     return DB.createRangeWitnessStore(this.rangeDatabase.bucket(key))
   }
 }

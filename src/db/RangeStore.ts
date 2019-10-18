@@ -17,9 +17,9 @@ export class RangeRecord {
     return JSON.stringify(this)
   }
   public intersect(start: number, end: number): boolean {
-    const max_start = Math.max(this.start, start)
-    const max_end = Math.min(this.end, end)
-    return max_start < max_end
+    const maxStart = Math.max(this.start, start)
+    const maxEnd = Math.min(this.end, end)
+    return maxStart < maxEnd
   }
 }
 
