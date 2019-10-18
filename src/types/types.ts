@@ -1,10 +1,10 @@
 export type Address = string
 export type Bytes = string
-export interface IDecision {
+export interface Decision {
   outcome: boolean
 }
 
-export interface IProperty {
+export interface Property {
   deciderAddress: Address
   inputs: Bytes[]
 }

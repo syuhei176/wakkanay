@@ -1,5 +1,5 @@
 import * as DB from './db'
-import { Address, IProperty, IDecision, Bytes } from './types'
+import { Address, Property, Decision, Bytes } from './types'
 
 class OVM {
   private adjudicationContractAddress: Address
@@ -30,9 +30,9 @@ class OVM {
    * make decision on property locally.
    * if decision is cachsed, return the cashed decision otherwise,
    * decider logic will be executed right away.
-   * @param {IProperty} property
+   * @param {Property} property
    */
-  public async makeDecision(property: IProperty): Promise<IDecision> {
+  public async makeDecision(property: Property): Promise<Decision> {
     console.log('make decision: ', property)
 
     return Promise.resolve({ outcome: true })
@@ -41,18 +41,18 @@ class OVM {
   /**
    * TODO: implement
    * claim a property to adjudication contract
-   * @param {IProperty} property
+   * @param {Property} property
    */
-  public async makeClaim(property: IProperty): Promise<void> {
+  public async makeClaim(property: Property): Promise<void> {
     console.log('make claim: ', property)
   }
 
   /**
    * TODO: implement
    * fetch contract decision from contract
-   * @param {IProperty} property
+   * @param {Property} property
    */
-  public async fetchDecision(property: IProperty): Promise<IDecision> {
+  public async fetchDecision(property: Property): Promise<Decision> {
     console.log('fetch contract decision: ', property)
 
     return Promise.resolve({ outcome: true })
@@ -100,12 +100,12 @@ class OVM {
   /**
    * TODO: implement
    * subscribe decision event of a property
-   * @param {IProperty} property property to subscribe decision event
-   * @param {(decision: IDecision) => undefined} handler
+   * @param {Property} property property to subscribe decision event
+   * @param {(decision: Decision) => undefined} handler
    */
   public subscribeDecision(
-    property: IProperty,
-    handler: (decision: IDecision) => undefined
+    property: Property,
+    handler: (decision: Decision) => undefined
   ) {
     console.log('subscribe to property decide event', property)
   }
@@ -113,9 +113,9 @@ class OVM {
   /**
    * TODO: implement
    * unsubscribe decision event of a property
-   * @param {IProperty} property
+   * @param {Property} property
    */
-  public unsubscribeDecision(property: IProperty) {
+  public unsubscribeDecision(property: Property) {
     console.log('unsubscribe from property decided event', property)
   }
 
