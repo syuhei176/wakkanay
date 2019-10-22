@@ -1,4 +1,4 @@
-import { EthWalletFactory } from '../../src/wallet/eth/EthWalletFactory'
+import { EthWalletFactory } from '../../src/wallet'
 
 describe('EthWallet', () => {
   it('signMessage works', async () => {
