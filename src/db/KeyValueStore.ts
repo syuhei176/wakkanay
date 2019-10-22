@@ -1,4 +1,4 @@
-import { Bytes, Option } from '../types'
+import { Bytes } from '../types'
 
 export interface PutBatchOperation {
   type: 'Put'
@@ -14,11 +14,11 @@ export interface DelBatchOperation {
 export type BatchOperation = PutBatchOperation | DelBatchOperation
 
 export interface Iterator {
-  next(): Promise<Option<{ key: Bytes; value: Bytes }>
+  next(): Promise<{ key: Bytes; value: Bytes } | null>
 }
 
 export interface KeyValueStore {
-  get(key: Bytes): Promise<Option<Bytes>>
+  get(key: Bytes): Promise<Bytes | null>
   put(key: Bytes, value: Bytes): Promise<void>
   del(key: Bytes): Promise<void>
   batch(operations: BatchOperation[]): Promise<void>

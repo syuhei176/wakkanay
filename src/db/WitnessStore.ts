@@ -1,11 +1,11 @@
-import { Bytes, Option } from '../types'
+import { Bytes } from '../types'
 import { KeyValueStore } from './KeyValueStore'
 import { RangeRecord as Range, RangeStore } from './RangeStore'
 
 // We want quantify local information freely
 export interface WitnessStore {
   storeWitness(key: Bytes, witness: Bytes): Promise<void>
-  getWitness(key: Bytes): Promise<Option<Bytes>>
+  getWitness(key: Bytes): Promise<Bytes | null>
 }
 
 // create witness store instance by key value store
