@@ -35,7 +35,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   }
 
   public async get(key: Bytes): Promise<Bytes | null> {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this.db.get(this.getKey(key), { asBuffer: false }, (err, value) => {
         if (err) {
           return resolve(null)
@@ -59,7 +59,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   }
 
   public async del(key: Bytes): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(() => {
       this.db.del(this.getKey(key), () => {
         Promise.resolve()
       })
@@ -67,7 +67,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   }
 
   public async batch(operations: BatchOperation[]): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       let batch = this.db.batch()
       operations.forEach(op => {
         if (op.type === 'Put') {
