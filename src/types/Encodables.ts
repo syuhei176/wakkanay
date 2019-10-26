@@ -26,14 +26,23 @@ export class Integer implements IEncodable {
 }
 
 export class Bytes implements IEncodable {
-  readonly v: string
+  readonly v: Uint8Array
 
-  static from(data: string): Bytes {
+  static from(data: Uint8Array): Bytes {
     return new Bytes(data)
   }
 
-  constructor(data: string) {
+  static fromString(data: string): Bytes {
+    const u = new TextEncoder().encode(data)
+    return new Bytes(u)
+  }
+
+  constructor(data: Uint8Array) {
     this.v = data
+  }
+
+  toString(): string {
+    return new TextDecoder().decode(this.v)
   }
 
   encode(coder: ICoder): string {
