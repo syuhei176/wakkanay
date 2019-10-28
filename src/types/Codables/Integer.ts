@@ -1,9 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
 import Codable from './Codable'
 
-export default class Integer implements Codable {
-  private v: number
-
+export default class Integer extends Codable {
   static from(data: number): Integer {
     return new Integer(data)
   }
@@ -12,8 +10,8 @@ export default class Integer implements Codable {
     return new Integer(0)
   }
 
-  constructor(data: number) {
-    this.v = data
+  constructor(private v: number) {
+    super()
   }
 
   public get raw(): number {
@@ -26,9 +24,5 @@ export default class Integer implements Codable {
 
   public toString() {
     return `Integer(${this.v})`
-  }
-
-  public toTypeString() {
-    return 'Integer'
   }
 }

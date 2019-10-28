@@ -1,9 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
 import Codable from './Codable'
 
-export default class Address implements Codable {
-  readonly v: string
-
+export default class Address extends Codable {
   static from(data: string): Address {
     return new Address(data)
   }
@@ -12,12 +10,12 @@ export default class Address implements Codable {
     return new Address('0x0000000000000000000000000000000000000000')
   }
 
-  constructor(data: string) {
-    this.v = data
+  constructor(readonly data: string) {
+    super()
   }
 
   public get raw(): string {
-    return this.v
+    return this.data
   }
 
   public encode(coder: ICoder): string {
@@ -25,10 +23,6 @@ export default class Address implements Codable {
   }
 
   public toString() {
-    return `Address(${this.v})`
-  }
-
-  public toTypeString() {
-    return 'Address'
+    return `Address(${this.data})`
   }
 }
