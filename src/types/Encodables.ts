@@ -142,3 +142,14 @@ export class Tuple implements IEncodable {
 }
 
 // TODO: implement struct
+export class Struct implements IEncodable {
+  constructor() {}
+
+  public get raw() {
+    return {}
+  }
+
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+}
