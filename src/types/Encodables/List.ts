@@ -1,0 +1,29 @@
+import { ICoder } from '../../coder/ICoder'
+import IEncodable from './IEncodable'
+
+export default class List<T extends IEncodable> implements IEncodable {
+  readonly v: Array<T>
+
+  static from<T extends IEncodable>(data: Array<T>): List<T> {
+    return new List<T>(data)
+  }
+
+  constructor(data: Array<T>) {
+    this.v = data
+  }
+
+  public get raw(): Array<T> {
+    // TODO: implement recursively
+    return this.v
+  }
+
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+
+  public toString() {
+    return `List<${this.v[0].constructor.name}>([${this.v
+      .map(i => i.toString())
+      .join(',')}])`
+  }
+}
