@@ -1,15 +1,15 @@
 import { ICoder } from '../../coder/ICoder'
-import IEncodable from './IEncodable'
+import Codable from './Codable'
 
 // TODO: implement struct
-export default class Struct implements IEncodable {
-  readonly v: { [key: string]: IEncodable }
+export default class Struct implements Codable {
+  readonly v: { [key: string]: Codable }
 
-  static from(data: { [key: string]: IEncodable }): Struct {
+  static from(data: { [key: string]: Codable }): Struct {
     return new Struct(data)
   }
 
-  constructor(data: { [key: string]: IEncodable }) {
+  constructor(data: { [key: string]: Codable }) {
     this.v = data
   }
 

@@ -1,7 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
-import IEncodable from './IEncodable'
+import Codable from './Codable'
 
-export default class Bytes implements IEncodable {
+export default class Bytes implements Codable {
   readonly v: Uint8Array
 
   static from(data: Uint8Array): Bytes {

@@ -5,10 +5,10 @@ import {
   Bytes,
   List,
   Tuple
-} from '../src/types/Encodables'
+} from '../src/types/Codables'
 
-describe('Encodables', () => {
-  describe('IEncodable.toTypeString', () => {
+describe('Codables', () => {
+  describe('Codable.toTypeString', () => {
     test('Struct.toTypeString', () => {
       const v = Struct.from({
         amount: Integer.from(1),
@@ -30,7 +30,7 @@ describe('Encodables', () => {
     })
   })
 
-  describe('IEncodable.toString', () => {
+  describe('Codable.toString', () => {
     test('Integer.toString', () => {
       const v = Integer.from(1)
       expect(v.toString()).toBe('Integer(1)')
@@ -88,7 +88,7 @@ describe('Encodables', () => {
     })
   })
 
-  describe('IEncodable.raw()', () => {
+  describe('Codable.raw()', () => {
     test('Integer.raw', () => {
       const v = Integer.from(99)
       expect(v.raw).toBe(99)

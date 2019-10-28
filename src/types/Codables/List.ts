@@ -1,10 +1,10 @@
 import { ICoder } from '../../coder/ICoder'
-import IEncodable from './IEncodable'
+import Codable from './Codable'
 
-export default class List<T extends IEncodable> implements IEncodable {
+export default class List<T extends Codable> implements Codable {
   readonly v: Array<T>
 
-  static from<T extends IEncodable>(data: Array<T>): List<T> {
+  static from<T extends Codable>(data: Array<T>): List<T> {
     return new List<T>(data)
   }
 

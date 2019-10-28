@@ -1,7 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
-import IEncodable from './IEncodable'
+import Codable from './Codable'
 
-export default class Integer implements IEncodable {
+export default class Integer implements Codable {
   private v: number
 
   static from(data: number): Integer {

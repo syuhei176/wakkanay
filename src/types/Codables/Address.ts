@@ -1,7 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
-import IEncodable from './IEncodable'
+import Codable from './Codable'
 
-export default class Address implements IEncodable {
+export default class Address implements Codable {
   readonly v: string
 
   static from(data: string): Address {

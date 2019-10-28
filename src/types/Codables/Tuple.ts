@@ -1,18 +1,18 @@
 import { ICoder } from '../../coder/ICoder'
-import IEncodable from './IEncodable'
+import Codable from './Codable'
 
-export default class Tuple implements IEncodable {
-  readonly v: Array<IEncodable>
+export default class Tuple implements Codable {
+  readonly v: Array<Codable>
 
-  static from(data: Array<IEncodable>): Tuple {
+  static from(data: Array<Codable>): Tuple {
     return new Tuple(data)
   }
 
-  constructor(data: Array<IEncodable>) {
+  constructor(data: Array<Codable>) {
     this.v = data
   }
 
-  public get raw(): Array<IEncodable> {
+  public get raw(): Array<Codable> {
     return this.v.map(i => i.raw)
   }
 
