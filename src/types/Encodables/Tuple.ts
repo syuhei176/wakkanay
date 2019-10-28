@@ -13,8 +13,7 @@ export default class Tuple implements IEncodable {
   }
 
   public get raw(): Array<IEncodable> {
-    // TODO: implement recursively
-    return this.v
+    return this.v.map(i => i.raw)
   }
 
   public encode(coder: ICoder): string {

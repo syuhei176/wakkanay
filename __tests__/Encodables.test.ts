@@ -106,7 +106,7 @@ describe('Encodables', () => {
 
     test('List.raw', () => {
       const v = List.from([Integer.from(1), Integer.from(2)])
-      expect(v.raw).toBe([1, 2])
+      expect(v.raw).toStrictEqual([1, 2])
     })
 
     test('Tuple.raw', () => {
@@ -114,7 +114,10 @@ describe('Encodables', () => {
         Integer.from(1),
         Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
       ])
-      expect(v.raw).toBe([1, '0x0472ec0185ebb8202f3d4ddb0226998889663cf2'])
+      expect(v.raw).toStrictEqual([
+        1,
+        '0x0472ec0185ebb8202f3d4ddb0226998889663cf2'
+      ])
     })
 
     test('Struct.raw', () => {
@@ -122,7 +125,7 @@ describe('Encodables', () => {
         amount: Integer.from(1),
         to: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
       })
-      expect(v.raw).toBe({
+      expect(v.raw).toStrictEqual({
         amount: 1,
         to: '0x0472ec0185ebb8202f3d4ddb0226998889663cf2'
       })

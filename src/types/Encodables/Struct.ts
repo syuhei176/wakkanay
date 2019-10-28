@@ -14,7 +14,12 @@ export default class Struct implements IEncodable {
   }
 
   public get raw() {
-    return this.v
+    const ret = {
+      ...this.v
+    }
+
+    Object.keys(this.v).forEach(k => (ret[k] = this.v[k].raw))
+    return ret
   }
 
   public encode(coder: ICoder): string {

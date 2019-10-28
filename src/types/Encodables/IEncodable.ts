@@ -1,5 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
 
+// TODO: change this to Codable
+// add decode to interface
 /**
  * Encodable interface
  * All types that can be encoded to certain encoding format must implement

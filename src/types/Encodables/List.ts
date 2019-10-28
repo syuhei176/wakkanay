@@ -13,8 +13,7 @@ export default class List<T extends IEncodable> implements IEncodable {
   }
 
   public get raw(): Array<T> {
-    // TODO: implement recursively
-    return this.v
+    return this.v.map(i => i.raw)
   }
 
   public encode(coder: ICoder): string {
