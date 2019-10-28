@@ -103,6 +103,7 @@ export class List<T extends IEncodable> implements IEncodable {
   }
 
   public get raw(): Array<T> {
+    // TODO: implement recursively
     return this.v
   }
 
@@ -127,6 +128,7 @@ export class Tuple implements IEncodable {
   }
 
   public get raw(): Array<IEncodable> {
+    // TODO: implement recursively
     return this.v
   }
 
