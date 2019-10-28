@@ -7,10 +7,11 @@ import { ICoder } from '../coder/ICoder'
  */
 export default interface IEncodable {
   encode(coder: ICoder): string
+  raw: any
 }
 
 export class Integer implements IEncodable {
-  readonly v: number
+  private v: number
 
   static from(data: number): Integer {
     return new Integer(data)
@@ -20,8 +21,16 @@ export class Integer implements IEncodable {
     this.v = data
   }
 
-  encode(coder: ICoder): string {
-    return coder.encodeInteger(this)
+  public get raw(): number {
+    return this.v
+  }
+
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+
+  public toString() {
+    return `Integer(${this.v})`
   }
 }
 
@@ -41,12 +50,20 @@ export class Bytes implements IEncodable {
     this.v = data
   }
 
-  toString(): string {
+  public get raw(): Uint8Array {
+    return this.v
+  }
+
+  public intoString(): string {
     return new TextDecoder().decode(this.v)
   }
 
-  encode(coder: ICoder): string {
-    return coder.encodeBytes(this)
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+
+  public toString() {
+    return `Bytes(${this.v})`
   }
 }
 
@@ -61,8 +78,16 @@ export class Address implements IEncodable {
     this.v = data
   }
 
-  encode(coder: ICoder): string {
-    return coder.encodeAddress(this)
+  public get raw(): string {
+    return this.v
+  }
+
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+
+  public toString() {
+    return `Address(${this.v})`
   }
 }
 
@@ -77,8 +102,16 @@ export class List<T extends IEncodable> implements IEncodable {
     this.v = data
   }
 
-  encode(coder: ICoder): string {
-    return coder.encodeList(this)
+  public get raw(): Array<T> {
+    return this.v
+  }
+
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+
+  public toString() {
+    return `List([${this.v.map(i => i.toString()).join(',')}])`
   }
 }
 
@@ -93,7 +126,17 @@ export class Tuple implements IEncodable {
     this.v = data
   }
 
-  encode(coder: ICoder): string {
-    return coder.encodeTuple(this)
+  public get raw(): Array<IEncodable> {
+    return this.v
+  }
+
+  public encode(coder: ICoder): string {
+    return coder.encodeParameter(this)
+  }
+
+  public toString() {
+    return `Tuple(${this.v.map(i => i.toString()).join(',')})`
   }
 }
+
+// TODO: implement struct
