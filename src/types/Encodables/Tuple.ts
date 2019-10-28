@@ -24,4 +24,8 @@ export default class Tuple implements IEncodable {
   public toString() {
     return `Tuple(${this.v.map(i => i.toString()).join(',')})`
   }
+
+  public toTypeString() {
+    return `Tuple(${this.v.map(i => i.toTypeString())})`
+  }
 }

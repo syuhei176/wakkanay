@@ -36,4 +36,8 @@ export default class Bytes implements IEncodable {
   public toString() {
     return `Bytes([${this.v}])`
   }
+
+  public toTypeString() {
+    return 'Bytes'
+  }
 }

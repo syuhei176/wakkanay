@@ -8,4 +8,6 @@ import { ICoder } from '../../coder/ICoder'
 export default interface IEncodable {
   encode(coder: ICoder): string
   raw: any
+  toTypeString(): string
+  toString(): string
 }

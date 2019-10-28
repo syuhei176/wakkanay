@@ -27,4 +27,8 @@ export default class Integer implements IEncodable {
   public toString() {
     return `Integer(${this.v})`
   }
+
+  public toTypeString() {
+    return 'Integer'
+  }
 }

@@ -27,4 +27,8 @@ export default class Address implements IEncodable {
   public toString() {
     return `Address(${this.v})`
   }
+
+  public toTypeString() {
+    return 'Address'
+  }
 }

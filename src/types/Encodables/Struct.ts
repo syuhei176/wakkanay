@@ -3,20 +3,34 @@ import IEncodable from './IEncodable'
 
 // TODO: implement struct
 export default class Struct implements IEncodable {
-  readonly type: object
-  readonly v: object
+  readonly v: { [key: string]: IEncodable }
 
-  constructor(type: object, v: object) {
-    // TODO: check the validity of type and object
-    this.type = type
-    this.v = v
+  static from(data: { [key: string]: IEncodable }): Struct {
+    return new Struct(data)
+  }
+
+  constructor(data: { [key: string]: IEncodable }) {
+    this.v = data
   }
 
   public get raw() {
-    return {}
+    return this.v
   }
 
   public encode(coder: ICoder): string {
     return coder.encodeParameter(this)
+  }
+
+  public toString(): string {
+    return `Struct({${Object.keys(this.v)
+      .sort()
+      .map(k => `${k}:${this.v[k]}`)
+      .join(',')}})`
+  }
+
+  public toTypeString(): string {
+    return `Struct<{${Object.keys(this.v)
+      .sort()
+      .map(k => `${k}:${this.v[k].constructor.name}`)}}>`
   }
 }

@@ -8,9 +8,83 @@ import {
 } from '../src/types/Encodables'
 
 describe('Encodables', () => {
-  test('IEncodable.toString()', () => {
-    const i = Integer.from(1)
+  describe('IEncodable.toTypeString()', () => {
+    test('Struct.toTypeString()', () => {
+      const v = Struct.from({
+        amount: Integer.from(1),
+        to: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+      })
+      expect(v.toTypeString()).toBe('Struct<{amount:Integer,to:Address}>')
+    })
 
-    expect(i.toString()).toBe('Integer(1)')
+    test('List.toTypeString()', () => {
+      const v = List.from([
+        Struct.from({
+          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        }),
+        Struct.from({
+          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        })
+      ])
+      expect(v.toTypeString()).toBe('List<Struct<{address:Address}>>')
+    })
+  })
+
+  describe('IEncodable.toString()', () => {
+    test('Integer.toString()', () => {
+      const v = Integer.from(1)
+      expect(v.toString()).toBe('Integer(1)')
+    })
+
+    test('Bytes.toString()', () => {
+      const v = Bytes.from(new Uint8Array([0, 1, 2, 3]))
+      expect(v.toString()).toBe('Bytes([0,1,2,3])')
+    })
+
+    test('Address.toString()', () => {
+      const v = Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+      expect(v.toString()).toBe(
+        'Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)'
+      )
+    })
+
+    test('List.toString()', () => {
+      const v = List.from([Integer.from(1), Integer.from(2)])
+      expect(v.toString()).toBe('List<Integer>([Integer(1),Integer(2)])')
+    })
+
+    test('List.toString() with custom Struct', () => {
+      const v = List.from([
+        Struct.from({
+          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        }),
+        Struct.from({
+          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        })
+      ])
+      expect(v.toString()).toBe(
+        'List<Struct<{address:Address}>>([Struct({address:Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)}),Struct({address:Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)})])'
+      )
+    })
+
+    test('Tuple.toString()', () => {
+      const v = Tuple.from([
+        Integer.from(1),
+        Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+      ])
+      expect(v.toString()).toBe(
+        'Tuple(Integer(1),Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2))'
+      )
+    })
+
+    test('Struct.toString()', () => {
+      const v = Struct.from({
+        amount: Integer.from(1),
+        to: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+      })
+      expect(v.toString()).toBe(
+        `Struct({amount:Integer(1),to:Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)})`
+      )
+    })
   })
 })

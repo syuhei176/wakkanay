@@ -22,8 +22,12 @@ export default class List<T extends IEncodable> implements IEncodable {
   }
 
   public toString() {
-    return `List<${this.v[0].constructor.name}>([${this.v
+    return `List<${this.v[0].toTypeString()}>([${this.v
       .map(i => i.toString())
       .join(',')}])`
+  }
+
+  public toTypeString() {
+    return `List<${this.v[0].toTypeString()}>`
   }
 }
