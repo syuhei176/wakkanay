@@ -1,9 +1,7 @@
 import { ICoder } from '../../coder/ICoder'
 import Codable from './Codable'
 
-export default class Bytes implements Codable {
-  readonly v: Uint8Array
-
+export default class Bytes extends Codable {
   static from(data: Uint8Array): Bytes {
     return new Bytes(data)
   }
@@ -17,16 +15,16 @@ export default class Bytes implements Codable {
     return new Bytes(u)
   }
 
-  constructor(data: Uint8Array) {
-    this.v = data
+  constructor(readonly data: Uint8Array) {
+    super()
   }
 
   public get raw(): Uint8Array {
-    return this.v
+    return this.data
   }
 
   public intoString(): string {
-    return new TextDecoder().decode(this.v)
+    return new TextDecoder().decode(this.data)
   }
 
   public encode(coder: ICoder): string {
@@ -34,7 +32,7 @@ export default class Bytes implements Codable {
   }
 
   public toString() {
-    return `Bytes([${this.v}])`
+    return `Bytes([${this.data}])`
   }
 
   public toTypeString() {
