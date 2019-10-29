@@ -1,4 +1,4 @@
-import { ICoder } from '../../coder/ICoder'
+import { ICoder } from '../../coder/Coder'
 
 /**
  * Codable abstract class

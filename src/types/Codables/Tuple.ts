@@ -1,4 +1,4 @@
-import { ICoder } from '../../coder/ICoder'
+import { ICoder } from '../../coder/Coder'
 import Codable from './Codable'
 
 export default class Tuple extends Codable {
