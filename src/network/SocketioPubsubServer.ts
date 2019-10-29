@@ -8,9 +8,9 @@ import { EventEmitter } from 'events'
  * SocketioPubsubClient is the socket.io implementation for PubsubClient.
  */
 export class SocketioPubsubServer implements PubsubServer {
-  port: number
-  ee: EventEmitter
-  server: http.Server
+  private port: number
+  private ee: EventEmitter
+  private server: http.Server
   /**
    * constructor
    * @param aggregatorEndpoint aggregator endpoint
@@ -36,7 +36,9 @@ export class SocketioPubsubServer implements PubsubServer {
   /**
    * recieve
    */
-  setRecievingHandler(handler: (topic: string, message: string) => void): void {
+  public setRecievingHandler(
+    handler: (topic: string, message: string) => void
+  ): void {
     this.ee.on('recieve', e => {
       handler(e[0], e[1])
     })
@@ -46,12 +48,12 @@ export class SocketioPubsubServer implements PubsubServer {
    * subscribe
    * subscribes to socket.io server.
    */
-  broadcast(topic: string, message: string): void {}
+  public broadcast(topic: string, message: string): void {}
 
   /**
    * close server
    */
-  close() {
+  public close(): void {
     this.server.close()
   }
 }

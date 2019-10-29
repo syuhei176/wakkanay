@@ -1,11 +1,9 @@
-import express from 'express'
-import http from 'http'
-import socketio from 'socket.io'
 import { SocketioPubsubClient, SocketioPubsubServer } from '../../src/network'
 
 describe('SocketioPubsubClient', () => {
   it('should send a message', done => {
-    const server = new SocketioPubsubServer(3000)
+    const port = 3000
+    const server = new SocketioPubsubServer(port)
     server.setRecievingHandler((key, message) => {
       expect(message).toBe('message')
       server.close()

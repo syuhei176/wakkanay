@@ -21,7 +21,7 @@ export class SocketioPubsubClient implements PubsubClient {
    * publish
    * publish method sends message to socket.io server.
    */
-  publish(topic: string, value: string): void {
+  public publish(topic: string, value: string): void {
     this.socket.emit(topic, value)
   }
 
@@ -29,7 +29,7 @@ export class SocketioPubsubClient implements PubsubClient {
    * subscribe
    * subscribes to socket.io server.
    */
-  subscribe(
+  public subscribe(
     topic: string,
     handler: (topic: string, message: string) => void
   ): void {
@@ -40,7 +40,7 @@ export class SocketioPubsubClient implements PubsubClient {
    * unsubscribe
    * unsubscribe to socket.io server.
    */
-  unsubscribe(
+  public unsubscribe(
     topic: string,
     handler: (topic: string, message: string) => void
   ): void {
