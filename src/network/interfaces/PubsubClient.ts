@@ -6,20 +6,23 @@ export interface PubsubClient {
    * publish
    * publish method sends message to the network.
    */
-  publish(key: string, message: string): void
+  publish(topic: string, message: string): void
 
   /**
    * subscribe
-   * subscribes to the network with `key`
+   * subscribes to the network with `topic`
    */
-  subscribe(key: string, handle: (key: string, message: string) => void): void
+  subscribe(
+    topic: string,
+    handle: (topic: string, message: string) => void
+  ): void
 
   /**
    * unsubscribe
-   * unsubscribe from the network with `key`
+   * unsubscribe from the network with `topic`
    */
   unsubscribe(
-    key: string,
-    handler: (key: string, message: string) => void
+    topic: string,
+    handler: (topic: string, message: string) => void
   ): void
 }

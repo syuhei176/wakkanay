@@ -21,8 +21,8 @@ export class SocketioPubsubClient implements PubsubClient {
    * publish
    * publish method sends message to socket.io server.
    */
-  publish(key: string, value: string): void {
-    this.socket.emit(key, value)
+  publish(topic: string, value: string): void {
+    this.socket.emit(topic, value)
   }
 
   /**
@@ -30,10 +30,10 @@ export class SocketioPubsubClient implements PubsubClient {
    * subscribes to socket.io server.
    */
   subscribe(
-    key: string,
-    handler: (key: string, message: string) => void
+    topic: string,
+    handler: (topic: string, message: string) => void
   ): void {
-    this.socket.on(key, handler)
+    this.socket.on(topic, handler)
   }
 
   /**
@@ -41,9 +41,9 @@ export class SocketioPubsubClient implements PubsubClient {
    * unsubscribe to socket.io server.
    */
   unsubscribe(
-    key: string,
-    handler: (key: string, message: string) => void
+    topic: string,
+    handler: (topic: string, message: string) => void
   ): void {
-    this.socket.off(key, handler)
+    this.socket.off(topic, handler)
   }
 }

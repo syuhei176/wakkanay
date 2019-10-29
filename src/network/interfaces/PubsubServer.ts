@@ -6,12 +6,12 @@ export interface PubsubServer {
    * setRecievingHandler sets handler for receiving messages
    * @param handle
    */
-  setRecievingHandler(handle: (key: string, message: string) => void): void
+  setRecievingHandler(handle: (topic: string, message: string) => void): void
 
   /**
    * broadcast a message to all clients
-   * @param key
+   * @param topic
    * @param message
    */
-  broadcast(key: string, message: string): void
+  broadcast(topic: string, message: string): void
 }

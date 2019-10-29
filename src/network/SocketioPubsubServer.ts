@@ -35,7 +35,7 @@ export class SocketioPubsubServer implements PubsubServer {
   /**
    * recieve
    */
-  setRecievingHandler(handler: (key: string, message: string) => void): void {
+  setRecievingHandler(handler: (topic: string, message: string) => void): void {
     this.ee.on('recieve', e => {
       handler(e[0], e[1])
     })
@@ -45,5 +45,5 @@ export class SocketioPubsubServer implements PubsubServer {
    * subscribe
    * subscribes to socket.io server.
    */
-  broadcast(key: string, message: string): void {}
+  broadcast(topic: string, message: string): void {}
 }
