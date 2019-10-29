@@ -8,6 +8,7 @@ describe('SocketioPubsubClient', () => {
     const server = new SocketioPubsubServer(3000)
     server.setRecievingHandler((key, message) => {
       expect(message).toBe('message')
+      server.close()
       done()
     })
     const client = new SocketioPubsubClient('http://localhost:3000')

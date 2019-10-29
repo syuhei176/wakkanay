@@ -10,6 +10,7 @@ import { EventEmitter } from 'events'
 export class SocketioPubsubServer implements PubsubServer {
   port: number
   ee: EventEmitter
+  server: http.Server
   /**
    * constructor
    * @param aggregatorEndpoint aggregator endpoint
@@ -23,13 +24,13 @@ export class SocketioPubsubServer implements PubsubServer {
 
     io.on('connection', socket => {
       socket.use((packet, next) => {
-        console.log('packet', packet)
         this.ee.emit('recieve', packet)
         return next()
       })
     })
 
     server.listen(this.port, () => {})
+    this.server = server
   }
 
   /**
@@ -46,4 +47,11 @@ export class SocketioPubsubServer implements PubsubServer {
    * subscribes to socket.io server.
    */
   broadcast(topic: string, message: string): void {}
+
+  /**
+   * close server
+   */
+  close() {
+    this.server.close()
+  }
 }

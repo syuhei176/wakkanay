@@ -14,4 +14,9 @@ export interface PubsubServer {
    * @param message
    */
   broadcast(topic: string, message: string): void
+
+  /**
+   * close server
+   */
+  close(): void
 }
