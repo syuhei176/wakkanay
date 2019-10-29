@@ -14,7 +14,7 @@ export interface PubsubClient {
    */
   subscribe(
     topic: string,
-    handle: (topic: string, message: string) => void
+    handler: (topic: string, message: string) => void
   ): void
 
   /**
