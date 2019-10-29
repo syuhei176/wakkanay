@@ -1,15 +1,12 @@
-import { ICoder } from '../../coder/Coder'
 import Codable from './Codable'
 
 // TODO: implement struct
-export default class Struct extends Codable {
+export default class Struct implements Codable {
   static from(data: { [key: string]: Codable }): Struct {
     return new Struct(data)
   }
 
-  constructor(readonly data: { [key: string]: Codable }) {
-    super()
-  }
+  constructor(readonly data: { [key: string]: Codable }) {}
 
   public get raw() {
     const ret = {
@@ -18,10 +15,6 @@ export default class Struct extends Codable {
 
     Object.keys(this.data).forEach(k => (ret[k] = this.data[k].raw))
     return ret
-  }
-
-  public encode(coder: ICoder): string {
-    return coder.encodeParameter(this)
   }
 
   public toString(): string {

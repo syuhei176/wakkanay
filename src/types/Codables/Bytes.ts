@@ -1,7 +1,6 @@
-import { ICoder } from '../../coder/Coder'
 import Codable from './Codable'
 
-export default class Bytes extends Codable {
+export default class Bytes implements Codable {
   static from(data: Uint8Array): Bytes {
     return new Bytes(data)
   }
@@ -15,9 +14,7 @@ export default class Bytes extends Codable {
     return new Bytes(u)
   }
 
-  constructor(readonly data: Uint8Array) {
-    super()
-  }
+  constructor(readonly data: Uint8Array) {}
 
   public get raw(): Uint8Array {
     return this.data
@@ -25,10 +22,6 @@ export default class Bytes extends Codable {
 
   public intoString(): string {
     return new TextDecoder().decode(this.data)
-  }
-
-  public encode(coder: ICoder): string {
-    return coder.encodeParameter(this)
   }
 
   public toString() {
