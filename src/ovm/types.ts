@@ -11,17 +11,17 @@ export interface Decision {
 }
 
 export class Property {
-  deciderAddress: Address
-  inputs: Bytes[]
+  public deciderAddress: Address
+  public inputs: Bytes[]
 
   constructor(deciderAddress: Address, inputs: Bytes[]) {
     this.deciderAddress = deciderAddress
     this.inputs = inputs
   }
-  encode(): Bytes {
+  public encode(): Bytes {
     return JSON.stringify([this.deciderAddress, this.inputs])
   }
-  static decode(bytes: Bytes): Property {
+  public static decode(bytes: Bytes): Property {
     const decoded = JSON.parse(bytes)
     return new Property(decoded[0], decoded[1])
   }
