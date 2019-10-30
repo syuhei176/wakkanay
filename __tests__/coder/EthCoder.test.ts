@@ -1,4 +1,7 @@
-import EthCoder, { getEthTypeStringRep } from '../../src/coder/EthCoder'
+import EthCoder, {
+  getEthTypeStringRep,
+  getEthParamType
+} from '../../src/coder/EthCoder'
 import {
   Codable,
   Address,
@@ -23,5 +26,11 @@ describe('EthCoder', () => {
   describe('getEthTypeStringRep()', () => {
     test.todo('getEthTypeStringRep for Tuple')
     test.todo('getEthTypeStringRep for Struct')
+  })
+
+  describe('getEthParamType()', () => {
+    test('getEthParamType for Tuple', () => {})
+
+    test.todo('getEthParamType for Struct', () => {})
   })
 })

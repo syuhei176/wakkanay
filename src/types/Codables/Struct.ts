@@ -6,7 +6,10 @@ export default class Struct implements Codable {
     return new Struct(data)
   }
 
-  constructor(readonly data: { [key: string]: Codable }) {}
+  constructor(
+    readonly data: { [key: string]: Codable },
+    readonly name?: string
+  ) {}
 
   public get raw() {
     const ret = {
