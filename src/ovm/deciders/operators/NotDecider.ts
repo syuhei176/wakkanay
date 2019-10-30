@@ -1,7 +1,7 @@
 import { Bytes } from '../../../types'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
-import { IDeciderManager } from '../../interfaces/IDeciderManager'
+import { DeciderManager } from '../../DeciderManager'
 
 /**
  * NotDecider recieves one input and returns logical negation of its decision.
@@ -9,7 +9,7 @@ import { IDeciderManager } from '../../interfaces/IDeciderManager'
  */
 export class NotDecider implements Decider {
   public async decide(
-    manager: IDeciderManager,
+    manager: DeciderManager,
     inputs: Bytes[]
   ): Promise<Decision> {
     const property = Property.decode(inputs[0])

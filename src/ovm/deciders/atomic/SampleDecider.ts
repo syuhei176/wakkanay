@@ -1,14 +1,14 @@
 import { Bytes } from '../../../types'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
-import { IDeciderManager } from '../../interfaces/IDeciderManager'
+import { DeciderManager } from '../../DeciderManager'
 
 /**
  * SampleDecider decide depending on first input.
  */
 export class SampleDecider implements Decider {
   public async decide(
-    manager: IDeciderManager,
+    manager: DeciderManager,
     inputs: Bytes[]
   ): Promise<Decision> {
     return {
