@@ -3,6 +3,10 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
 import { IDeciderManager } from '../../interfaces/IDeciderManager'
 
+/**
+ * NotDecider recieves one input and returns logical negation of its decision.
+ * If decision outcome is false, valid challenge is inner property.
+ */
 export class NotDecider implements Decider {
   public async decide(
     manager: IDeciderManager,
