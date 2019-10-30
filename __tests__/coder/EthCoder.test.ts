@@ -1,9 +1,5 @@
-import EthCoder, {
-  getEthTypeStringRep,
-  getEthParamType
-} from '../../src/coder/EthCoder'
+import EthCoder, { getEthParamType } from '../../src/coder/EthCoder'
 import {
-  Codable,
   Address,
   Bytes,
   Integer,
@@ -23,17 +19,12 @@ describe('EthCoder', () => {
     test.todo('decode tuple')
   })
 
-  describe('getEthTypeStringRep()', () => {
-    test.todo('getEthTypeStringRep for Tuple')
-    test.todo('getEthTypeStringRep for Struct')
-  })
-
   describe('getEthParamType()', () => {
     test('getEthParamType for Tuple', () => {
       const tuple = Tuple.from([
-        Integer.from(1),
-        Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2'),
-        Bytes.fromString('hello')
+        Integer.default(),
+        Address.default(),
+        Bytes.default()
       ])
 
       expect(getEthParamType(tuple)).toStrictEqual({
@@ -46,6 +37,74 @@ describe('EthCoder', () => {
       })
     })
 
-    test.todo('getEthParamType for Struct')
+    test('getEthParamType for nested Tuple', () => {
+      const tuple = Tuple.from([
+        Tuple.from([Integer.default()]),
+        Integer.default(),
+        Address.default(),
+        Bytes.default()
+      ])
+
+      expect(getEthParamType(tuple)).toStrictEqual({
+        type: 'tuple',
+        components: [
+          {
+            type: 'tuple',
+            name: '0',
+            components: [{ type: 'uint256', name: '0' }]
+          },
+          { type: 'uint256', name: '1' },
+          { type: 'address', name: '2' },
+          { type: 'bytes', name: '3' }
+        ]
+      })
+    })
+
+    test('getEthParamType for Struct', () => {
+      const struct = Struct.from({
+        num: Integer.default(),
+        addr: Address.default(),
+        greet: Bytes.default()
+      })
+
+      expect(getEthParamType(struct)).toStrictEqual({
+        type: 'tuple',
+        components: [
+          { type: 'address', name: 'addr' },
+          { type: 'bytes', name: 'greet' },
+          { type: 'uint256', name: 'num' }
+        ]
+      })
+    })
+
+    test('getEthParamType for nested Struct', () => {
+      const struct = Struct.from({
+        from: Struct.from({
+          addr: Address.default()
+        }),
+        num: Integer.default(),
+        addr: Address.default(),
+        greet: Bytes.default()
+      })
+
+      expect(getEthParamType(struct)).toStrictEqual({
+        type: 'tuple',
+        components: [
+          { type: 'address', name: 'addr' },
+          {
+            type: 'tuple',
+            name: 'from',
+            components: [
+              {
+                type: 'address',
+                name: 'addr'
+              }
+            ]
+          },
+          { type: 'bytes', name: 'greet' },
+          { type: 'uint256', name: 'num' }
+        ]
+      })
+    })
   })
 })
