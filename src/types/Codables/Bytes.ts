@@ -1,4 +1,5 @@
 import Codable from './Codable'
+import util from 'util'
 
 export default class Bytes implements Codable {
   static from(data: Uint8Array): Bytes {
@@ -10,7 +11,7 @@ export default class Bytes implements Codable {
   }
 
   static fromString(data: string): Bytes {
-    const u = new TextEncoder().encode(data)
+    const u = new util.TextEncoder().encode(data)
     return new Bytes(u)
   }
 
@@ -21,7 +22,7 @@ export default class Bytes implements Codable {
   }
 
   public intoString(): string {
-    return new TextDecoder().decode(this.data)
+    return new util.TextDecoder().decode(this.data)
   }
 
   public toString() {
