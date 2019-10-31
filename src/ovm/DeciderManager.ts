@@ -7,11 +7,16 @@ import { Property, Decision } from './types'
  */
 export class DeciderManager {
   private deciders: Map<Address, Decider>
+  private operators: Map<String, Address>
   constructor() {
     this.deciders = new Map<Address, Decider>()
+    this.operators = new Map<String, Address>()
   }
-  public setDecider(address: Address, decier: Decider) {
+  public setDecider(address: Address, decier: Decider, operator?: string) {
     this.deciders.set(address, decier)
+    if (operator) {
+      this.operators.set(operator, address)
+    }
   }
   public getDecider(address: Address): Decider | null {
     const decider = this.deciders.get(address)
@@ -19,6 +24,14 @@ export class DeciderManager {
       return decider
     } else {
       return null
+    }
+  }
+  public getDeciderAddress(operator: string): Address {
+    const address = this.operators.get(operator)
+    if (address) {
+      return address
+    } else {
+      throw new Error("initialization isn't done")
     }
   }
   public async decide(property: Property): Promise<Decision> {
