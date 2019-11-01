@@ -2,7 +2,7 @@ import Codable from './Codable'
 
 // Interface for Codable Class
 interface CodableF<T extends Codable> {
-  new (arg: any): T
+  default(): T
 }
 
 export default class List<T extends Codable> implements Codable {
@@ -11,6 +11,14 @@ export default class List<T extends Codable> implements Codable {
   }
 
   constructor(public C: CodableF<T>, public data: Array<T>) {}
+
+  public static default<T extends Codable>(C: CodableF<T>, d: T): List<T> {
+    return new List<T>(C, [d])
+  }
+
+  public getC(): CodableF<T> {
+    return this.C
+  }
 
   public get raw(): Array<T> {
     return this.data.map(i => i.raw)

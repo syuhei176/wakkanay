@@ -18,14 +18,22 @@ describe('Codables', () => {
     })
 
     test('List.toTypeString', () => {
-      const v = List.from([
-        Struct.from({
-          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-        }),
-        Struct.from({
-          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-        })
-      ])
+      const v = List.from(
+        {
+          default: () =>
+            Struct.from({
+              address: Address.default()
+            })
+        },
+        [
+          Struct.from({
+            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+          }),
+          Struct.from({
+            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+          })
+        ]
+      )
       expect(v.toTypeString()).toBe('List<Struct<{address:Address}>>')
     })
   })
@@ -49,19 +57,27 @@ describe('Codables', () => {
     })
 
     test('List.toString', () => {
-      const v = List.from([Integer.from(1), Integer.from(2)])
+      const v = List.from(Integer, [Integer.from(1), Integer.from(2)])
       expect(v.toString()).toBe('List<Integer>([Integer(1),Integer(2)])')
     })
 
     test('List.toString() with custom Struct', () => {
-      const v = List.from([
-        Struct.from({
-          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-        }),
-        Struct.from({
-          address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-        })
-      ])
+      const v = List.from(
+        {
+          default: () =>
+            Struct.from({
+              address: Address.default()
+            })
+        },
+        [
+          Struct.from({
+            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+          }),
+          Struct.from({
+            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+          })
+        ]
+      )
       expect(v.toString()).toBe(
         'List<Struct<{address:Address}>>([Struct({address:Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)}),Struct({address:Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)})])'
       )
@@ -105,7 +121,7 @@ describe('Codables', () => {
     })
 
     test('List.raw', () => {
-      const v = List.from([Integer.from(1), Integer.from(2)])
+      const v = List.from(Integer, [Integer.from(1), Integer.from(2)])
       expect(v.raw).toStrictEqual([1, 2])
     })
 
