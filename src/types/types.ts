@@ -8,3 +8,10 @@ export interface Property {
   deciderAddress: Address
   inputs: Bytes[]
 }
+
+export type ParamType = {
+  name?: string
+  type: string
+  indexed?: boolean
+  components?: Array<any>
+}
