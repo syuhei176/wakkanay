@@ -1,17 +1,28 @@
 import { DeciderManager } from '../../src/ovm/DeciderManager'
 import { NotDecider, SampleDecider } from '../../src/ovm/deciders'
 import { Property } from '../../src/ovm/types'
+import { Address, Bytes } from '../../src/types/Codables'
+import { utils } from 'ethers'
+import EthCoder from '../../src/coder/EthCoder'
 
 describe('NotDecider', () => {
-  const SampleDeciderAddress = '1'
-  const NotDeciderAddress = '2'
+  const SampleDeciderAddress = Address.from(
+    '0x000000000000000000000000000000000000001'
+  )
+  const NotDeciderAddress = Address.from(
+    '0x0000000000000000000000000000000000000002'
+  )
   it('decide not(false)', async () => {
     const deciderManager = new DeciderManager()
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
       new Property(NotDeciderAddress, [
-        new Property(SampleDeciderAddress, []).encode()
+        Bytes.from(
+          utils.arrayify(
+            EthCoder.encode(new Property(SampleDeciderAddress, []).toStruct())
+          )
+        )
       ])
     )
     expect(decision.outcome).toEqual(true)
@@ -22,7 +33,15 @@ describe('NotDecider', () => {
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
       new Property(NotDeciderAddress, [
-        new Property(SampleDeciderAddress, ['true']).encode()
+        Bytes.from(
+          utils.arrayify(
+            EthCoder.encode(
+              new Property(SampleDeciderAddress, [
+                Bytes.fromString('true')
+              ]).toStruct()
+            )
+          )
+        )
       ])
     )
     expect(decision.outcome).toEqual(false)

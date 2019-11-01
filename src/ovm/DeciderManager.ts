@@ -1,4 +1,4 @@
-import { Address } from '../types'
+import { Address } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
 import { Property, Decision } from './types'
 

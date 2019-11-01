@@ -1,4 +1,4 @@
-import { Bytes } from '../../../types'
+import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManager } from '../../DeciderManager'

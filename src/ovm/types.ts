@@ -1,4 +1,5 @@
-import { Address, Bytes } from '../types'
+import { Address, Bytes, List, Struct, Codable } from '../types/Codables'
+import EthCoder from '../coder/EthCoder'
 
 export interface Challenge {
   property: Property
@@ -18,11 +19,22 @@ export class Property {
     this.deciderAddress = deciderAddress
     this.inputs = inputs
   }
-  public encode(): Bytes {
-    return JSON.stringify([this.deciderAddress, this.inputs])
+  public toStruct(): Struct {
+    return new Struct({
+      deciderAddress: this.deciderAddress,
+      inputs: new List(Bytes, this.inputs)
+    })
   }
-  public static decode(bytes: Bytes): Property {
-    const decoded = JSON.parse(bytes)
-    return new Property(decoded[0], decoded[1])
+  public static getParamType(): Struct {
+    return Struct.from({
+      deciderAddress: Address.default(),
+      inputs: List.default(Bytes, Bytes.default())
+    })
+  }
+  public static fromStruct(_struct: Struct): Property {
+    return new Property(
+      _struct.raw['deciderAddress'] as Address,
+      (_struct.raw['inputs'] as List<Bytes>).raw
+    )
   }
 }
