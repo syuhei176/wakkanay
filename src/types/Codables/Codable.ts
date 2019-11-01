@@ -1,7 +1,7 @@
 /**
  * Codable abstract class
- * All types that can be encoded to certain encoding format must implement
- * this interface.
+ * primitive types implement this interface.
+ * custom codable class had better implement transformation function into Struct Type
  */
 export default interface Codable {
   raw: any
