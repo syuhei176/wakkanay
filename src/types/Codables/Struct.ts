@@ -6,10 +6,7 @@ export default class Struct implements Codable {
     return new Struct(data)
   }
 
-  constructor(
-    readonly data: { [key: string]: Codable },
-    readonly name?: string
-  ) {}
+  constructor(public data: { [key: string]: Codable }, public name?: string) {}
 
   public get raw() {
     const ret = {
@@ -18,6 +15,10 @@ export default class Struct implements Codable {
 
     Object.keys(this.data).forEach(k => (ret[k] = this.data[k].raw))
     return ret
+  }
+
+  public setData(data: { [key: string]: Codable }) {
+    this.data = data
   }
 
   public toString(): string {

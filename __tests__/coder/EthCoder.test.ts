@@ -1,3 +1,4 @@
+import ethers from 'ethers'
 import EthCoder, { getEthParamType } from '../../src/coder/EthCoder'
 import {
   Address,
@@ -36,7 +37,28 @@ describe('EthCoder', () => {
   })
 
   describe('decode', () => {
-    test.todo('decode struct')
+    test('decode struct', () => {
+      EthCoder.decode(Integer, v)
+      const b =
+        '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000472ec0185ebb8202f3d4ddb0226998889663cf200000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000'
+      const t = [
+        {
+          type: 'tuple',
+          components: [
+            { type: 'address', name: 'addr' },
+            { type: 'bytes', name: 'greet' },
+            { type: 'uint256', name: 'num' }
+          ]
+        }
+      ]
+
+      expect(EthCoder.decode(t, b)).toStrictEqual({
+        num: 5,
+        addr: '0x0472ec0185ebb8202f3d4ddb0226998889663cf2',
+        greet: new Uint8Array([104, 101, 108, 108, 111])
+      })
+    })
+
     test.todo('decode tuple')
   })
 

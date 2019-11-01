@@ -9,10 +9,14 @@ export default class Address implements Codable {
     return new Address('0x0000000000000000000000000000000000000000')
   }
 
-  constructor(readonly data: string) {}
+  constructor(private data: string) {}
 
   public get raw(): string {
     return this.data
+  }
+
+  public setData(data: string) {
+    this.data = data
   }
 
   public toTypeString(): string {

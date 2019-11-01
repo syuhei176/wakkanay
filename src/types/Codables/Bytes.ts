@@ -15,10 +15,14 @@ export default class Bytes implements Codable {
     return new Bytes(u)
   }
 
-  constructor(readonly data: Uint8Array) {}
+  constructor(public data: Uint8Array) {}
 
   public get raw(): Uint8Array {
     return this.data
+  }
+
+  public setData(data: Uint8Array) {
+    this.data = data
   }
 
   public intoString(): string {

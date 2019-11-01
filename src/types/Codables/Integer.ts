@@ -9,14 +9,18 @@ export default class Integer implements Codable {
     return new Integer(0)
   }
 
-  constructor(private v: number) {}
+  constructor(public data: number) {}
 
   public get raw(): number {
-    return this.v
+    return this.data
+  }
+
+  public setData(num: number) {
+    this.data = num
   }
 
   public toString() {
-    return `Integer(${this.v})`
+    return `Integer(${this.data})`
   }
 
   public toTypeString(): string {

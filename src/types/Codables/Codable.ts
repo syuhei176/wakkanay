@@ -5,6 +5,7 @@
  */
 export default interface Codable {
   raw: any
+  setData(data: any): void
   toTypeString(): string
   toString(): string
 }

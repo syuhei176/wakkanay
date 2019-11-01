@@ -5,10 +5,14 @@ export default class Tuple implements Codable {
     return new Tuple(data)
   }
 
-  constructor(readonly data: Array<Codable>) {}
+  constructor(public data: Array<Codable>) {}
 
   public get raw(): Array<Codable> {
     return this.data.map(i => i.raw)
+  }
+
+  public setData(data: Array<Codable>) {
+    this.data = data
   }
 
   public toString() {
