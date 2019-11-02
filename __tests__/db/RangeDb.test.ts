@@ -2,12 +2,12 @@ import { InMemoryKeyValueStore, RangeDb } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 
 describe('RangeDb', () => {
-  const dbName = Bytes.fromString('root')
+  const testDbName = Bytes.fromString('root')
   const alice = Bytes.fromString('alice')
   const bob = Bytes.fromString('bob')
   const carol = Bytes.fromString('carol')
   it('get ranges', async () => {
-    const kvs = new InMemoryKeyValueStore(dbName)
+    const kvs = new InMemoryKeyValueStore(testDbName)
     const rangeDb = new RangeDb(kvs)
     await rangeDb.put(0, 100, alice)
     await rangeDb.put(100, 200, bob)
@@ -16,7 +16,7 @@ describe('RangeDb', () => {
     expect(ranges.length).toEqual(3)
   })
   it('get small range', async () => {
-    const kvs = new InMemoryKeyValueStore(dbName)
+    const kvs = new InMemoryKeyValueStore(testDbName)
     const rangeDb = new RangeDb(kvs)
     await rangeDb.put(120, 150, alice)
     await rangeDb.put(0, 20, bob)
@@ -25,21 +25,21 @@ describe('RangeDb', () => {
     expect(ranges.length).toEqual(1)
   })
   it('get large range', async () => {
-    const kvs = new InMemoryKeyValueStore(dbName)
+    const kvs = new InMemoryKeyValueStore(testDbName)
     const rangeDb = new RangeDb(kvs)
     await rangeDb.put(0, 500, alice)
     const ranges = await rangeDb.get(100, 200)
     expect(ranges.length).toEqual(1)
   })
   it("don't get edge", async () => {
-    const kvs = new InMemoryKeyValueStore(dbName)
+    const kvs = new InMemoryKeyValueStore(testDbName)
     const rangeDb = new RangeDb(kvs)
     await rangeDb.put(80, 100, alice)
     const ranges = await rangeDb.get(100, 200)
     expect(ranges.length).toEqual(0)
   })
   it('del ranges', async () => {
-    const kvs = new InMemoryKeyValueStore(dbName)
+    const kvs = new InMemoryKeyValueStore(testDbName)
     const rangeDb = new RangeDb(kvs)
     await rangeDb.put(0, 100, alice)
     await rangeDb.put(100, 200, bob)
@@ -49,7 +49,7 @@ describe('RangeDb', () => {
     expect(ranges.length).toEqual(0)
   })
   it('update range', async () => {
-    const kvs = new InMemoryKeyValueStore(dbName)
+    const kvs = new InMemoryKeyValueStore(testDbName)
     const rangeDb = new RangeDb(kvs)
     await rangeDb.put(0, 300, alice)
     await rangeDb.put(100, 200, bob)

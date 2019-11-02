@@ -2,33 +2,33 @@ import { InMemoryKeyValueStore } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 
 describe('KeyValueStore', () => {
-  const dbName = Bytes.fromString('root')
-  const dbKey = Bytes.fromString('aaa')
-  const dbValue = Bytes.fromString('value')
+  const testDbName = Bytes.fromString('root')
+  const testDbKey = Bytes.fromString('aaa')
+  const testDbValue = Bytes.fromString('value')
   describe('get', () => {
     it('suceed to get', async () => {
-      const kvs = new InMemoryKeyValueStore(dbName)
-      kvs.put(dbKey, dbValue)
-      const result = await kvs.get(dbKey)
+      const kvs = new InMemoryKeyValueStore(testDbName)
+      kvs.put(testDbKey, testDbValue)
+      const result = await kvs.get(testDbKey)
       expect(result).not.toBeNull()
     })
     it('fail to get', async () => {
-      const kvs = new InMemoryKeyValueStore(dbName)
-      const result = await kvs.get(dbKey)
+      const kvs = new InMemoryKeyValueStore(testDbName)
+      const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
   })
   describe('iter', () => {
     it('suceed to next', async () => {
-      const kvs = new InMemoryKeyValueStore(dbName)
-      kvs.put(dbKey, dbValue)
-      const iter = await kvs.iter(dbKey)
+      const kvs = new InMemoryKeyValueStore(testDbName)
+      kvs.put(testDbKey, testDbValue)
+      const iter = await kvs.iter(testDbKey)
       const result = await iter.next()
       expect(result).not.toBeNull()
     })
     it('fail to next', async () => {
-      const kvs = new InMemoryKeyValueStore(dbName)
-      const iter = await kvs.iter(dbKey)
+      const kvs = new InMemoryKeyValueStore(testDbName)
+      const iter = await kvs.iter(testDbKey)
       const result = await iter.next()
       expect(result).toBeNull()
     })

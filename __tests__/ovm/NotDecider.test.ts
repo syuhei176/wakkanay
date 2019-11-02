@@ -15,17 +15,14 @@ describe('NotDecider', () => {
   const trueProperty = new Property(SampleDeciderAddress, [
     Bytes.fromString('true')
   ])
+  const falseProperty = new Property(SampleDeciderAddress, [])
   it('decide not(false)', async () => {
     const deciderManager = new DeciderManager()
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
       new Property(NotDeciderAddress, [
-        Bytes.from(
-          utils.arrayify(
-            EthCoder.encode(new Property(SampleDeciderAddress, []).toStruct())
-          )
-        )
+        Bytes.from(utils.arrayify(EthCoder.encode(falseProperty.toStruct())))
       ])
     )
     expect(decision.outcome).toEqual(true)
