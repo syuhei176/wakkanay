@@ -7,11 +7,14 @@ import EthCoder from '../../src/coder/EthCoder'
 
 describe('NotDecider', () => {
   const SampleDeciderAddress = Address.from(
-    '0x000000000000000000000000000000000000001'
+    '0x0000000000000000000000000000000000000001'
   )
   const NotDeciderAddress = Address.from(
     '0x0000000000000000000000000000000000000002'
   )
+  const trueProperty = new Property(SampleDeciderAddress, [
+    Bytes.fromString('true')
+  ])
   it('decide not(false)', async () => {
     const deciderManager = new DeciderManager()
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
@@ -33,22 +36,14 @@ describe('NotDecider', () => {
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
       new Property(NotDeciderAddress, [
-        Bytes.from(
-          utils.arrayify(
-            EthCoder.encode(
-              new Property(SampleDeciderAddress, [
-                Bytes.fromString('true')
-              ]).toStruct()
-            )
-          )
-        )
+        Bytes.from(utils.arrayify(EthCoder.encode(trueProperty.toStruct())))
       ])
     )
     expect(decision.outcome).toEqual(false)
     // valid challenge is SampleDecider(true)
     expect(decision.challenges[0]).toEqual({
       challengeInput: null,
-      property: { deciderAddress: SampleDeciderAddress, inputs: ['true'] }
+      property: trueProperty
     })
   })
 })

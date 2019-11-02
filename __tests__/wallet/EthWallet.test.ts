@@ -1,6 +1,6 @@
 import { EthWalletFactory, IWallet, IWalletFactory } from '../../src/wallet'
 import { ethers } from 'ethers'
-import { Address } from '../../src/types'
+import { Address } from '../../src/types/Codables'
 
 describe('EthWallet', () => {
   let factory: IWalletFactory, wallet: IWallet, address: Address
@@ -16,7 +16,7 @@ describe('EthWallet', () => {
     const signatureDigest = await wallet.signMessage(message)
     const signature = ethers.utils.splitSignature(signatureDigest)
     const recoverAddress = ethers.utils.recoverAddress(message, signature)
-    expect(recoverAddress).toBe(address)
+    expect(recoverAddress).toBe(ethers.utils.getAddress(address.data))
   })
   it('fail to sign string', () => {
     const message = 'message'

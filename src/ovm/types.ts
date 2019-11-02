@@ -33,8 +33,8 @@ export class Property {
   }
   public static fromStruct(_struct: Struct): Property {
     return new Property(
-      _struct.raw['deciderAddress'] as Address,
-      (_struct.raw['inputs'] as List<Bytes>).raw
+      _struct.data['deciderAddress'] as Address,
+      (_struct.data['inputs'] as List<Bytes>).data
     )
   }
 }
