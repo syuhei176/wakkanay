@@ -1,4 +1,4 @@
-import { Bytes } from '../types'
+import { Bytes } from '../types/Codables'
 import { RangeStore, RangeRecord as Range } from './RangeStore'
 import { BatchOperation, KeyValueStore } from './KeyValueStore'
 
@@ -9,21 +9,21 @@ export class RangeDb implements RangeStore {
   }
 
   public async get(start: number, end: number): Promise<Range[]> {
-    const iter = await this.kvs.iter(start.toString())
+    const iter = await this.kvs.iter(Bytes.fromString(start.toString()))
     const keyValue = await iter.next()
     if (keyValue === null) {
       return []
     }
 
     const ranges = []
-    let range = Range.decode(keyValue.value.toString())
+    let range = Range.decode(keyValue.value)
     while (range.intersect(start, end)) {
       ranges.push(range)
       const keyValue = await iter.next()
       if (keyValue === null) {
         break
       }
-      range = Range.decode(keyValue.value.toString())
+      range = Range.decode(keyValue.value)
     }
     return ranges
   }
@@ -60,7 +60,7 @@ export class RangeDb implements RangeStore {
     const ops: BatchOperation[] = ranges.map(r => {
       return {
         type: 'Del',
-        key: r.end.toString()
+        key: Bytes.fromString(r.end.toString())
       }
     })
     await this.kvs.batch(ops)
@@ -71,7 +71,7 @@ export class RangeDb implements RangeStore {
     const ops: BatchOperation[] = ranges.map(r => {
       return {
         type: 'Put',
-        key: r.end.toString(),
+        key: Bytes.fromString(r.end.toString()),
         value: r.encode()
       }
     })

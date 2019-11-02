@@ -1,4 +1,4 @@
-import { Bytes } from '../types'
+import { Bytes } from '../types/Codables'
 import { KeyValueStore } from './KeyValueStore'
 import { RangeRecord as Range, RangeStore } from './RangeStore'
 

@@ -1,9 +1,9 @@
-import { Bytes } from '../types'
+import { Bytes } from '../types/Codables'
 
 export class RangeRecord {
   public static decode(bytes: Bytes): RangeRecord {
-    const obj = JSON.parse(bytes)
-    return new RangeRecord(obj.start, obj.end, obj.value)
+    const obj = JSON.parse(bytes.intoString())
+    return new RangeRecord(obj.start, obj.end, Bytes.fromString(obj.value))
   }
   public start: number
   public end: number
@@ -14,7 +14,13 @@ export class RangeRecord {
     this.value = value
   }
   public encode(): Bytes {
-    return JSON.stringify(this)
+    return Bytes.fromString(
+      JSON.stringify({
+        start: this.start,
+        end: this.end,
+        value: this.value.intoString()
+      })
+    )
   }
   public intersect(start: number, end: number): boolean {
     const maxStart = Math.max(this.start, start)

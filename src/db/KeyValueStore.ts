@@ -1,4 +1,4 @@
-import { Bytes } from '../types'
+import { Bytes } from '../types/Codables'
 
 export interface PutBatchOperation {
   type: 'Put'

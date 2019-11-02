@@ -1,12 +1,12 @@
 import { Iterator, KeyValueStore, BatchOperation } from './KeyValueStore'
-import { Bytes } from '../types'
+import { Bytes } from '../types/Codables'
 import levelup from 'levelup'
 import memdown from 'memdown'
 import { AbstractIterator } from 'abstract-leveldown'
 
 export class MemoryIterator implements Iterator {
-  public iter: AbstractIterator<Bytes, Bytes>
-  constructor(iter: AbstractIterator<Bytes, Bytes>) {
+  public iter: AbstractIterator<string, string>
+  constructor(iter: AbstractIterator<string, string>) {
     this.iter = iter
   }
   public next(): Promise<{ key: Bytes; value: Bytes } | null> {
@@ -16,7 +16,10 @@ export class MemoryIterator implements Iterator {
           reject(err)
         } else {
           if (key) {
-            resolve({ key, value })
+            resolve({
+              key: Bytes.fromString(key),
+              value: Bytes.fromString(value)
+            })
           } else {
             resolve(null)
           }
@@ -27,7 +30,7 @@ export class MemoryIterator implements Iterator {
 }
 
 export class InMemoryKeyValueStore implements KeyValueStore {
-  public prefix: Bytes
+  public prefix: Bytes = Bytes.default()
   public db = levelup(memdown())
 
   constructor(prefix: Bytes) {
@@ -36,19 +39,23 @@ export class InMemoryKeyValueStore implements KeyValueStore {
 
   public async get(key: Bytes): Promise<Bytes | null> {
     return new Promise(resolve => {
-      this.db.get(this.getKey(key), { asBuffer: false }, (err, value) => {
-        if (err) {
-          return resolve(null)
-        } else {
-          return resolve(value)
+      this.db.get(
+        this.getKey(key).intoString(),
+        { asBuffer: false },
+        (err, value) => {
+          if (err) {
+            return resolve(null)
+          } else {
+            return resolve(Bytes.fromString(value))
+          }
         }
-      })
+      )
     })
   }
 
   public async put(key: Bytes, value: Bytes): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.put(this.getKey(key), value, err => {
+      this.db.put(this.getKey(key).intoString(), value.intoString(), err => {
         if (err) {
           return reject(err)
         } else {
@@ -60,7 +67,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
 
   public async del(key: Bytes): Promise<void> {
     return new Promise(() => {
-      this.db.del(this.getKey(key), () => {
+      this.db.del(this.getKey(key).intoString(), () => {
         Promise.resolve()
       })
     })
@@ -71,9 +78,12 @@ export class InMemoryKeyValueStore implements KeyValueStore {
       let batch = this.db.batch()
       operations.forEach(op => {
         if (op.type === 'Put') {
-          batch = batch.put(this.getKey(op.key), op.value)
+          batch = batch.put(
+            this.getKey(op.key).intoString(),
+            op.value.intoString()
+          )
         } else if (op.type === 'Del') {
-          batch = batch.del(this.getKey(op.key))
+          batch = batch.del(this.getKey(op.key).intoString())
         }
       })
       batch.write(() => {
@@ -83,7 +93,9 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   }
 
   public async iter(prefix: Bytes): Promise<MemoryIterator> {
-    return new MemoryIterator(this.db.iterator({ gte: this.getKey(prefix) }))
+    return new MemoryIterator(
+      this.db.iterator({ gte: this.getKey(prefix).intoString() })
+    )
   }
 
   public bucket(key: Bytes): KeyValueStore {
@@ -91,6 +103,6 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   }
 
   private getKey(key: Bytes): Bytes {
-    return this.prefix + key
+    return Bytes.concat(this.prefix, key)
   }
 }
