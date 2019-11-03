@@ -3,7 +3,6 @@ import EthCoder from '../../../coder/EthCoder'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
-import { utils } from 'ethers'
 
 /**
  * NotDecider recieves one input and returns logical negation of its decision.
@@ -15,7 +14,7 @@ export class NotDecider implements Decider {
     inputs: Bytes[]
   ): Promise<Decision> {
     const property = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), utils.hexlify(inputs[0].raw))
+      EthCoder.decode(Property.getParamType(), inputs[0].toHexString())
     )
     const decision = await manager.decide(property)
     return {
