@@ -7,16 +7,21 @@ import { Property, Decision } from './types'
  */
 export class DeciderManager {
   private deciders: Map<string, Decider>
+  private operators: Map<String, Address>
   constructor() {
     this.deciders = new Map<string, Decider>()
+    this.operators = new Map<String, Address>()
   }
   /**
    * Sets new decider with address
    * @param address
    * @param decier
    */
-  public setDecider(address: Address, decier: Decider) {
+  public setDecider(address: Address, decier: Decider, operator?: string) {
     this.deciders.set(address.raw, decier)
+    if (operator) {
+      this.operators.set(operator, address)
+    }
   }
   /**
    * Gets decider with address
@@ -28,6 +33,18 @@ export class DeciderManager {
       return decider
     } else {
       return null
+    }
+  }
+  /**
+   * Gets address of a decider with operator name
+   * @param operator
+   */
+  public getDeciderAddress(operator: string): Address {
+    const address = this.operators.get(operator)
+    if (address) {
+      return address
+    } else {
+      throw new Error("initialization isn't done")
     }
   }
   /**
