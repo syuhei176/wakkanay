@@ -14,7 +14,7 @@ export class NotDecider implements Decider {
     inputs: Bytes[]
   ): Promise<Decision> {
     const property = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[0].toHexString())
+      EthCoder.decode(Property.getParamType(), inputs[0])
     )
     const decision = await manager.decide(property)
     return {
