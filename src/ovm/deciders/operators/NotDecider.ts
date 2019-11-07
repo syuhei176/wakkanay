@@ -11,17 +11,20 @@ import { DeciderManager } from '../../DeciderManager'
 export class NotDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    property: Property
   ): Promise<Decision> {
-    const property = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[0].toHexString())
+    const child = Property.fromStruct(
+      EthCoder.decode(
+        Property.getParamType(),
+        property.properties[0].toHexString()
+      )
     )
-    const decision = await manager.decide(property)
+    const decision = await manager.decide(child)
     return {
       outcome: !decision.outcome,
       challenges: [
         {
-          property: property,
+          property: child,
           challengeInput: null
         }
       ]

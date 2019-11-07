@@ -77,7 +77,7 @@ export class DeciderManager {
   public async decide(property: Property): Promise<Decision> {
     const decider = this.getDecider(property.deciderAddress)
     if (decider) {
-      return await decider.decide(this, property.inputs)
+      return await decider.decide(this, property)
     } else {
       throw new Error('Decider not found')
     }

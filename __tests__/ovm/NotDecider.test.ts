@@ -12,18 +12,22 @@ describe('NotDecider', () => {
   const NotDeciderAddress = Address.from(
     '0x0000000000000000000000000000000000000002'
   )
-  const trueProperty = new Property(SampleDeciderAddress, [
-    Bytes.fromString('true')
-  ])
-  const falseProperty = new Property(SampleDeciderAddress, [])
+  const trueProperty = new Property(
+    SampleDeciderAddress,
+    [Bytes.fromString('true')],
+    []
+  )
+  const falseProperty = new Property(SampleDeciderAddress, [], [])
   it('decide not(false)', async () => {
     const deciderManager = new DeciderManager()
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
-      new Property(NotDeciderAddress, [
-        Bytes.from(utils.arrayify(EthCoder.encode(falseProperty.toStruct())))
-      ])
+      new Property(
+        NotDeciderAddress,
+        [],
+        [Bytes.from(utils.arrayify(EthCoder.encode(falseProperty.toStruct())))]
+      )
     )
     expect(decision.outcome).toEqual(true)
   })
@@ -32,9 +36,11 @@ describe('NotDecider', () => {
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
-      new Property(NotDeciderAddress, [
-        Bytes.from(utils.arrayify(EthCoder.encode(trueProperty.toStruct())))
-      ])
+      new Property(
+        NotDeciderAddress,
+        [],
+        [Bytes.from(utils.arrayify(EthCoder.encode(trueProperty.toStruct())))]
+      )
     )
     expect(decision.outcome).toEqual(false)
     // valid challenge is SampleDecider(true)

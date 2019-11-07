@@ -10,13 +10,19 @@ import { DeciderManager } from '../../DeciderManager'
 export class ForAllSuchThatDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    property: Property
   ): Promise<Decision> {
     const quantifierProperty = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[0].toHexString())
+      EthCoder.decode(
+        Property.getParamType(),
+        property.properties[0].toHexString()
+      )
     )
     const innerProperty = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[2].toHexString())
+      EthCoder.decode(
+        Property.getParamType(),
+        property.properties[1].toHexString()
+      )
     )
     const quantifier = manager.getQuantifier(quantifierProperty.deciderAddress)
     if (quantifier) {
@@ -24,7 +30,7 @@ export class ForAllSuchThatDecider implements Decider {
         manager,
         quantifierProperty.inputs
       )
-      // set variable inputs[1] quantifiedResult
+      // set variable property.inputs[0] quantifiedResult
       manager.decide(innerProperty)
     }
     return {

@@ -1,5 +1,4 @@
 import { Address, Bytes, List, Struct, Codable } from '../types/Codables'
-import EthCoder from '../coder/EthCoder'
 
 export interface Challenge {
   property: Property
@@ -14,27 +13,32 @@ export interface Decision {
 export class Property {
   public deciderAddress: Address
   public inputs: Bytes[]
+  public properties: Bytes[]
 
-  constructor(deciderAddress: Address, inputs: Bytes[]) {
+  constructor(deciderAddress: Address, inputs: Bytes[], properties: Bytes[]) {
     this.deciderAddress = deciderAddress
     this.inputs = inputs
+    this.properties = properties
   }
   public toStruct(): Struct {
     return new Struct({
       deciderAddress: this.deciderAddress,
-      inputs: new List(Bytes, this.inputs)
+      inputs: new List(Bytes, this.inputs),
+      properties: new List(Bytes, this.properties)
     })
   }
   public static getParamType(): Struct {
     return Struct.from({
       deciderAddress: Address.default(),
-      inputs: List.default(Bytes, Bytes.default())
+      inputs: List.default(Bytes, Bytes.default()),
+      properties: List.default(Bytes, Bytes.default())
     })
   }
   public static fromStruct(_struct: Struct): Property {
     return new Property(
       _struct.data['deciderAddress'] as Address,
-      (_struct.data['inputs'] as List<Bytes>).data
+      (_struct.data['inputs'] as List<Bytes>).data,
+      (_struct.data['properties'] as List<Bytes>).data
     )
   }
 }

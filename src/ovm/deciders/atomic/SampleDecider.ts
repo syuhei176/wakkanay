@@ -1,6 +1,5 @@
-import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
-import { Decision } from '../../types'
+import { Decision, Property } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
 
 /**
@@ -9,10 +8,10 @@ import { DeciderManager } from '../../DeciderManager'
 export class SampleDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    property: Property
   ): Promise<Decision> {
     return {
-      outcome: !!inputs[0],
+      outcome: !!property.inputs[0],
       challenges: []
     }
   }

@@ -18,15 +18,17 @@ describe('AndDecider', () => {
   const trueProperty = Bytes.from(
     utils.arrayify(
       EthCoder.encode(
-        new Property(SampleDeciderAddress, [
-          Bytes.fromString('true')
-        ]).toStruct()
+        new Property(
+          SampleDeciderAddress,
+          [Bytes.fromString('true')],
+          []
+        ).toStruct()
       )
     )
   )
   const falseProperty = Bytes.from(
     utils.arrayify(
-      EthCoder.encode(new Property(SampleDeciderAddress, []).toStruct())
+      EthCoder.encode(new Property(SampleDeciderAddress, [], []).toStruct())
     )
   )
   const deciderManager = new DeciderManager()
@@ -42,30 +44,30 @@ describe('AndDecider', () => {
 
   it('decide and(true, true)', async () => {
     const decision = await deciderManager.decide(
-      new Property(AndDeciderAddress, [trueProperty, trueProperty])
+      new Property(AndDeciderAddress, [], [trueProperty, trueProperty])
     )
     expect(decision.outcome).toEqual(true)
   })
   it('decide and(true, false)', async () => {
     const decision = await deciderManager.decide(
-      new Property(AndDeciderAddress, [trueProperty, falseProperty])
+      new Property(AndDeciderAddress, [], [trueProperty, falseProperty])
     )
     expect(decision.outcome).toEqual(false)
     // valid challenge is Not(SampleDecider(false))
     expect(decision.challenges[0]).toEqual({
       challengeInput: challengeInput1,
-      property: new Property(NotDeciderAddress, [falseProperty])
+      property: new Property(NotDeciderAddress, [], [falseProperty])
     })
   })
   it('decide and(false, true)', async () => {
     const decision = await deciderManager.decide(
-      new Property(AndDeciderAddress, [falseProperty, trueProperty])
+      new Property(AndDeciderAddress, [], [falseProperty, trueProperty])
     )
     expect(decision.outcome).toEqual(false)
     // valid challenge is Not(SampleDecider(false))
     expect(decision.challenges[0]).toEqual({
       challengeInput: challengeInput0,
-      property: new Property(NotDeciderAddress, [falseProperty])
+      property: new Property(NotDeciderAddress, [], [falseProperty])
     })
   })
 })

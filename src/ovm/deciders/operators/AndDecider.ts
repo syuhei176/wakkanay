@@ -12,10 +12,10 @@ import { utils } from 'ethers'
 export class AndDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    property: Property
   ): Promise<Decision> {
     const decisions = await Promise.all(
-      inputs
+      property.properties
         .map(input =>
           Property.fromStruct(
             EthCoder.decode(Property.getParamType(), input.toHexString())
@@ -27,9 +27,11 @@ export class AndDecider implements Decider {
             return null
           } else {
             const challenge: Challenge = {
-              property: new Property(manager.getDeciderAddress('Not'), [
-                Bytes.from(utils.arrayify(EthCoder.encode(p.toStruct())))
-              ]),
+              property: new Property(
+                manager.getDeciderAddress('Not'),
+                [],
+                [Bytes.from(utils.arrayify(EthCoder.encode(p.toStruct())))]
+              ),
               challengeInput: Bytes.from(
                 utils.arrayify(EthCoder.encode(Integer.from(index)))
               )
