@@ -2,7 +2,6 @@ import { DeciderManager } from '../../src/ovm/DeciderManager'
 import { NotDecider, SampleDecider } from '../../src/ovm/deciders'
 import { Property } from '../../src/ovm/types'
 import { Address, Bytes } from '../../src/types/Codables'
-import { utils } from 'ethers'
 import EthCoder from '../../src/coder/EthCoder'
 
 describe('NotDecider', () => {
@@ -22,7 +21,7 @@ describe('NotDecider', () => {
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
       new Property(NotDeciderAddress, [
-        Bytes.from(utils.arrayify(EthCoder.encode(falseProperty.toStruct())))
+        EthCoder.encode(falseProperty.toStruct())
       ])
     )
     expect(decision.outcome).toEqual(true)
@@ -33,7 +32,7 @@ describe('NotDecider', () => {
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
       new Property(NotDeciderAddress, [
-        Bytes.from(utils.arrayify(EthCoder.encode(trueProperty.toStruct())))
+        EthCoder.encode(trueProperty.toStruct())
       ])
     )
     expect(decision.outcome).toEqual(false)

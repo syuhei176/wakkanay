@@ -16,12 +16,14 @@ export default class Bytes implements Codable {
   }
 
   static fromHexString(hex: string): Bytes {
-    var match = hex.match(/^(0x)?[0-9a-fA-F]*$/)
+    var match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
     if (match) {
-      const array = match[1].split('').map(h => {
-        return parseInt(h, 16)
-      })
-      return new Bytes(Uint8Array.from(array))
+      const value = match[2]
+      let result = []
+      for (let i = 0; i < value.length; i += 2) {
+        result.push(parseInt(value.substr(i, 2), 16))
+      }
+      return new Bytes(Uint8Array.from(result))
     } else {
       throw new Error('invalid hex string')
     }
