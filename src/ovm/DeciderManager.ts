@@ -1,6 +1,7 @@
 import { Address } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
 import { Property, Decision } from './types'
+import { Quantifier } from './interfaces/Quantifier'
 
 /**
  * DeciderManager manages deciders and its address
@@ -8,9 +9,11 @@ import { Property, Decision } from './types'
 export class DeciderManager {
   private deciders: Map<string, Decider>
   private operators: Map<String, Address>
+  private quantifiers: Map<string, Quantifier>
   constructor() {
     this.deciders = new Map<string, Decider>()
     this.operators = new Map<String, Address>()
+    this.quantifiers = new Map<string, Quantifier>()
   }
   /**
    * Sets new decider with address
@@ -45,6 +48,26 @@ export class DeciderManager {
       return address
     } else {
       throw new Error("initialization isn't done")
+    }
+  }
+  /**
+   * Sets quantifier with address
+   * @param address
+   * @param quantifier
+   */
+  public setQuantifier(address: Address, quantifier: Quantifier) {
+    this.quantifiers.set(address.data, quantifier)
+  }
+  /**
+   * Gets quantifier with address
+   * @param address
+   */
+  public getQuantifier(address: Address): Quantifier | null {
+    const quantifier = this.quantifiers.get(address.data)
+    if (quantifier) {
+      return quantifier
+    } else {
+      return null
     }
   }
   /**
