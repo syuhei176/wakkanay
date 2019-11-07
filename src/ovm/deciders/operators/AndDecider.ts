@@ -25,19 +25,18 @@ export class AndDecider implements Decider {
           const decision = await manager.decide(p)
           if (decision.outcome) {
             return null
-          } else {
-            const challenge: Challenge = {
-              property: new Property(manager.getDeciderAddress('Not'), [
-                Bytes.from(utils.arrayify(EthCoder.encode(p.toStruct())))
-              ]),
-              challengeInput: Bytes.from(
-                utils.arrayify(EthCoder.encode(Integer.from(index)))
-              )
-            }
-            return {
-              outcome: false,
-              challenges: [challenge].concat(decision.challenges)
-            }
+          }
+          const challenge: Challenge = {
+            property: new Property(manager.getDeciderAddress('Not'), [
+              Bytes.from(utils.arrayify(EthCoder.encode(p.toStruct())))
+            ]),
+            challengeInput: Bytes.from(
+              utils.arrayify(EthCoder.encode(Integer.from(index)))
+            )
+          }
+          return {
+            outcome: false,
+            challenges: [challenge].concat(decision.challenges)
           }
         })
     )
