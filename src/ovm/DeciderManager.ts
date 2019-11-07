@@ -1,6 +1,6 @@
-import { Address } from '../../src/types/Codables'
+import { Address, Bytes } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
-import { Property, Decision } from './types'
+import { Property, Decision, FreeVariable } from './types'
 
 /**
  * DeciderManager manages deciders and its address
@@ -33,13 +33,33 @@ export class DeciderManager {
   /**
    * Decides property is true or false and returns decision structure.
    * @param property
+   * @param substitutions Substitution rule of key value pair for free variables
    */
-  public async decide(property: Property): Promise<Decision> {
+  public async decide(
+    property: Property,
+    substitutions: { [key: string]: Bytes } = {}
+  ): Promise<Decision> {
     const decider = this.getDecider(property.deciderAddress)
     if (decider) {
-      return await decider.decide(this, property.inputs)
+      return await decider.decide(
+        this,
+        bindVariables(property.inputs, substitutions)
+      )
     } else {
       throw new Error('Decider not found')
     }
   }
+}
+
+export const bindVariables = (
+  inputs: Bytes[],
+  substitutions: { [key: string]: Bytes }
+): Bytes[] => {
+  return inputs.map(input => {
+    const key = FreeVariable.getVariableName(input)
+    if (key && substitutions[key]) {
+      return substitutions[key]
+    }
+    return input
+  })
 }

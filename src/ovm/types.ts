@@ -1,5 +1,4 @@
-import { Address, Bytes, List, Struct, Codable } from '../types/Codables'
-import EthCoder from '../coder/EthCoder'
+import { Address, Bytes, List, Struct } from '../types/Codables'
 
 export interface Challenge {
   property: Property
@@ -36,5 +35,31 @@ export class Property {
       _struct.data['deciderAddress'] as Address,
       (_struct.data['inputs'] as List<Bytes>).data
     )
+  }
+}
+
+const VARIABLE_PREFIX = '__VARIABLE__'
+const VARIABLE_PREFIX_REGEX = /__VARIABLE__(.*)/
+/**
+ * Free variable for property to handle quantifier.
+ * free variable is a Bytes whose string representation starts from prefix __VARIABLE__.
+ */
+export class FreeVariable {
+  /**
+   * return variable name string if input bytes is well formed free variable
+   * otherwise return null
+   * @param input input bytes
+   */
+  static getVariableName(input: Bytes): string | null {
+    const s = input.intoString()
+    const result = VARIABLE_PREFIX_REGEX.exec(s)
+    if (result) {
+      return result[1] || null
+    }
+    return null
+  }
+
+  static from(name: string): Bytes {
+    return Bytes.fromString(`${VARIABLE_PREFIX}${name}`)
   }
 }
