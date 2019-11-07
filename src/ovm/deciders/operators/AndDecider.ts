@@ -17,9 +17,7 @@ export class AndDecider implements Decider {
     const decisions = await Promise.all(
       inputs
         .map(input =>
-          Property.fromStruct(
-            EthCoder.decode(Property.getParamType(), input.toHexString())
-          )
+          Property.fromStruct(EthCoder.decode(Property.getParamType(), input))
         )
         .map(async (p, index) => {
           const decision = await manager.decide(p)
@@ -28,11 +26,9 @@ export class AndDecider implements Decider {
           }
           const challenge: Challenge = {
             property: new Property(manager.getDeciderAddress('Not'), [
-              Bytes.from(utils.arrayify(EthCoder.encode(p.toStruct())))
+              EthCoder.encode(p.toStruct())
             ]),
-            challengeInput: Bytes.from(
-              utils.arrayify(EthCoder.encode(Integer.from(index)))
-            )
+            challengeInput: EthCoder.encode(Integer.from(index))
           }
           return {
             outcome: false,
