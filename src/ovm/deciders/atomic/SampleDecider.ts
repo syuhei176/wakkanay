@@ -1,4 +1,5 @@
-import { Bytes } from '../../../types/Codables'
+import EthCoder from '../../../coder/EthCoder'
+import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
@@ -9,10 +10,26 @@ import { DeciderManager } from '../../DeciderManager'
 export class SampleDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     return {
       outcome: !!inputs[0],
+      challenges: []
+    }
+  }
+}
+
+export class LessThanDecider implements Decider {
+  public async decide(
+    manager: DeciderManager,
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
+  ): Promise<Decision> {
+    const upperBound = EthCoder.decode(Integer.default(), inputs[0])
+    const n = EthCoder.decode(Integer.default(), inputs[1])
+    return {
+      outcome: upperBound > n,
       challenges: []
     }
   }
