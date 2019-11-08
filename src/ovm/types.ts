@@ -63,3 +63,12 @@ export class FreeVariable {
     return Bytes.fromString(`${VARIABLE_PREFIX}${name}`)
   }
 }
+
+// Logocal Connectives
+export enum LogicalConnective {
+  And,
+  ForAllSuchThat,
+  Not,
+  Or,
+  ThereExistsSuchThat
+}

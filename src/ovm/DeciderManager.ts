@@ -1,23 +1,27 @@
 import { Address, Bytes } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
-import { Property, Decision, FreeVariable } from './types'
+import { Property, Decision, FreeVariable, LogicalConnective } from './types'
 
 /**
  * DeciderManager manages deciders and its address
  */
 export class DeciderManager {
   private deciders: Map<string, Decider>
-  private operators: Map<string, Address>
+  private operators: Map<LogicalConnective, Address>
   constructor() {
     this.deciders = new Map<string, Decider>()
-    this.operators = new Map<string, Address>()
+    this.operators = new Map<LogicalConnective, Address>()
   }
   /**
    * Sets new decider with address
    * @param address
    * @param decier
    */
-  public setDecider(address: Address, decier: Decider, operator?: string) {
+  public setDecider(
+    address: Address,
+    decier: Decider,
+    operator?: LogicalConnective
+  ) {
     this.deciders.set(address.raw, decier)
     if (operator) {
       this.operators.set(operator, address)
@@ -39,7 +43,7 @@ export class DeciderManager {
    * Gets address of a decider with operator name
    * @param operator
    */
-  public getDeciderAddress(operator: string): Address {
+  public getDeciderAddress(operator: LogicalConnective): Address {
     const address = this.operators.get(operator)
     if (address) {
       return address

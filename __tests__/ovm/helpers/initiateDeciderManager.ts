@@ -4,6 +4,8 @@ import {
   NotDecider,
   SampleDecider
 } from '../../../src/ovm/deciders'
+import { LogicalConnective } from '../../../src/ovm/types'
+
 import { Address } from '../../../src/types/Codables'
 
 export const SampleDeciderAddress = Address.from(
@@ -19,7 +21,15 @@ export const AndDeciderAddress = Address.from(
 export function initializeDeciderManager() {
   const deciderManager = new DeciderManager()
   deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
-  deciderManager.setDecider(NotDeciderAddress, new NotDecider(), 'Not')
-  deciderManager.setDecider(AndDeciderAddress, new AndDecider(), 'And')
+  deciderManager.setDecider(
+    NotDeciderAddress,
+    new NotDecider(),
+    LogicalConnective.Not
+  )
+  deciderManager.setDecider(
+    AndDeciderAddress,
+    new AndDecider(),
+    LogicalConnective.And
+  )
   return deciderManager
 }
