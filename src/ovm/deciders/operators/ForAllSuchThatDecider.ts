@@ -10,7 +10,8 @@ import { DeciderManager } from '../../DeciderManager'
 export class ForAllSuchThatDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const quantifierProperty = Property.fromStruct(
       EthCoder.decode(Property.getParamType(), inputs[0])
@@ -28,7 +29,8 @@ export class ForAllSuchThatDecider implements Decider {
     )
     const falseDecisions = await Promise.all(
       quantified.quantifiedResult.map(async q => {
-        const decision = await manager.decide(innerProperty)
+        substitutions[inputs[1].intoString()] = q
+        const decision = await manager.decide(innerProperty, substitutions)
         if (decision.outcome) {
           return null
         }

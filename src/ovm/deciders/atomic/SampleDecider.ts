@@ -10,7 +10,8 @@ import { DeciderManager } from '../../DeciderManager'
 export class SampleDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     return {
       outcome: !!inputs[0],
@@ -22,7 +23,8 @@ export class SampleDecider implements Decider {
 export class LessThanDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const upperBound = EthCoder.decode(Integer.default(), inputs[0])
     const n = EthCoder.decode(Integer.default(), inputs[1])

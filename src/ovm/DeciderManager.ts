@@ -87,7 +87,8 @@ export class DeciderManager {
     if (decider) {
       return await decider.decide(
         this,
-        bindVariables(property.inputs, substitutions)
+        bindVariables(property.inputs, substitutions),
+        substitutions
       )
     } else {
       throw new Error('Decider not found')

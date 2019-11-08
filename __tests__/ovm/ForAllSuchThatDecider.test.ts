@@ -7,7 +7,7 @@ import {
   LessThanDecider,
   LessThanQuantifier
 } from '../../src/ovm/deciders'
-import { Property } from '../../src/ovm/types'
+import { Property, FreeVariable } from '../../src/ovm/types'
 import { Address, Bytes, Integer } from '../../src/types/Codables'
 import EthCoder from '../../src/coder/EthCoder'
 
@@ -40,7 +40,7 @@ describe('ForAllsuchThatDecider', () => {
   const placeholderedProperty = EthCoder.encode(
     new Property(LessThanDeciderAddress, [
       upperBound,
-      Bytes.fromString('n')
+      FreeVariable.from('n')
     ]).toStruct()
   )
   const deciderManager = new DeciderManager()

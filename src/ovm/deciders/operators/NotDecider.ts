@@ -11,7 +11,8 @@ import { DeciderManager } from '../../DeciderManager'
 export class NotDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const property = Property.fromStruct(
       EthCoder.decode(Property.getParamType(), inputs[0])
