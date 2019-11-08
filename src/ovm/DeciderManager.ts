@@ -7,10 +7,10 @@ import { Property, Decision, FreeVariable } from './types'
  */
 export class DeciderManager {
   private deciders: Map<string, Decider>
-  private operators: Map<String, Address>
+  private operators: Map<string, Address>
   constructor() {
     this.deciders = new Map<string, Decider>()
-    this.operators = new Map<String, Address>()
+    this.operators = new Map<string, Address>()
   }
   /**
    * Sets new decider with address
