@@ -30,7 +30,7 @@ describe('EthWallet', () => {
       const message = Bytes.fromHexString('0x00123456')
       const signatureDigest = await wallet.signMessage(message)
       const recoverAddress = wallet.recoverAddress(message, signatureDigest)
-      expect(recoverAddress).toBe(ethers.utils.getAddress(address.data))
+      expect(recoverAddress.data).toBe(address.data)
     })
   })
 })
