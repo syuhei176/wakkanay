@@ -7,7 +7,8 @@ import {
   ForAllSuchThatDeciderAddress,
   SampleDeciderAddress,
   LessThanDeciderAddress,
-  LessThanQuantifierAddress
+  LessThanQuantifierAddress,
+  AndDeciderAddress
 } from './helpers/initiateDeciderManager'
 
 describe('ForAllsuchThatDecider', () => {
@@ -89,6 +90,20 @@ describe('ForAllsuchThatDecider', () => {
     // challengeInput is 5 because 5 < 5 is false
     expect(decision.challenges[0].challengeInput).toEqual(
       EthCoder.encode(Integer.from(5))
+    )
+  })
+
+  it('fail to decide because of invalid quantifier address', async () => {
+    const quantifier = EthCoder.encode(
+      new Property(AndDeciderAddress, [upperBound]).toStruct()
+    )
+    const property = new Property(ForAllSuchThatDeciderAddress, [
+      quantifier,
+      Bytes.fromString('n'),
+      placeholderedProperty
+    ])
+    await expect(deciderManager.decide(property)).rejects.toEqual(
+      new Error('quantifier not found')
     )
   })
 })
