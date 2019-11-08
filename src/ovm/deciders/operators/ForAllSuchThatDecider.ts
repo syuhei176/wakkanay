@@ -1,7 +1,7 @@
 import EthCoder from '../../../coder/EthCoder'
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
-import { Decision, Property, Challenge } from '../../types'
+import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
 
 /**
@@ -35,9 +35,10 @@ export class ForAllSuchThatDecider implements Decider {
           return null
         }
         const challenge: Challenge = {
-          property: new Property(manager.getDeciderAddress('Not'), [
-            EthCoder.encode(innerProperty.toStruct())
-          ]),
+          property: new Property(
+            manager.getDeciderAddress(LogicalConnective.Not),
+            [EthCoder.encode(innerProperty.toStruct())]
+          ),
           challengeInput: q
         }
         return {

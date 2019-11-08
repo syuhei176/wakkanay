@@ -1,35 +1,16 @@
-import { DeciderManager } from '../../src/ovm/DeciderManager'
-import {
-  AndDecider,
-  ForAllSuchThatDecider,
-  NotDecider,
-  SampleDecider,
-  LessThanDecider,
-  LessThanQuantifier
-} from '../../src/ovm/deciders'
 import { Property, FreeVariable } from '../../src/ovm/types'
-import { Address, Bytes, Integer } from '../../src/types/Codables'
+import { Bytes, Integer } from '../../src/types/Codables'
 import EthCoder from '../../src/coder/EthCoder'
+import {
+  initializeDeciderManager,
+  NotDeciderAddress,
+  ForAllSuchThatDeciderAddress,
+  SampleDeciderAddress,
+  LessThanDeciderAddress,
+  LessThanQuantifierAddress
+} from './helpers/initiateDeciderManager'
 
 describe('ForAllsuchThatDecider', () => {
-  const SampleDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000001'
-  )
-  const NotDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000002'
-  )
-  const AndDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000003'
-  )
-  const ForAllSuchThatDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000004'
-  )
-  const LessThanQuantifierAddress = Address.from(
-    '0x0000000000000000000000000000000000000005'
-  )
-  const LessThanDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000006'
-  )
   const trueProperty = EthCoder.encode(
     new Property(SampleDeciderAddress, [Bytes.fromString('true')]).toStruct()
   )
@@ -43,20 +24,7 @@ describe('ForAllsuchThatDecider', () => {
       FreeVariable.from('n')
     ]).toStruct()
   )
-  const deciderManager = new DeciderManager()
-  deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
-  deciderManager.setDecider(LessThanDeciderAddress, new LessThanDecider())
-  deciderManager.setDecider(NotDeciderAddress, new NotDecider(), 'Not')
-  deciderManager.setDecider(AndDeciderAddress, new AndDecider(), 'And')
-  deciderManager.setDecider(
-    ForAllSuchThatDeciderAddress,
-    new ForAllSuchThatDecider(),
-    'For'
-  )
-  deciderManager.setQuantifier(
-    LessThanQuantifierAddress,
-    new LessThanQuantifier()
-  )
+  const deciderManager = initializeDeciderManager()
 
   it('decide for all n such that n < 10: true', async () => {
     const upperBound = EthCoder.encode(Integer.from(10))
