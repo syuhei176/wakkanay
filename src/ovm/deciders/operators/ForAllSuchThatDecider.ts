@@ -19,6 +19,7 @@ export class ForAllSuchThatDecider implements Decider {
     const innerProperty = Property.fromStruct(
       EthCoder.decode(Property.getParamType(), inputs[2])
     )
+    const variableName = inputs[1].intoString()
     const quantifier = manager.getQuantifier(quantifierProperty.deciderAddress)
     if (!quantifier) {
       throw new Error('quantifier not found')
@@ -29,11 +30,13 @@ export class ForAllSuchThatDecider implements Decider {
     )
     const falseDecisions = await Promise.all(
       quantified.quantifiedResult.map(async q => {
-        substitutions[inputs[1].intoString()] = q
+        // Set new variable to propagate the variable to children
+        substitutions[variableName] = q
         const decision = await manager.decide(innerProperty, substitutions)
         if (decision.outcome) {
           return null
         }
+        // If outcome is false, add new challenge object to call challenge method in UAC.
         const challenge: Challenge = {
           property: new Property(
             manager.getDeciderAddress(LogicalConnective.Not),
