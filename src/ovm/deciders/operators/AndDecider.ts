@@ -1,9 +1,8 @@
 import EthCoder from '../../../coder/EthCoder'
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
-import { Decision, Property, Challenge } from '../../types'
+import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
-import { utils } from 'ethers'
 
 /**
  * AndDecider recieves multiple inputs and returns logical and of those decision.
@@ -25,9 +24,10 @@ export class AndDecider implements Decider {
             return null
           }
           const challenge: Challenge = {
-            property: new Property(manager.getDeciderAddress('Not'), [
-              EthCoder.encode(p.toStruct())
-            ]),
+            property: new Property(
+              manager.getDeciderAddress(LogicalConnective.Not),
+              [EthCoder.encode(p.toStruct())]
+            ),
             challengeInput: EthCoder.encode(Integer.from(index))
           }
           return {
