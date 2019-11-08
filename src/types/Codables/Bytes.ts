@@ -16,10 +16,17 @@ export default class Bytes implements Codable {
   }
 
   static fromHexString(hex: string): Bytes {
-    const array = hex.split('').map(h => {
-      return parseInt(h, 16)
-    })
-    return new Bytes(Uint8Array.from(array))
+    var match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
+    if (match) {
+      const value = match[2]
+      let result = []
+      for (let i = 0; i < value.length; i += 2) {
+        result.push(parseInt(value.substr(i, 2), 16))
+      }
+      return new Bytes(Uint8Array.from(result))
+    } else {
+      throw new Error('invalid hex string')
+    }
   }
 
   constructor(public data: Uint8Array) {}
@@ -42,6 +49,13 @@ export default class Bytes implements Codable {
 
   public toTypeString() {
     return 'Bytes'
+  }
+
+  public toHexString() {
+    return this.data.reduce(
+      (str, byte) => str + byte.toString(16).padStart(2, '0'),
+      '0x'
+    )
   }
 
   public static concat(a: Bytes, b: Bytes) {
