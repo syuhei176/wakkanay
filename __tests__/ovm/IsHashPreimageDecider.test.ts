@@ -3,10 +3,13 @@ import { IsHashPreimageDecider } from '../../src/ovm/deciders'
 import { Property } from '../../src/ovm/types'
 import { Address, Bytes } from '../../src/types/Codables'
 import { keccak256 } from 'ethers/utils'
+import { InMemoryKeyValueStore } from '../../src/db'
 
 describe('IsHashPreimageDecider', () => {
   const addr = Address.from('0x0000000000000000000000000000000000000001')
-  const deciderManager = new DeciderManager()
+  const deciderManager = new DeciderManager(
+    new InMemoryKeyValueStore(Bytes.fromString('plasma_db'))
+  )
   deciderManager.setDecider(addr, new IsHashPreimageDecider())
 
   const preimage = Bytes.fromString('plasma is awesome!!')

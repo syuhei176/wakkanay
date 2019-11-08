@@ -3,6 +3,7 @@ import { AndDecider, NotDecider, SampleDecider } from '../../src/ovm/deciders'
 import { Property } from '../../src/ovm/types'
 import { Address, Bytes, Integer } from '../../src/types/Codables'
 import EthCoder from '../../src/coder/EthCoder'
+import { InMemoryKeyValueStore } from '../../src/db'
 
 describe('AndDecider', () => {
   const SampleDeciderAddress = Address.from(
@@ -20,7 +21,9 @@ describe('AndDecider', () => {
   const falseProperty = EthCoder.encode(
     new Property(SampleDeciderAddress, []).toStruct()
   )
-  const deciderManager = new DeciderManager()
+  const deciderManager = new DeciderManager(
+    new InMemoryKeyValueStore(Bytes.fromString('plasma_db'))
+  )
   deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
   deciderManager.setDecider(NotDeciderAddress, new NotDecider(), 'Not')
   deciderManager.setDecider(AndDeciderAddress, new AndDecider(), 'And')

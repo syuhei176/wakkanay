@@ -1,6 +1,7 @@
 import { Address, Bytes } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
 import { Property, Decision, FreeVariable } from './types'
+import { KeyValueStore } from '../db'
 
 /**
  * DeciderManager manages deciders and its address
@@ -8,9 +9,11 @@ import { Property, Decision, FreeVariable } from './types'
 export class DeciderManager {
   private deciders: Map<string, Decider>
   private operators: Map<string, Address>
-  constructor() {
+  readonly db: KeyValueStore
+  constructor(kvs: KeyValueStore) {
     this.deciders = new Map<string, Decider>()
     this.operators = new Map<string, Address>()
+    this.db = kvs
   }
   /**
    * Sets new decider with address
@@ -54,13 +57,16 @@ export class DeciderManager {
    */
   public async decide(
     property: Property,
-    substitutions: { [key: string]: Bytes } = {}
+    substitutions: { [key: string]: Bytes } = {},
+    qCount = 0
   ): Promise<Decision> {
     const decider = this.getDecider(property.deciderAddress)
     if (decider) {
       return await decider.decide(
         this,
-        bindVariables(property.inputs, substitutions)
+        bindVariables(property.inputs, substitutions),
+        substitutions,
+        qCount
       )
     } else {
       throw new Error('Decider not found')

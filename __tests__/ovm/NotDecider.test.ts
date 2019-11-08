@@ -3,6 +3,7 @@ import { NotDecider, SampleDecider } from '../../src/ovm/deciders'
 import { Property } from '../../src/ovm/types'
 import { Address, Bytes } from '../../src/types/Codables'
 import EthCoder from '../../src/coder/EthCoder'
+import { InMemoryKeyValueStore } from '../../src/db'
 
 describe('NotDecider', () => {
   const SampleDeciderAddress = Address.from(
@@ -16,7 +17,9 @@ describe('NotDecider', () => {
   ])
   const falseProperty = new Property(SampleDeciderAddress, [])
   it('decide not(false)', async () => {
-    const deciderManager = new DeciderManager()
+    const deciderManager = new DeciderManager(
+      new InMemoryKeyValueStore(Bytes.fromString('plasma_db'))
+    )
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
@@ -27,7 +30,9 @@ describe('NotDecider', () => {
     expect(decision.outcome).toEqual(true)
   })
   it('decide not(true)', async () => {
-    const deciderManager = new DeciderManager()
+    const deciderManager = new DeciderManager(
+      new InMemoryKeyValueStore(Bytes.fromString('plasma_db'))
+    )
     deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
     deciderManager.setDecider(NotDeciderAddress, new NotDecider())
     const decision = await deciderManager.decide(
