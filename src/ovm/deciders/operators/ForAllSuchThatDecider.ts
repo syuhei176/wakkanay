@@ -31,8 +31,10 @@ export class ForAllSuchThatDecider implements Decider {
     const falseDecisions = await Promise.all(
       quantified.quantifiedResult.map(async q => {
         // Set new variable to propagate the variable to children
-        substitutions[variableName] = q
-        const decision = await manager.decide(innerProperty, substitutions)
+        const decision = await manager.decide(
+          innerProperty,
+          Object.assign(substitutions, { [variableName]: q })
+        )
         if (decision.outcome) {
           return null
         }
