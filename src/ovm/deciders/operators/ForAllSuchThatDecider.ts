@@ -13,19 +13,40 @@ export class ForAllSuchThatDecider implements Decider {
     inputs: Bytes[]
   ): Promise<Decision> {
     const quantifierProperty = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[0].toHexString())
+      EthCoder.decode(Property.getParamType(), inputs[0])
     )
     const innerProperty = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[2].toHexString())
+      EthCoder.decode(Property.getParamType(), inputs[2])
     )
     const quantifier = manager.getQuantifier(quantifierProperty.deciderAddress)
-    if (quantifier) {
-      const quantifiedResult = await quantifier.getAllQuantified(
-        manager,
-        quantifierProperty.inputs
-      )
-      // set variable inputs[1] quantifiedResult
-      manager.decide(innerProperty)
+    if (!quantifier) {
+      throw new Error('quantifier not found')
+    }
+    const quantified = await quantifier.getAllQuantified(
+      manager,
+      quantifierProperty.inputs
+    )
+    const falseDecisions = await Promise.all(
+      quantified.quantifiedResult.map(async q => {
+        const decision = await manager.decide(innerProperty)
+        if (decision.outcome) {
+          return null
+        }
+        const challenge: Challenge = {
+          property: new Property(manager.getDeciderAddress('Not'), [
+            EthCoder.encode(innerProperty.toStruct())
+          ]),
+          challengeInput: q
+        }
+        return {
+          outcome: false,
+          challenges: [challenge].concat(decision.challenges)
+        }
+      })
+    )
+    const falseDecision = falseDecisions.filter(r => !!r)[0]
+    if (falseDecision) {
+      return falseDecision
     }
     return {
       outcome: true,

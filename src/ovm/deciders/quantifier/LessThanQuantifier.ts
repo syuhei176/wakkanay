@@ -12,13 +12,10 @@ export class LessThanQuantifier implements Quantifier {
     manager: DeciderManager,
     inputs: Bytes[]
   ): Promise<QuantifiedResult> {
-    const upperBound = EthCoder.decode(
-      Integer.default(),
-      inputs[0].toHexString()
-    )
+    const upperBound = EthCoder.decode(Integer.default(), inputs[0])
 
     const quantifiedResult = range(0, upperBound.data).map(i =>
-      Bytes.fromHexString(EthCoder.encode(Integer.from(i)))
+      EthCoder.encode(Integer.from(i))
     )
     return { allQuantified: true, quantifiedResult }
   }
