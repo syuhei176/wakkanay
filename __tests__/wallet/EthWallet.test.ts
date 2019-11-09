@@ -1,6 +1,7 @@
 import { EthWalletFactory, IWallet, IWalletFactory } from '../../src/wallet'
 import { ethers } from 'ethers'
 import { Address, Bytes } from '../../src/types/Codables'
+import { DepositContract } from '../../src/contract/eth/DepositContract'
 
 describe('EthWallet', () => {
   let factory: IWalletFactory, wallet: IWallet, address: Address
@@ -31,6 +32,13 @@ describe('EthWallet', () => {
       const signatureDigest = await wallet.signMessage(message)
       const recoverAddress = wallet.recoverAddress(message, signatureDigest)
       expect(recoverAddress.data).toBe(address.data)
+    })
+  })
+  describe('getDepositContract', () => {
+    it('succeed to get deposit contract', async () => {
+      const address = Address.from(ethers.constants.AddressZero)
+      const depositContract = wallet.getDepositContract(address)
+      expect(depositContract).toBeInstanceOf(DepositContract)
     })
   })
 })
