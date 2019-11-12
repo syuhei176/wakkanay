@@ -1,9 +1,8 @@
 import EthCoder from '../../../coder/EthCoder'
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
-import { Decision, Property, Challenge } from '../../types'
+import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
-import { utils } from 'ethers'
 
 /**
  * AndDecider recieves multiple inputs and returns logical and of those decision.
@@ -12,14 +11,13 @@ import { utils } from 'ethers'
 export class AndDecider implements Decider {
   public async decide(
     manager: DeciderManager,
-    inputs: Bytes[]
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const decisions = await Promise.all(
       inputs
         .map(input =>
-          Property.fromStruct(
-            EthCoder.decode(Property.getParamType(), input.toHexString())
-          )
+          Property.fromStruct(EthCoder.decode(Property.getParamType(), input))
         )
         .map(async (p, index) => {
           const decision = await manager.decide(p)
@@ -27,12 +25,11 @@ export class AndDecider implements Decider {
             return null
           }
           const challenge: Challenge = {
-            property: new Property(manager.getDeciderAddress('Not'), [
-              Bytes.from(utils.arrayify(EthCoder.encode(p.toStruct())))
-            ]),
-            challengeInput: Bytes.from(
-              utils.arrayify(EthCoder.encode(Integer.from(index)))
-            )
+            property: new Property(
+              manager.getDeciderAddress(LogicalConnective.Not),
+              [EthCoder.encode(p.toStruct())]
+            ),
+            challengeInput: EthCoder.encode(Integer.from(index))
           }
           return {
             outcome: false,

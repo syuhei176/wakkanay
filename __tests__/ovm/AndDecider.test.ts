@@ -1,44 +1,23 @@
-import { DeciderManager } from '../../src/ovm/DeciderManager'
-import { AndDecider, NotDecider, SampleDecider } from '../../src/ovm/deciders'
 import { Property } from '../../src/ovm/types'
-import { Address, Bytes, Integer } from '../../src/types/Codables'
-import { utils } from 'ethers'
+import { Bytes, Integer } from '../../src/types/Codables'
 import EthCoder from '../../src/coder/EthCoder'
+import {
+  initializeDeciderManager,
+  AndDeciderAddress,
+  NotDeciderAddress,
+  SampleDeciderAddress
+} from './helpers/initiateDeciderManager'
 
 describe('AndDecider', () => {
-  const SampleDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000001'
+  const trueProperty = EthCoder.encode(
+    new Property(SampleDeciderAddress, [Bytes.fromString('true')]).toStruct()
   )
-  const NotDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000002'
+  const falseProperty = EthCoder.encode(
+    new Property(SampleDeciderAddress, []).toStruct()
   )
-  const AndDeciderAddress = Address.from(
-    '0x0000000000000000000000000000000000000003'
-  )
-  const trueProperty = Bytes.from(
-    utils.arrayify(
-      EthCoder.encode(
-        new Property(SampleDeciderAddress, [
-          Bytes.fromString('true')
-        ]).toStruct()
-      )
-    )
-  )
-  const falseProperty = Bytes.from(
-    utils.arrayify(
-      EthCoder.encode(new Property(SampleDeciderAddress, []).toStruct())
-    )
-  )
-  const deciderManager = new DeciderManager()
-  deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
-  deciderManager.setDecider(NotDeciderAddress, new NotDecider(), 'Not')
-  deciderManager.setDecider(AndDeciderAddress, new AndDecider(), 'And')
-  const challengeInput0 = Bytes.from(
-    utils.arrayify(EthCoder.encode(Integer.from(0)))
-  )
-  const challengeInput1 = Bytes.from(
-    utils.arrayify(EthCoder.encode(Integer.from(1)))
-  )
+  const deciderManager = initializeDeciderManager()
+  const challengeInput0 = EthCoder.encode(Integer.from(0))
+  const challengeInput1 = EthCoder.encode(Integer.from(1))
 
   it('decide and(true, true)', async () => {
     const decision = await deciderManager.decide(
