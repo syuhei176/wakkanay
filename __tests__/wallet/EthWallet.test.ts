@@ -1,5 +1,5 @@
 import { EthWalletFactory, IWallet, IWalletFactory } from '../../src/wallet'
-import { Bytes } from '../../src/types/Codables'
+import { Address, Bytes } from '../../src/types/Codables'
 
 describe('EthWallet', () => {
   let factory: IWalletFactory, wallet: IWallet
@@ -31,6 +31,18 @@ describe('EthWallet', () => {
       const bobSignatureDigest = await bobWallet.signMessage(message)
       const verify = await wallet.verifySignature(message, bobSignatureDigest, Bytes.default())
       expect(verify).toBeFalsy()
+    })
+  })
+  describe('getL1Balance', () => {
+    it('succeed to get L1 balance', async () => {
+      const balance = await wallet.getL1Balance()
+      expect(balance).toBeTruthy()
+    })
+    it('succeed to get L1(ERC20) balance', async () => {
+      // it is the WETH address on Kovan Testnet
+      const tokenAddress = Address.from('0xd0a1e359811322d97991e03f863a0c30c2cf029c')
+      const balance = await wallet.getL1Balance(tokenAddress)
+      expect(balance).toBeTruthy()
     })
   })
 })
