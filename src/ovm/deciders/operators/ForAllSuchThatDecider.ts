@@ -1,5 +1,5 @@
-import EthCoder from '../../../coder/EthCoder'
-import { Bytes, Integer } from '../../../types/Codables'
+import Coder from '../../../coder'
+import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
@@ -14,10 +14,10 @@ export class ForAllSuchThatDecider implements Decider {
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const quantifierProperty = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[0])
+      Coder.decode(Property.getParamType(), inputs[0])
     )
     const innerProperty = Property.fromStruct(
-      EthCoder.decode(Property.getParamType(), inputs[2])
+      Coder.decode(Property.getParamType(), inputs[2])
     )
     const variableName = inputs[1].intoString()
     const quantifier = manager.getQuantifier(quantifierProperty.deciderAddress)
@@ -42,7 +42,7 @@ export class ForAllSuchThatDecider implements Decider {
         const challenge: Challenge = {
           property: new Property(
             manager.getDeciderAddress(LogicalConnective.Not),
-            [EthCoder.encode(innerProperty.toStruct())]
+            [Coder.encode(innerProperty.toStruct())]
           ),
           challengeInput: q
         }

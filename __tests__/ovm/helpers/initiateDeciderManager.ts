@@ -5,7 +5,9 @@ import {
   NotDecider,
   SampleDecider,
   LessThanDecider,
-  LessThanQuantifier
+  LessThanQuantifier,
+  ThereExistsSuchThatDecider,
+  GreaterThanDecider
 } from '../../../src/ovm/deciders'
 import { LogicalConnective } from '../../../src/ovm/types'
 import { Address } from '../../../src/types/Codables'
@@ -27,6 +29,12 @@ export const LessThanQuantifierAddress = Address.from(
 )
 export const LessThanDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000006'
+)
+export const GreaterThanDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000007'
+)
+export const ThereExistsSuchThatDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000008'
 )
 
 export function initializeDeciderManager() {
@@ -51,6 +59,12 @@ export function initializeDeciderManager() {
   deciderManager.setQuantifier(
     LessThanQuantifierAddress,
     new LessThanQuantifier()
+  )
+  deciderManager.setDecider(GreaterThanDeciderAddress, new GreaterThanDecider())
+  deciderManager.setDecider(
+    ThereExistsSuchThatDeciderAddress,
+    new ThereExistsSuchThatDecider(),
+    LogicalConnective.ThereExistsSuchThat
   )
   return deciderManager
 }

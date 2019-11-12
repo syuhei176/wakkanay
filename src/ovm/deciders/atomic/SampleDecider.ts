@@ -29,7 +29,22 @@ export class LessThanDecider implements Decider {
     const upperBound = EthCoder.decode(Integer.default(), inputs[0])
     const n = EthCoder.decode(Integer.default(), inputs[1])
     return {
-      outcome: upperBound > n,
+      outcome: upperBound.data > n.data,
+      challenges: []
+    }
+  }
+}
+
+export class GreaterThanDecider implements Decider {
+  public async decide(
+    manager: DeciderManager,
+    inputs: Bytes[],
+    substitutions: { [key: string]: Bytes } = {}
+  ): Promise<Decision> {
+    const lowerBound = EthCoder.decode(Integer.default(), inputs[0])
+    const n = EthCoder.decode(Integer.default(), inputs[1])
+    return {
+      outcome: lowerBound.data < n.data,
       challenges: []
     }
   }
