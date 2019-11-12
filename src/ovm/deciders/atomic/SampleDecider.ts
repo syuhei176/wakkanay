@@ -1,4 +1,4 @@
-import EthCoder from '../../../coder/EthCoder'
+import Coder from '../../../coder'
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
@@ -26,8 +26,8 @@ export class LessThanDecider implements Decider {
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
-    const upperBound = EthCoder.decode(Integer.default(), inputs[0])
-    const n = EthCoder.decode(Integer.default(), inputs[1])
+    const upperBound = Coder.decode(Integer.default(), inputs[0])
+    const n = Coder.decode(Integer.default(), inputs[1])
     return {
       outcome: upperBound.data > n.data,
       challenges: []
@@ -41,8 +41,8 @@ export class GreaterThanDecider implements Decider {
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
-    const lowerBound = EthCoder.decode(Integer.default(), inputs[0])
-    const n = EthCoder.decode(Integer.default(), inputs[1])
+    const lowerBound = Coder.decode(Integer.default(), inputs[0])
+    const n = Coder.decode(Integer.default(), inputs[1])
     return {
       outcome: lowerBound.data < n.data,
       challenges: []
