@@ -1,5 +1,5 @@
 import { Bytes, Integer } from '../../../types/Codables'
-import EthCoder from '../../../coder/EthCoder'
+import Coder from '../../../coder'
 import { Quantifier, QuantifiedResult } from '../../interfaces/Quantifier'
 import { Decision, Property } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
@@ -12,10 +12,10 @@ export class LessThanQuantifier implements Quantifier {
     manager: DeciderManager,
     inputs: Bytes[]
   ): Promise<QuantifiedResult> {
-    const upperBound = EthCoder.decode(Integer.default(), inputs[0])
+    const upperBound = Coder.decode(Integer.default(), inputs[0])
 
     const quantifiedResult = range(0, upperBound.data).map(i =>
-      EthCoder.encode(Integer.from(i))
+      Coder.encode(Integer.from(i))
     )
     return { allQuantified: true, quantifiedResult }
   }
