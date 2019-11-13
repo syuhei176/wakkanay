@@ -1,5 +1,6 @@
 import * as DB from './db'
-import { Address, Property, Decision, Bytes } from './types'
+import { Address, Bytes } from './types/Codables'
+import { Property, Decision } from './ovm/types'
 
 class OVM {
   private adjudicationContractAddress: Address
@@ -35,7 +36,7 @@ class OVM {
   public async makeDecision(property: Property): Promise<Decision> {
     console.log('make decision: ', property)
 
-    return Promise.resolve({ outcome: true })
+    return Promise.resolve({ outcome: true, challenges: [] })
   }
 
   /**
@@ -55,7 +56,7 @@ class OVM {
   public async fetchDecision(property: Property): Promise<Decision> {
     console.log('fetch contract decision: ', property)
 
-    return Promise.resolve({ outcome: true })
+    return Promise.resolve({ outcome: true, challenges: [] })
   }
 
   /**
