@@ -1,4 +1,4 @@
-import EthCoder from '../../../coder/EthCoder'
+import Coder from '../../../coder'
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
@@ -17,7 +17,7 @@ export class AndDecider implements Decider {
     const decisions = await Promise.all(
       inputs
         .map(input =>
-          Property.fromStruct(EthCoder.decode(Property.getParamType(), input))
+          Property.fromStruct(Coder.decode(Property.getParamType(), input))
         )
         .map(async (p, index) => {
           const decision = await manager.decide(p)
@@ -27,9 +27,9 @@ export class AndDecider implements Decider {
           const challenge: Challenge = {
             property: new Property(
               manager.getDeciderAddress(LogicalConnective.Not),
-              [EthCoder.encode(p.toStruct())]
+              [Coder.encode(p.toStruct())]
             ),
-            challengeInput: EthCoder.encode(Integer.from(index))
+            challengeInput: Coder.encode(Integer.from(index))
           }
           return {
             outcome: false,

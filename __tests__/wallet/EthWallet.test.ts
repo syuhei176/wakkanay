@@ -1,5 +1,7 @@
 import { EthWalletFactory, IWallet, IWalletFactory } from '../../src/wallet'
+import { ethers } from 'ethers'
 import { Address, Bytes } from '../../src/types/Codables'
+import { DepositContract } from '../../src/contract/eth/DepositContract'
 
 describe('EthWallet', () => {
   let factory: IWalletFactory, wallet: IWallet
@@ -43,6 +45,13 @@ describe('EthWallet', () => {
       const tokenAddress = Address.from('0xd0a1e359811322d97991e03f863a0c30c2cf029c')
       const balance = await wallet.getL1Balance(tokenAddress)
       expect(balance).toBeTruthy()
+    })
+  })
+  describe('getDepositContract', () => {
+    it('succeed to get deposit contract', async () => {
+      const address = Address.from(ethers.constants.AddressZero)
+      const depositContract = wallet.getDepositContract(address)
+      expect(depositContract).toBeInstanceOf(DepositContract)
     })
   })
 })
