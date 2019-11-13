@@ -1,13 +1,15 @@
 import { Iterator, KeyValueStore, BatchOperation } from './KeyValueStore'
 import { Bytes } from '../types/Codables'
-import levelup from 'levelup'
+import levelup, { LevelUp } from 'levelup'
 import memdown from 'memdown'
 import { AbstractIterator } from 'abstract-leveldown'
 
 export class MemoryIterator implements Iterator {
-  public iter: AbstractIterator<string, string>
-  constructor(iter: AbstractIterator<string, string>) {
+  public iter: AbstractIterator<Uint8Array, Uint8Array>
+  private prefix: Bytes
+  constructor(iter: AbstractIterator<Uint8Array, Uint8Array>, prefix: Bytes) {
     this.iter = iter
+    this.prefix = prefix
   }
   public next(): Promise<{ key: Bytes; value: Bytes } | null> {
     return new Promise((resolve, reject) => {
@@ -17,8 +19,8 @@ export class MemoryIterator implements Iterator {
         } else {
           if (key) {
             resolve({
-              key: Bytes.fromString(key),
-              value: Bytes.fromString(value)
+              key: this.removePrefix(Bytes.from(Uint8Array.from(key))),
+              value: Bytes.from(Uint8Array.from(value))
             })
           } else {
             resolve(null)
@@ -27,48 +29,62 @@ export class MemoryIterator implements Iterator {
       })
     })
   }
+  removePrefix(key: Bytes): Bytes {
+    return Bytes.from(key.data.slice(this.prefix.data.length))
+  }
 }
 
 export class InMemoryKeyValueStore implements KeyValueStore {
+  public dbname: Bytes
   public prefix: Bytes = Bytes.default()
-  public db = levelup(memdown())
+  public db: LevelUp
 
-  constructor(prefix: Bytes) {
-    this.prefix = prefix
+  constructor(prefix: Bytes, db?: LevelUp) {
+    if (db) {
+      this.prefix = prefix
+      this.db = db
+      this.dbname = Bytes.default()
+    } else {
+      this.dbname = prefix
+      this.db = levelup(memdown())
+    }
   }
 
   public async get(key: Bytes): Promise<Bytes | null> {
     return new Promise(resolve => {
-      this.db.get(
-        this.getKey(key).intoString(),
-        { asBuffer: false },
-        (err, value) => {
+      this.db.get(Buffer.from(this.getKey(key).data), (err, value) => {
+        if (err) {
+          return resolve(null)
+        } else {
+          return resolve(Bytes.from(Uint8Array.from(value)))
+        }
+      })
+    })
+  }
+
+  public async put(key: Bytes, value: Bytes): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.put(
+        Buffer.from(this.getKey(key).data),
+        Buffer.from(value.data),
+        err => {
           if (err) {
-            return resolve(null)
+            return reject(err)
           } else {
-            return resolve(Bytes.fromString(value))
+            return resolve()
           }
         }
       )
     })
   }
 
-  public async put(key: Bytes, value: Bytes): Promise<void> {
+  public async del(key: Bytes): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.put(this.getKey(key).intoString(), value.intoString(), err => {
+      this.db.del(Buffer.from(this.getKey(key).data), err => {
         if (err) {
           return reject(err)
-        } else {
-          return resolve()
         }
-      })
-    })
-  }
-
-  public async del(key: Bytes): Promise<void> {
-    return new Promise(() => {
-      this.db.del(this.getKey(key).intoString(), () => {
-        Promise.resolve()
+        resolve()
       })
     })
   }
@@ -79,11 +95,11 @@ export class InMemoryKeyValueStore implements KeyValueStore {
       operations.forEach(op => {
         if (op.type === 'Put') {
           batch = batch.put(
-            this.getKey(op.key).intoString(),
-            op.value.intoString()
+            Buffer.from(this.getKey(op.key).data),
+            Buffer.from(op.value.data)
           )
         } else if (op.type === 'Del') {
-          batch = batch.del(this.getKey(op.key).intoString())
+          batch = batch.del(Buffer.from(this.getKey(op.key).data))
         }
       })
       batch.write(() => {
@@ -92,9 +108,17 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     })
   }
 
-  public async iter(prefix: Bytes): Promise<MemoryIterator> {
+  public iter(prefix: Bytes): MemoryIterator {
     return new MemoryIterator(
-      this.db.iterator({ gte: this.getKey(prefix).intoString() })
+      this.db.iterator({
+        gte: Buffer.from(this.getKey(prefix).data),
+        reverse: false,
+        keys: true,
+        values: true,
+        keyAsBuffer: true,
+        valueAsBuffer: true
+      }),
+      this.prefix
     )
   }
 

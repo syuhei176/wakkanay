@@ -22,6 +22,6 @@ export interface KeyValueStore {
   put(key: Bytes, value: Bytes): Promise<void>
   del(key: Bytes): Promise<void>
   batch(operations: BatchOperation[]): Promise<void>
-  iter(prefix: Bytes): Promise<Iterator>
+  iter(prefix: Bytes): Iterator
   bucket(key: Bytes): KeyValueStore
 }
