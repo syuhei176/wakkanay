@@ -10,14 +10,14 @@
   },
   "lib": "dist/index.js",
   "scripts": {
-    "build": "tsc --build ./tsconfig.json",
+    "build": "npm run prepare",
     "build:check": "tsc --noEmit",
     "build:dev": "tsc",
     "test": "jest",
     "lint": "eslint --ext ts,tsx src",
     "lint:fix": "eslint --fix --ext ts,tsx src",
-    "install": "npm run build",
-    "prepare": "echo 'prepare'"
+    "install": "npm i && npm run prepare",
+    "prepare": "tsc --build ./tsconfig.json"
   },
   "dependencies": {
     "ethers": "^4.0.38",
