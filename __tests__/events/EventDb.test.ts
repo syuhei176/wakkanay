@@ -1,5 +1,5 @@
 import { InMemoryKeyValueStore, RangeDb } from '../../src/db'
-import { EventDb } from '../../src/events'
+import { EventDb } from '../../src/events/EventDb'
 import { Bytes } from '../../src/types/Codables'
 
 describe('EventDb', () => {
