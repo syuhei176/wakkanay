@@ -68,12 +68,42 @@ describe('InMemoryKeyValueStore', () => {
     })
   })
   describe('bucket', () => {
+    const testEmptyBucketName = Bytes.fromString('bucket1')
+    const testNotEmptyBucketName = Bytes.fromString('bucket2')
+    const testDbKey0 = Bytes.fromString('0')
+    const testDbKey1 = Bytes.fromString('1')
+    let kvs: KeyValueStore
+    let testNotEmptyBucket: KeyValueStore
+    beforeEach(async () => {
+      kvs = new InMemoryKeyValueStore(testDbName)
+      testNotEmptyBucket = kvs.bucket(testNotEmptyBucketName)
+      await testNotEmptyBucket.put(testDbKey0, testDbKey0)
+      await testNotEmptyBucket.put(testDbKey1, testDbKey1)
+    })
     it('suceed to get bucket', async () => {
-      const kvs = new InMemoryKeyValueStore(testDbName)
-      const bucket = kvs.bucket(testDbKey)
+      const bucket = kvs.bucket(testEmptyBucketName)
       await bucket.put(testDbKey, testDbValue)
       const value = await bucket.get(testDbKey)
       expect(value).toEqual(testDbValue)
+    })
+    it('suceed to get values from iterator of bucket', async () => {
+      const iter = testNotEmptyBucket.iter(testDbKey0)
+      const result0 = await iter.next()
+      const result1 = await iter.next()
+      expect(result0).not.toBeNull()
+      expect(result1).not.toBeNull()
+      if (result0 !== null && result1 !== null) {
+        expect(result0.key).toEqual(testDbKey0)
+        expect(result0.value).toEqual(testDbKey0)
+        expect(result1.key).toEqual(testDbKey1)
+        expect(result1.value).toEqual(testDbKey1)
+      }
+    })
+    it('next returns null for new bucket', async () => {
+      const bucket = kvs.bucket(testEmptyBucketName)
+      const iter = bucket.iter(testDbKey0)
+      const result = await iter.next()
+      expect(result).toBeNull()
     })
   })
 })
