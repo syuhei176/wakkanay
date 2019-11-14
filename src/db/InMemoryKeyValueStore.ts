@@ -35,7 +35,11 @@ export class MemoryIterator implements Iterator {
 }
 
 export class InMemoryKeyValueStore implements KeyValueStore {
-  public dbname: Bytes
+  /*
+   * `dbName` is optional to distinguish root kvs which has db connection and bucket.
+   * root kvs has dbName but bucket doesn't have.
+   */
+  public dbName?: Bytes
   public prefix: Bytes = Bytes.default()
   public db: LevelUp
 
@@ -43,9 +47,8 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     if (db) {
       this.prefix = prefix
       this.db = db
-      this.dbname = Bytes.default()
     } else {
-      this.dbname = prefix
+      this.dbName = prefix
       this.db = levelup(memdown())
     }
   }
