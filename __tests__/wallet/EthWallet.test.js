@@ -21,7 +21,7 @@ const mockContract = jest.fn().mockImplementation(() => {
           return '100'
         }),
         decimals: jest.fn().mockImplementation(async () => {
-          return '100'
+          return 8
         }),
         symbol: jest.fn().mockImplementation(async () => {
           return 'DAI'
@@ -82,6 +82,8 @@ describe('EthWallet', () => {
     it('succeed to get L1 balance', async () => {
       const balance = await wallet.getL1Balance()
       expect(balance).toBeTruthy()
+      expect(balance.decimals).toBe(9)
+      expect(balance.symbol).toBe('gwei')
     })
     it('succeed to get L1(ERC20) balance', async () => {
       // it is the WETH address on Kovan Testnet
@@ -90,6 +92,8 @@ describe('EthWallet', () => {
       )
       const balance = await wallet.getL1Balance(tokenAddress)
       expect(balance).toBeTruthy()
+      expect(balance.decimals).toBe(8)
+      expect(balance.symbol).toBe('DAI')
     })
   })
   describe('getDepositContract', () => {
