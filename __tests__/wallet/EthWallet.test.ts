@@ -2,10 +2,12 @@ import { EthWalletFactory, IWallet, IWalletFactory } from '../../src/wallet'
 import { ethers } from 'ethers'
 import { Address, Bytes } from '../../src/types/Codables'
 import { DepositContract } from '../../src/contract/eth/DepositContract'
+import { EthEnv } from '../../src/utils'
 
 describe('EthWallet', () => {
   let factory: IWalletFactory, wallet: IWallet
   beforeEach(async () => {
+    EthEnv.setEnv()
     factory = new EthWalletFactory()
     wallet = await factory.fromPrivateKey(
       '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
