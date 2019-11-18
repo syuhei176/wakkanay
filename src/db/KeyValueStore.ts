@@ -22,6 +22,10 @@ export interface KeyValueStore {
   put(key: Bytes, value: Bytes): Promise<void>
   del(key: Bytes): Promise<void>
   batch(operations: BatchOperation[]): Promise<void>
-  iter(prefix: Bytes): Promise<Iterator>
+  /**
+    * `iter` returns `Iterator` which is for seeking values sorted by their keys.
+    * @param bound We can get `Iterator` which seek values greater than `lowerBound` in dictionary order.
+    */
+  iter(lowerBound: Bytes): Iterator
   bucket(key: Bytes): KeyValueStore
 }

@@ -1,13 +1,18 @@
 import { Iterator, KeyValueStore, BatchOperation } from './KeyValueStore'
 import { Bytes } from '../types/Codables'
-import levelup from 'levelup'
+import levelup, { LevelUp } from 'levelup'
 import memdown from 'memdown'
 import { AbstractIterator } from 'abstract-leveldown'
 
 export class MemoryIterator implements Iterator {
-  public iter: AbstractIterator<string, string>
-  constructor(iter: AbstractIterator<string, string>) {
+  public iter: AbstractIterator<Buffer, Buffer>
+  private parentKvs: InMemoryKeyValueStore
+  constructor(
+    iter: AbstractIterator<Buffer, Buffer>,
+    parentKvs: InMemoryKeyValueStore
+  ) {
     this.iter = iter
+    this.parentKvs = parentKvs
   }
   public next(): Promise<{ key: Bytes; value: Bytes } | null> {
     return new Promise((resolve, reject) => {
@@ -17,8 +22,8 @@ export class MemoryIterator implements Iterator {
         } else {
           if (key) {
             resolve({
-              key: Bytes.fromString(key),
-              value: Bytes.fromString(value)
+              key: this.parentKvs.getKeyFromBuffer(key),
+              value: InMemoryKeyValueStore.getValueFromBuffer(value)
             })
           } else {
             resolve(null)
@@ -30,45 +35,59 @@ export class MemoryIterator implements Iterator {
 }
 
 export class InMemoryKeyValueStore implements KeyValueStore {
+  /*
+   * `dbName` is optional to distinguish root kvs which has db connection and bucket.
+   * root kvs has dbName but bucket doesn't have.
+   */
+  public dbName?: Bytes
   public prefix: Bytes = Bytes.default()
-  public db = levelup(memdown())
+  public db: LevelUp
 
-  constructor(prefix: Bytes) {
-    this.prefix = prefix
+  constructor(prefix: Bytes, db?: LevelUp) {
+    if (db) {
+      this.prefix = prefix
+      this.db = db
+    } else {
+      this.dbName = prefix
+      this.db = levelup(memdown())
+    }
   }
 
   public async get(key: Bytes): Promise<Bytes | null> {
     return new Promise(resolve => {
-      this.db.get(
-        this.getKey(key).intoString(),
-        { asBuffer: false },
-        (err, value) => {
+      this.db.get(this.convertKeyIntoBuffer(key), (err, value) => {
+        if (err) {
+          return resolve(null)
+        } else {
+          return resolve(InMemoryKeyValueStore.getValueFromBuffer(value))
+        }
+      })
+    })
+  }
+
+  public async put(key: Bytes, value: Bytes): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.put(
+        this.convertKeyIntoBuffer(key),
+        InMemoryKeyValueStore.convertValueIntoBuffer(value),
+        err => {
           if (err) {
-            return resolve(null)
+            return reject(err)
           } else {
-            return resolve(Bytes.fromString(value))
+            return resolve()
           }
         }
       )
     })
   }
 
-  public async put(key: Bytes, value: Bytes): Promise<void> {
+  public async del(key: Bytes): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.put(this.getKey(key).intoString(), value.intoString(), err => {
+      this.db.del(this.convertKeyIntoBuffer(key), err => {
         if (err) {
           return reject(err)
-        } else {
-          return resolve()
         }
-      })
-    })
-  }
-
-  public async del(key: Bytes): Promise<void> {
-    return new Promise(() => {
-      this.db.del(this.getKey(key).intoString(), () => {
-        Promise.resolve()
+        resolve()
       })
     })
   }
@@ -79,11 +98,11 @@ export class InMemoryKeyValueStore implements KeyValueStore {
       operations.forEach(op => {
         if (op.type === 'Put') {
           batch = batch.put(
-            this.getKey(op.key).intoString(),
-            op.value.intoString()
+            this.convertKeyIntoBuffer(op.key),
+            InMemoryKeyValueStore.convertValueIntoBuffer(op.value)
           )
         } else if (op.type === 'Del') {
-          batch = batch.del(this.getKey(op.key).intoString())
+          batch = batch.del(this.convertKeyIntoBuffer(op.key))
         }
       })
       batch.write(() => {
@@ -92,17 +111,54 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     })
   }
 
-  public async iter(prefix: Bytes): Promise<MemoryIterator> {
+  /**
+   * `iter` returns `MemoryIterator` which is for getting values sorted by their keys.
+   * @param bound We can get values greater than `bound` in dictionary order.
+   * Please see the document for AbstractIterator's options. https://github.com/snowyu/abstract-iterator#abstractiterator----
+   */
+  public iter(bound: Bytes): MemoryIterator {
     return new MemoryIterator(
-      this.db.iterator({ gte: this.getKey(prefix).intoString() })
+      this.db.iterator({
+        gte: this.convertKeyIntoBuffer(bound),
+        reverse: false,
+        keys: true,
+        values: true,
+        keyAsBuffer: true,
+        valueAsBuffer: true
+      }),
+      this
     )
   }
 
   public bucket(key: Bytes): KeyValueStore {
-    return new InMemoryKeyValueStore(this.getKey(key))
+    return new InMemoryKeyValueStore(this.concatKeyWithPrefix(key))
   }
 
-  private getKey(key: Bytes): Bytes {
+  private concatKeyWithPrefix(key: Bytes): Bytes {
     return Bytes.concat(this.prefix, key)
+  }
+
+  private convertKeyIntoBuffer(key: Bytes): Buffer {
+    return Buffer.from(this.concatKeyWithPrefix(key).data)
+  }
+
+  private static convertValueIntoBuffer(value: Bytes): Buffer {
+    return Buffer.from(value.data)
+  }
+
+  /**
+   * Converts key to Bytes and remove current prefix from key to get correct key inside bucket.
+   * @param key
+   */
+  public getKeyFromBuffer(key: Buffer): Bytes {
+    return this.removePrefix(Bytes.from(Uint8Array.from(key)))
+  }
+
+  public static getValueFromBuffer(value: Buffer): Bytes {
+    return Bytes.from(Uint8Array.from(value))
+  }
+
+  private removePrefix(key: Bytes): Bytes {
+    return Bytes.from(key.data.slice(this.prefix.data.length))
   }
 }
