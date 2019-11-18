@@ -12,6 +12,7 @@ export class EthWalletFactory implements IWalletFactory {
       this.provider = provider
     }
   }
+
   async fromPrivateKey(privateKey: string): Promise<IWallet> {
     return new EthWallet(new ethers.Wallet(privateKey, this.provider))
   }
