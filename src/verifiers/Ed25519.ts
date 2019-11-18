@@ -1,6 +1,6 @@
 import sodiumsumo from 'libsodium-wrappers-sumo'
 import { TezosMessageUtils } from 'conseiljs'
-import SignatureVerifier from './signatureVerifier'
+import SignatureVerifier from './SignatureVerifier'
 import { Bytes } from '../types/Codables'
 
 export const ed25519Verifier: SignatureVerifier = {

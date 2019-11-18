@@ -1,5 +1,5 @@
 import { splitSignature, recoverAddress } from 'ethers/utils'
-import SignatureVerifier from './signatureVerifier'
+import SignatureVerifier from './SignatureVerifier'
 import { Bytes } from '../types/Codables'
 
 export const secp2561kVerifier: SignatureVerifier = {
