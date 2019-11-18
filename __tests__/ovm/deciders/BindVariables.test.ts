@@ -1,7 +1,7 @@
-import { Bytes, Integer } from '../../src/types/Codables'
-import Coder from '../../src/coder'
-import { bindVariables } from '../../src/ovm/DeciderManager'
-import { FreeVariable } from '../../src/ovm/types'
+import { Bytes, Integer } from '../../../src/types/Codables'
+import Coder from '../../../src/coder'
+import { bindVariables } from '../../../src/ovm/DeciderManager'
+import { FreeVariable } from '../../../src/ovm/types'
 
 describe('FreeVariable', () => {
   test('return variable name', () => {

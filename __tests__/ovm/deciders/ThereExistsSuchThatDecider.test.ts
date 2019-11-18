@@ -1,13 +1,13 @@
-import EthCoder from '../../src/coder/EthCoder'
-import { Bytes, Integer } from '../../src/types/Codables'
+import EthCoder from '../../../src/coder/EthCoder'
+import { Bytes, Integer } from '../../../src/types/Codables'
 import {
   initializeDeciderManager,
   ThereExistsSuchThatDeciderAddress,
   LessThanDeciderAddress,
   GreaterThanDeciderAddress,
   LessThanQuantifierAddress
-} from './helpers/initiateDeciderManager'
-import { Property, FreeVariable } from '../../src/ovm/types'
+} from '../helpers/initiateDeciderManager'
+import { Property, FreeVariable } from '../../../src/ovm/types'
 
 describe('ThereExistsSuchThatDecider', () => {
   const upperBound = EthCoder.encode(Integer.from(2))

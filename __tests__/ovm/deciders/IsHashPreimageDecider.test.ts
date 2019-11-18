@@ -1,7 +1,7 @@
-import { DeciderManager } from '../../src/ovm/DeciderManager'
-import { IsHashPreimageDecider } from '../../src/ovm/deciders'
-import { Property } from '../../src/ovm/types'
-import { Address, Bytes } from '../../src/types/Codables'
+import { DeciderManager } from '../../../src/ovm/DeciderManager'
+import { IsHashPreimageDecider } from '../../../src/ovm/deciders'
+import { Property } from '../../../src/ovm/types'
+import { Address, Bytes } from '../../../src/types/Codables'
 import { keccak256 } from 'ethers/utils'
 
 describe('IsHashPreimageDecider', () => {

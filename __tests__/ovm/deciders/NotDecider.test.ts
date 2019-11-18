@@ -1,11 +1,11 @@
-import { Property } from '../../src/ovm/types'
-import { Bytes } from '../../src/types/Codables'
-import EthCoder from '../../src/coder/EthCoder'
+import { Property } from '../../../src/ovm/types'
+import { Bytes } from '../../../src/types/Codables'
+import EthCoder from '../../../src/coder/EthCoder'
 import {
   initializeDeciderManager,
   NotDeciderAddress,
   SampleDeciderAddress
-} from './helpers/initiateDeciderManager'
+} from '../helpers/initiateDeciderManager'
 
 describe('NotDecider', () => {
   const trueProperty = new Property(SampleDeciderAddress, [

@@ -1,7 +1,7 @@
-import { DeciderManager } from '../../src/ovm/DeciderManager'
-import { IsValidSignatureDecider } from '../../src/ovm/deciders'
-import { Property } from '../../src/ovm/types'
-import { Address, Bytes } from '../../src/types/Codables'
+import { DeciderManager } from '../../../src/ovm/DeciderManager'
+import { IsValidSignatureDecider } from '../../../src/ovm/deciders'
+import { Property } from '../../../src/ovm/types'
+import { Address, Bytes } from '../../../src/types/Codables'
 import * as ethers from 'ethers'
 import { SigningKey, arrayify, joinSignature } from 'ethers/utils'
 
