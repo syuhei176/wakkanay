@@ -16,10 +16,10 @@ export default class Bytes implements Codable {
   }
 
   static fromHexString(hex: string): Bytes {
-    var match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
+    const match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
     if (match) {
       const value = match[2]
-      let result = []
+      const result = []
       for (let i = 0; i < value.length; i += 2) {
         result.push(parseInt(value.substr(i, 2), 16))
       }
@@ -59,7 +59,7 @@ export default class Bytes implements Codable {
   }
 
   public static concat(a: Bytes, b: Bytes) {
-    let result = new Uint8Array(a.data.length + b.data.length)
+    const result = new Uint8Array(a.data.length + b.data.length)
     result.set(a.data)
     result.set(b.data, a.data.length)
     return Bytes.from(result)

@@ -48,7 +48,9 @@ export class SocketioPubsubServer implements PubsubServer {
    * subscribe
    * subscribes to socket.io server.
    */
-  public broadcast(topic: string, message: string): void {}
+  public broadcast(topic: string, message: string): void {
+    throw new Error('Not implemented')
+  }
 
   /**
    * close server
