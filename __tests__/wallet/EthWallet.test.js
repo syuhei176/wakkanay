@@ -86,7 +86,6 @@ describe('EthWallet', () => {
       expect(balance.symbol).toBe('gwei')
     })
     it('succeed to get L1(ERC20) balance', async () => {
-      // it is the WETH address on Kovan Testnet
       const tokenAddress = Address.from(
         '0xd0a1e359811322d97991e03f863a0c30c2cf029c'
       )
