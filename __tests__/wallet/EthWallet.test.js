@@ -51,11 +51,11 @@ describe('EthWallet', () => {
       expect(signature).toBeTruthy()
     })
   })
-  describe('verifySignature', () => {
+  describe('verifyMySignature', () => {
     it('succeed to verify signature', async () => {
       const message = Bytes.fromHexString('0x00123456')
       const signatureDigest = await wallet.signMessage(message)
-      const verify = await wallet.verifySignature(
+      const verify = await wallet.verifyMySignature(
         message,
         signatureDigest,
         Bytes.default()
@@ -70,7 +70,7 @@ describe('EthWallet', () => {
       )
       const message = Bytes.fromHexString('0x00123456')
       const bobSignatureDigest = await bobWallet.signMessage(message)
-      const verify = await wallet.verifySignature(
+      const verify = await wallet.verifyMySignature(
         message,
         bobSignatureDigest,
         Bytes.default()
