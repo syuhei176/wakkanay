@@ -1,12 +1,12 @@
-import { Property } from '../../src/ovm/types'
-import { Bytes, Integer } from '../../src/types/Codables'
-import EthCoder from '../../src/coder/EthCoder'
+import { Property } from '../../../src/ovm/types'
+import { Bytes, Integer } from '../../../src/types/Codables'
+import EthCoder from '../../../src/coder/EthCoder'
 import {
   initializeDeciderManager,
   AndDeciderAddress,
   NotDeciderAddress,
   SampleDeciderAddress
-} from './helpers/initiateDeciderManager'
+} from '../helpers/initiateDeciderManager'
 
 describe('AndDecider', () => {
   const trueProperty = EthCoder.encode(
