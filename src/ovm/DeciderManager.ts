@@ -26,7 +26,7 @@ export class DeciderManager {
     operator?: LogicalConnective
   ) {
     this.deciders.set(address.raw, decier)
-    if (operator) {
+    if (operator !== undefined) {
       this.operators.set(operator, address)
     }
   }
