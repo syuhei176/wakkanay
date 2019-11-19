@@ -25,7 +25,7 @@ export class OrDecider implements Decider {
       })
     )
 
-    if (decisions.every(d => d.outcome)) {
+    if (decisions.some(d => d.outcome)) {
       return {
         outcome: true,
         challenges: []
@@ -48,7 +48,7 @@ export class OrDecider implements Decider {
     }
 
     return {
-      outcome: decisions.some(d => d.outcome),
+      outcome: false,
       challenges: [challenge]
     }
   }

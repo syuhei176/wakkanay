@@ -35,14 +35,6 @@ describe('OrDecider', () => {
       new Property(OrDeciderAddress, [falseProperty, trueProperty])
     )
     expect(decision.outcome).toEqual(true)
-    // valid challenge is And(Not(P0), Not(P1))
-    expect(decision.challenges[0]).toEqual({
-      property: new Property(AndDeciderAddress, [
-        encodeProperty(new Property(NotDeciderAddress, [falseProperty])),
-        encodeProperty(new Property(NotDeciderAddress, [trueProperty]))
-      ]),
-      challengeInput: null
-    })
   })
 
   test('decide or(true, false) to true', async () => {
@@ -50,14 +42,6 @@ describe('OrDecider', () => {
       new Property(OrDeciderAddress, [trueProperty, falseProperty])
     )
     expect(decision.outcome).toEqual(true)
-    // valid challenge is And(Not(P0), Not(P1))
-    expect(decision.challenges[0]).toEqual({
-      property: new Property(AndDeciderAddress, [
-        encodeProperty(new Property(NotDeciderAddress, [trueProperty])),
-        encodeProperty(new Property(NotDeciderAddress, [falseProperty]))
-      ]),
-      challengeInput: null
-    })
   })
 
   test('decide or(true, true) to true', async () => {
