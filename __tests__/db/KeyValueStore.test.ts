@@ -1,33 +1,35 @@
 import { InMemoryKeyValueStore, KeyValueStore } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 
-describe('InMemoryKeyValueStore', () => {
+const KVSs = [InMemoryKeyValueStore]
+
+describe.each(KVSs)('KeyValueStore: %p', KVS => {
   const testDbName = Bytes.fromString('root')
   const testDbKey = Bytes.fromString('aaa')
   const testDbValue = Bytes.fromString('value')
   describe('get', () => {
     it('suceed to get', async () => {
-      const kvs = new InMemoryKeyValueStore(testDbName)
+      const kvs = new KVS(testDbName)
       kvs.put(testDbKey, testDbValue)
       const result = await kvs.get(testDbKey)
       expect(result).toEqual(testDbValue)
     })
     it('fail to get', async () => {
-      const kvs = new InMemoryKeyValueStore(testDbName)
+      const kvs = new KVS(testDbName)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
   })
   describe('del', () => {
     it('suceed to del', async () => {
-      const kvs = new InMemoryKeyValueStore(testDbName)
+      const kvs = new KVS(testDbName)
       await kvs.put(testDbKey, testDbValue)
       await kvs.del(testDbKey)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
     it('delete key which does not exist', async () => {
-      const kvs = new InMemoryKeyValueStore(testDbName)
+      const kvs = new KVS(testDbName)
       await kvs.del(testDbKey)
     })
   })
@@ -37,7 +39,7 @@ describe('InMemoryKeyValueStore', () => {
     const testDbKey2 = Bytes.fromString('2')
     let kvs: KeyValueStore
     beforeEach(async () => {
-      kvs = new InMemoryKeyValueStore(testDbName)
+      kvs = new KVS(testDbName)
       await kvs.put(testDbKey0, testDbKey0)
       await kvs.put(testDbKey1, testDbKey1)
       await kvs.put(testDbKey2, testDbKey2)
@@ -75,7 +77,7 @@ describe('InMemoryKeyValueStore', () => {
     let kvs: KeyValueStore
     let testNotEmptyBucket: KeyValueStore
     beforeEach(async () => {
-      kvs = new InMemoryKeyValueStore(testDbName)
+      kvs = new KVS(testDbName)
       testNotEmptyBucket = kvs.bucket(testNotEmptyBucketName)
       await testNotEmptyBucket.put(testDbKey0, testDbKey0)
       await testNotEmptyBucket.put(testDbKey1, testDbKey1)
