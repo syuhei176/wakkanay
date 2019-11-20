@@ -51,8 +51,9 @@ export class RangeDb implements RangeStore {
     return
   }
 
-  public bucket(key: Bytes): RangeStore {
-    return new RangeDb(this.kvs.bucket(key))
+  public async bucket(key: Bytes): Promise<RangeStore> {
+    const db = await this.kvs.bucket(key)
+    return new RangeDb(db)
   }
 
   private async delBatch(start: number, end: number): Promise<Range[]> {

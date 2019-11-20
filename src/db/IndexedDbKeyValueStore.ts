@@ -4,21 +4,47 @@
 
 import { KeyValueStore, Iterator, BatchOperation } from './KeyValueStore'
 import { Bytes } from '../types/Codables'
-const STORE_NAME = 'obj'
 const STORE_KEY_PATH = 'key'
 
 export class IndexedDbKeyValueStore implements KeyValueStore {
+  private dbName: Bytes
   private db: IDBDatabase | null = null
   private openPromise: Promise<IDBDatabase>
+  private storeKey: string
 
-  constructor(name: Bytes = Bytes.fromString('db')) {
-    this.openPromise = new Promise(resolve => {
-      const req = indexedDB.open(name.intoString())
+  constructor(
+    name: Bytes = Bytes.fromString('db'),
+    key = '_',
+    version?: number
+  ) {
+    this.dbName = name
+    this.storeKey = key
+    this.openPromise = this.openDb(version)
+  }
+
+  private async openDb(version?: number): Promise<IDBDatabase> {
+    return await new Promise(resolve => {
+      const req = indexedDB.open(this.dbName.intoString(), version)
+
       req.onsuccess = () => {
-        resolve(req.result)
+        const db = req.result
+        db.onversionchange = e => {
+          this.db = null
+          if (e.newVersion) {
+            this.openPromise = this.openDb(e.newVersion)
+          }
+          db.close()
+        }
+        resolve(db)
       }
+
       req.onupgradeneeded = () => {
-        req.result.createObjectStore(STORE_NAME, { keyPath: STORE_KEY_PATH })
+        const db = req.result
+        if (!db.objectStoreNames.contains(this.storeKey)) {
+          req.result.createObjectStore(this.storeKey, {
+            keyPath: STORE_KEY_PATH
+          })
+        }
       }
     })
   }
@@ -27,10 +53,20 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     return this.db || (await this.openPromise)
   }
 
-  async get(key: Bytes): Promise<Bytes | null> {
+  private async getVersion(): Promise<number> {
     const db = await this.getDb()
-    const tx = db.transaction(STORE_NAME, 'readonly')
-    const store = tx.objectStore(STORE_NAME)
+    return db.version
+  }
+
+  private async getObjectStoreNames(): Promise<DOMStringList> {
+    const db = await this.getDb()
+    return db.objectStoreNames
+  }
+
+  public async get(key: Bytes): Promise<Bytes | null> {
+    const db = await this.getDb()
+    const tx = db.transaction(this.storeKey, 'readonly')
+    const store = tx.objectStore(this.storeKey)
     const req = store.get(key.intoString())
 
     return await new Promise(resolve => {
@@ -44,10 +80,10 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     })
   }
 
-  async put(key: Bytes, value: Bytes): Promise<void> {
+  public async put(key: Bytes, value: Bytes): Promise<void> {
     const db = await this.getDb()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    const store = tx.objectStore(STORE_NAME)
+    const tx = db.transaction(this.storeKey, 'readwrite')
+    const store = tx.objectStore(this.storeKey)
     store.put(createKeyValue(key.intoString(), value))
 
     return new Promise((resolve, reject) => {
@@ -60,10 +96,10 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     })
   }
 
-  async del(key: Bytes): Promise<void> {
+  public async del(key: Bytes): Promise<void> {
     const db = await this.getDb()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    const store = tx.objectStore(STORE_NAME)
+    const tx = db.transaction(this.storeKey, 'readwrite')
+    const store = tx.objectStore(this.storeKey)
     store.delete(key.intoString())
     return new Promise((resolve, reject) => {
       tx.onerror = () => {
@@ -75,14 +111,43 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     })
   }
 
-  async batch(operations: BatchOperation[]): Promise<void> {
+  public async batch(operations: BatchOperation[]): Promise<void> {
     // console.log('batch')
   }
-  iter(lowerBound: Bytes): Iterator {
+
+  public iter(lowerBound: Bytes): Iterator {
     return { next: () => Promise.resolve(null) }
   }
-  bucket(key: Bytes): KeyValueStore {
-    return this
+
+  // use objectStore to manage bucket
+  // each bucket has a bucket key as a private field for a key of global objectStore.
+  // bucket(key) method returns a new IndexedDbKeyValueStore instance concatenating a given key
+  // with parent key.
+  // in order to add a new objectStore, bucket must pass new version number to constructor.
+  public async bucket(key: Bytes): Promise<KeyValueStore> {
+    let version
+    const objectStoreNames = await this.getObjectStoreNames()
+    const newObjectStoreKey = this.storeKey + key.intoString()
+    if (!objectStoreNames.contains(newObjectStoreKey)) {
+      version = (await this.getVersion()) + 1
+    }
+
+    return Promise.resolve(
+      new IndexedDbKeyValueStore(this.dbName, newObjectStoreKey, version)
+    )
+  }
+
+  public async close(): Promise<void> {
+    return await new Promise(resolve => {
+      if (this.db) {
+        this.db.close()
+        this.db.onclose = () => {
+          resolve()
+        }
+      } else {
+        resolve()
+      }
+    })
   }
 }
 

@@ -5,7 +5,9 @@ export class EventDb {
   kvs: KeyValueStore
 
   constructor(kvs: KeyValueStore) {
-    this.kvs = kvs.bucket(Bytes.fromString('event_db'))
+    // TODO: fix
+    // this.kvs = kvs.bucket(Bytes.fromString('event_db'))
+    this.kvs = kvs
   }
 
   public async getLastLoggedBlock(topic: Bytes): Promise<number> {
