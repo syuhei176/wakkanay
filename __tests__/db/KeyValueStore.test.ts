@@ -1,7 +1,11 @@
-import { InMemoryKeyValueStore, KeyValueStore } from '../../src/db'
+import {
+  InMemoryKeyValueStore,
+  IndexedDbKeyValueStore,
+  KeyValueStore
+} from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 
-const KVSs = [InMemoryKeyValueStore]
+const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
 
 describe.each(KVSs)('KeyValueStore: %p', KVS => {
   const testDbName = Bytes.fromString('root')

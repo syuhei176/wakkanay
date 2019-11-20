@@ -7,4 +7,5 @@ export {
   createRangeWitnessStore
 } from './WitnessStore'
 export { InMemoryKeyValueStore } from './InMemoryKeyValueStore'
+export { IndexedDbKeyValueStore } from './IndexedDbKeyValueStore'
 export { RangeDb } from './RangeDb'
