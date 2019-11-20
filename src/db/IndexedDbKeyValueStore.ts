@@ -1,7 +1,3 @@
-// indexedDB key value store
-// because our
-//
-
 import { KeyValueStore, Iterator, BatchOperation } from './KeyValueStore'
 import { Bytes } from '../types/Codables'
 const STORE_KEY_PATH = 'key'
