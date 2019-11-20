@@ -4,27 +4,58 @@ import {
   KeyValueStore
 } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
+import 'fake-indexeddb/auto'
 
 const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
+const testDbName = Bytes.fromString('root')
+const testDbKey = Bytes.fromString('aaa')
+const testDbValue = Bytes.fromString('value')
 
 describe.each(KVSs)('KeyValueStore: %p', KVS => {
-  const testDbName = Bytes.fromString('root')
-  const testDbKey = Bytes.fromString('aaa')
-  const testDbValue = Bytes.fromString('value')
+  async function clearDb() {
+    const kvs = new KVS(testDbName)
+    if (kvs instanceof IndexedDbKeyValueStore) {
+      const db: IDBDatabase = await new Promise(resolve => {
+        const openReq = indexedDB.open(testDbName.intoString())
+        openReq.onsuccess = () => {
+          resolve(openReq.result)
+        }
+      })
+      const tx = db.transaction('obj', 'readwrite')
+      const store = tx.objectStore('obj')
+      const req = store.clear()
+      await new Promise(resolve => {
+        req.onsuccess = () => {
+          resolve()
+        }
+      })
+    }
+  }
+
   describe('get', () => {
+    afterEach(async () => {
+      await clearDb()
+    })
+
     it('suceed to get', async () => {
       const kvs = new KVS(testDbName)
       kvs.put(testDbKey, testDbValue)
       const result = await kvs.get(testDbKey)
       expect(result).toEqual(testDbValue)
     })
+
     it('fail to get', async () => {
       const kvs = new KVS(testDbName)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
   })
+
   describe('del', () => {
+    afterEach(async () => {
+      await clearDb()
+    })
+
     it('suceed to del', async () => {
       const kvs = new KVS(testDbName)
       await kvs.put(testDbKey, testDbValue)
@@ -32,33 +63,43 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
+
     it('delete key which does not exist', async () => {
       const kvs = new KVS(testDbName)
       await kvs.del(testDbKey)
     })
   })
+
   describe('iter', () => {
     const testDbKey0 = Bytes.fromString('0')
     const testDbKey1 = Bytes.fromString('1')
     const testDbKey2 = Bytes.fromString('2')
     let kvs: KeyValueStore
+
     beforeEach(async () => {
       kvs = new KVS(testDbName)
       await kvs.put(testDbKey0, testDbKey0)
       await kvs.put(testDbKey1, testDbKey1)
       await kvs.put(testDbKey2, testDbKey2)
     })
+
+    afterEach(async () => {
+      await clearDb()
+    })
+
     it('suceed to next', async () => {
       await kvs.put(testDbKey, testDbValue)
       const iter = kvs.iter(testDbKey)
       const result = await iter.next()
       expect(result).not.toBeNull()
     })
+
     it('end of iterator', async () => {
       const iter = kvs.iter(testDbKey)
       const result = await iter.next()
       expect(result).toBeNull()
     })
+
     it('get ordered keys', async () => {
       const iter = kvs.iter(testDbKey0)
       const result0 = await iter.next()
@@ -73,6 +114,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       }
     })
   })
+
   describe('bucket', () => {
     const testEmptyBucketName = Bytes.fromString('bucket1')
     const testNotEmptyBucketName = Bytes.fromString('bucket2')
@@ -80,18 +122,25 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     const testDbKey1 = Bytes.fromString('1')
     let kvs: KeyValueStore
     let testNotEmptyBucket: KeyValueStore
+
     beforeEach(async () => {
       kvs = new KVS(testDbName)
       testNotEmptyBucket = kvs.bucket(testNotEmptyBucketName)
       await testNotEmptyBucket.put(testDbKey0, testDbKey0)
       await testNotEmptyBucket.put(testDbKey1, testDbKey1)
     })
+
+    afterEach(async () => {
+      await clearDb()
+    })
+
     it('suceed to get bucket', async () => {
       const bucket = kvs.bucket(testEmptyBucketName)
       await bucket.put(testDbKey, testDbValue)
       const value = await bucket.get(testDbKey)
       expect(value).toEqual(testDbValue)
     })
+
     it('suceed to get values from iterator of bucket', async () => {
       const iter = testNotEmptyBucket.iter(testDbKey0)
       const result0 = await iter.next()
@@ -105,6 +154,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
         expect(result1.value).toEqual(testDbKey1)
       }
     })
+
     it('next returns null for new bucket', async () => {
       const bucket = kvs.bucket(testEmptyBucketName)
       const iter = bucket.iter(testDbKey0)
