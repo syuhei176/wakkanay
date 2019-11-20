@@ -1,4 +1,4 @@
-import EventWatcher, { EventWatcherArg } from './EventWatcher'
+import { IEventWatcherFactory, EventWatcherArg } from './IEventWatcherFactory'
 import { IEventWatcher } from './IEventWatcher'
 import BlockSubmitted from '../types/BlockSubmitted'
 import EventLog from '../types/EventLog'
@@ -9,8 +9,8 @@ export default class CommitmentContractWatcher {
   private inner: IEventWatcher
   private listeners: Map<Listener, any> = new Map()
 
-  constructor(arg: EventWatcherArg) {
-    this.inner = new EventWatcher(arg)
+  constructor(factory: IEventWatcherFactory, arg: EventWatcherArg) {
+    this.inner = factory.create(arg)
   }
 
   subscribeBlockSubmittedEvent(handler: Listener) {
