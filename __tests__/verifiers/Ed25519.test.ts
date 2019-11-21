@@ -1,13 +1,51 @@
-import {
-  ConseilServerInfo,
-  CryptoUtils,
-  KeyStore,
-  TezosConseilClient,
-  TezosMessageUtils,
-  TezosWalletUtil
-} from 'conseiljs'
 import { ed25519Verifier } from '../../src/verifiers'
 import { Bytes } from '../../src/types/Codables'
+import sodiumsumo from 'libsodium-wrappers-sumo'
+import base58check from 'bs58check'
+
+async function sign(msg: Buffer, key: any) {
+  await sodiumsumo.ready
+  const b = sodiumsumo.crypto_sign_detached(msg, key)
+  return Buffer.from(b)
+}
+
+// utility function for tezos key management
+function readPublicKey(hex: string): string {
+  if (hex.length !== 66 && hex.length !== 68) {
+    throw new Error(`Incorrect hex length, ${hex.length} to parse a key`)
+  }
+
+  let hint = hex.substring(0, 2)
+  if (hint === '00') {
+    // ed25519
+    return base58check.encode(Buffer.from('0d0f25d9' + hex.substring(2), 'hex'))
+  } else if (hint === '01' && hex.length === 68) {
+    // secp256k1
+    return base58check.encode(Buffer.from('03fee256' + hex.substring(2), 'hex'))
+  } else if (hint === '02' && hex.length === 68) {
+    // p256
+    return base58check.encode(Buffer.from('03b28b7f' + hex.substring(2), 'hex'))
+  } else {
+    throw new Error('Unrecognized key type')
+  }
+}
+
+// utility function for tezos key management
+async function restoreKey(
+  privateKey: string
+): Promise<{ publicKey: string; privateKey: string }> {
+  await sodiumsumo.ready
+
+  const secretKey = base58check.decode(privateKey).slice(4)
+  const seed = sodiumsumo.crypto_sign_ed25519_sk_to_seed(secretKey)
+  // @ts-ignore
+  const keys = sodiumsumo.crypto_sign_seed_keypair(seed, '')
+  const publicKey = readPublicKey(
+    `00${Buffer.from(keys.publicKey).toString('hex')}`
+  )
+
+  return { publicKey, privateKey }
+}
 
 describe('ed25519Verifier', () => {
   const privateKey =
@@ -19,24 +57,17 @@ describe('ed25519Verifier', () => {
   let signature: Bytes
   let invalidSignature: Bytes
   beforeEach(async () => {
-    const keyStore = await TezosWalletUtil.restoreIdentityWithSecretKey(
-      privateKey
-    )
+    await sodiumsumo.ready
+
+    const keyStore = await restoreKey(privateKey)
     publicKey = Bytes.fromString(keyStore.publicKey)
     const messageBuffer = Buffer.from(message.toHexString())
-    const privateKeyBuffer = TezosMessageUtils.writeKeyWithHint(
-      privateKey,
-      'edsk'
-    )
-    const anotherPrivateKeyBuffer = TezosMessageUtils.writeKeyWithHint(
-      anotherPrivateKey,
-      'edsk'
-    )
-    const signatureBuffer = await CryptoUtils.signDetached(
-      messageBuffer,
-      privateKeyBuffer
-    )
-    const invalidSignatureBuffer = await CryptoUtils.signDetached(
+    const privateKeyBuffer = base58check.decode(privateKey).slice(4)
+    const anotherPrivateKeyBuffer = base58check
+      .decode(anotherPrivateKey)
+      .slice(4)
+    const signatureBuffer = await sign(messageBuffer, privateKeyBuffer)
+    const invalidSignatureBuffer = await sign(
       messageBuffer,
       anotherPrivateKeyBuffer
     )
