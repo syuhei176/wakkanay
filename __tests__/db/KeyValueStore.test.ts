@@ -137,7 +137,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       expect(value).toEqual(testDbValue)
     })
 
-    it.skip('suceed to get values from iterator of bucket', async () => {
+    it('suceed to get values from iterator of bucket', async () => {
       const iter = testNotEmptyBucket.iter(testDbKey0)
       const result0 = await iter.next()
       const result1 = await iter.next()
@@ -151,7 +151,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       }
     })
 
-    it.skip('next returns null for new bucket', async () => {
+    it('next returns null for new bucket', async () => {
       const bucket = await kvs.bucket(testEmptyBucketName)
       const iter = bucket.iter(testDbKey0)
       const result = await iter.next()

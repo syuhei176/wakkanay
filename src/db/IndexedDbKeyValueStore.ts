@@ -2,6 +2,50 @@ import { KeyValueStore, Iterator, BatchOperation } from './KeyValueStore'
 import { Bytes } from '../types/Codables'
 const STORE_KEY_PATH = 'key'
 
+class IndexedDbIterator implements Iterator {
+  private req: IDBRequest | null = null
+  private cursor: IDBCursorWithValue | null = null
+
+  constructor(
+    readonly lowerBound: Bytes,
+    readonly dbPromise: Promise<IDBDatabase>,
+    readonly storeKey: string
+  ) {}
+
+  private async init() {
+    const db = await this.dbPromise
+    const tx = db.transaction(this.storeKey, 'readonly')
+    const store = tx.objectStore(this.storeKey)
+    this.req = store.openCursor(
+      IDBKeyRange.lowerBound(this.lowerBound.intoString())
+    )
+  }
+
+  public async next(): Promise<{ key: Bytes; value: Bytes } | null> {
+    if (!this.cursor) {
+      await this.init()
+      this.cursor = await new Promise(resolve => {
+        if (this.req) {
+          this.req.onsuccess = e => {
+            resolve((e.target as any).result as IDBCursorWithValue)
+          }
+        }
+      })
+      return this.cursor ? createBytesKeyValue({ ...this.cursor.value }) : null
+    } else {
+      const result: IDBCursorWithValue = await new Promise(resolve => {
+        if (this.cursor && this.req) {
+          this.cursor.continue()
+          this.req.onsuccess = e => {
+            resolve((e.target as any).result)
+          }
+        }
+      })
+      return result.value ? createBytesKeyValue({ ...result.value }) : null
+    }
+  }
+}
+
 export class IndexedDbKeyValueStore implements KeyValueStore {
   private dbName: Bytes
   private db: IDBDatabase | null = null
@@ -112,7 +156,7 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
   }
 
   public iter(lowerBound: Bytes): Iterator {
-    return { next: () => Promise.resolve(null) }
+    return new IndexedDbIterator(lowerBound, this.getDb(), this.storeKey)
   }
 
   // use objectStore to manage bucket
@@ -151,6 +195,13 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
 function createKeyValue(key: string, value: any) {
   return {
     key,
+    value
+  }
+}
+
+function createBytesKeyValue({ key, value }: { key: string; value: any }) {
+  return {
+    key: Bytes.fromString(key),
     value
   }
 }
