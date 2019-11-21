@@ -1,13 +1,13 @@
 import { Codable } from '../types/Codables'
 
-export class AbiDecodeError extends Error {
+export class JsonDecodeError extends Error {
   constructor(message: string) {
     super(message)
 
-    this.name = 'AbiError'
+    this.name = 'JsonError'
   }
 
-  static from(codable: Codable): AbiDecodeError {
-    return new AbiDecodeError(`Cannot decode object: ${codable.toString()}`)
+  static from(codable: Codable): JsonDecodeError {
+    return new JsonDecodeError(`Cannot decode object: ${codable.toString()}`)
   }
 }

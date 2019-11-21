@@ -1,4 +1,4 @@
-import EthCoder from '../../../src/coder/EthCoder'
+import Coder from '../../../src/coder'
 import { Bytes, Integer } from '../../../src/types/Codables'
 import {
   initializeDeciderManager,
@@ -10,15 +10,15 @@ import {
 import { Property, FreeVariable } from '../../../src/ovm/types'
 
 describe('ThereExistsSuchThatDecider', () => {
-  const upperBound = EthCoder.encode(Integer.from(2))
-  const lowerBound = EthCoder.encode(Integer.from(10))
-  const lessThanTwoProperty = EthCoder.encode(
+  const upperBound = Coder.encode(Integer.from(2))
+  const lowerBound = Coder.encode(Integer.from(10))
+  const lessThanTwoProperty = Coder.encode(
     new Property(LessThanDeciderAddress, [
       upperBound,
       FreeVariable.from('n')
     ]).toStruct()
   )
-  const greaterThanTenProperty = EthCoder.encode(
+  const greaterThanTenProperty = Coder.encode(
     new Property(GreaterThanDeciderAddress, [
       lowerBound,
       FreeVariable.from('n')
@@ -28,8 +28,8 @@ describe('ThereExistsSuchThatDecider', () => {
   const deciderManager = initializeDeciderManager()
 
   test('ThereExists positive integer n of number less than 10 such that n is less than 2.', async () => {
-    const upperBound = EthCoder.encode(Integer.from(10))
-    const quantifier = EthCoder.encode(
+    const upperBound = Coder.encode(Integer.from(10))
+    const quantifier = Coder.encode(
       new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
     )
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
@@ -43,8 +43,8 @@ describe('ThereExistsSuchThatDecider', () => {
   })
 
   test('ThereDoesNotExists positive integer n of number less than 5 such that n is greater than 10.', async () => {
-    const upperBound = EthCoder.encode(Integer.from(5))
-    const quantifier = EthCoder.encode(
+    const upperBound = Coder.encode(Integer.from(5))
+    const quantifier = Coder.encode(
       new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
     )
     const property = new Property(ThereExistsSuchThatDeciderAddress, [

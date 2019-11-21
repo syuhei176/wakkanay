@@ -1,6 +1,6 @@
 import { Property, FreeVariable } from '../../../src/ovm/types'
 import { Bytes, Integer } from '../../../src/types/Codables'
-import EthCoder from '../../../src/coder/EthCoder'
+import Coder from '../../../src/coder'
 import {
   initializeDeciderManager,
   NotDeciderAddress,
@@ -12,14 +12,14 @@ import {
 } from '../helpers/initiateDeciderManager'
 
 describe('ForAllsuchThatDecider', () => {
-  const trueProperty = EthCoder.encode(
+  const trueProperty = Coder.encode(
     new Property(SampleDeciderAddress, [Bytes.fromString('true')]).toStruct()
   )
-  const falseProperty = EthCoder.encode(
+  const falseProperty = Coder.encode(
     new Property(SampleDeciderAddress, []).toStruct()
   )
-  const upperBound = EthCoder.encode(Integer.from(5))
-  const placeholderedProperty = EthCoder.encode(
+  const upperBound = Coder.encode(Integer.from(5))
+  const placeholderedProperty = Coder.encode(
     new Property(LessThanDeciderAddress, [
       upperBound,
       FreeVariable.from('n')
@@ -28,8 +28,8 @@ describe('ForAllsuchThatDecider', () => {
   const deciderManager = initializeDeciderManager()
 
   it('decide for all n such that n < 10: true', async () => {
-    const upperBound = EthCoder.encode(Integer.from(10))
-    const quantifier = EthCoder.encode(
+    const upperBound = Coder.encode(Integer.from(10))
+    const quantifier = Coder.encode(
       new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
@@ -42,8 +42,8 @@ describe('ForAllsuchThatDecider', () => {
   })
 
   it('decide for all n such that n < 10: false', async () => {
-    const upperBound = EthCoder.encode(Integer.from(10))
-    const quantifier = EthCoder.encode(
+    const upperBound = Coder.encode(Integer.from(10))
+    const quantifier = Coder.encode(
       new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
@@ -54,7 +54,7 @@ describe('ForAllsuchThatDecider', () => {
     const decision = await deciderManager.decide(property)
     expect(decision.outcome).toEqual(false)
     expect(decision.challenges[0].challengeInput).toEqual(
-      EthCoder.encode(Integer.from(0))
+      Coder.encode(Integer.from(0))
     )
     expect(decision.challenges[0].property.deciderAddress).toEqual(
       NotDeciderAddress
@@ -62,8 +62,8 @@ describe('ForAllsuchThatDecider', () => {
   })
 
   it('decide for all n such that n < 2: n < 5', async () => {
-    const upperBound = EthCoder.encode(Integer.from(2))
-    const quantifier = EthCoder.encode(
+    const upperBound = Coder.encode(Integer.from(2))
+    const quantifier = Coder.encode(
       new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
@@ -76,8 +76,8 @@ describe('ForAllsuchThatDecider', () => {
   })
 
   it('decide for all n such that n < 10: n < 5', async () => {
-    const upperBound = EthCoder.encode(Integer.from(10))
-    const quantifier = EthCoder.encode(
+    const upperBound = Coder.encode(Integer.from(10))
+    const quantifier = Coder.encode(
       new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
@@ -89,12 +89,12 @@ describe('ForAllsuchThatDecider', () => {
     expect(decision.outcome).toEqual(false)
     // challengeInput is 5 because 5 < 5 is false
     expect(decision.challenges[0].challengeInput).toEqual(
-      EthCoder.encode(Integer.from(5))
+      Coder.encode(Integer.from(5))
     )
   })
 
   it('fail to decide because of invalid quantifier address', async () => {
-    const quantifier = EthCoder.encode(
+    const quantifier = Coder.encode(
       new Property(AndDeciderAddress, [upperBound]).toStruct()
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [

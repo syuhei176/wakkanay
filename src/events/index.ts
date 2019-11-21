@@ -1,3 +1,2 @@
-import EventWatcher from './watcher/EventWatcher'
+export * from './watcher'
 export * from './EventDb'
-export { EventWatcher }
