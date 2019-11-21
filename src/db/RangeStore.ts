@@ -39,5 +39,5 @@ export interface RangeStore {
   get(start: number, end: number): Promise<RangeRecord[]>
   put(start: number, end: number, value: Bytes): Promise<void>
   del(start: number, end: number): Promise<void>
-  bucket(key: Bytes): RangeStore
+  bucket(key: Bytes): Promise<RangeStore>
 }

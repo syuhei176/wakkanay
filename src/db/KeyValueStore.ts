@@ -27,5 +27,6 @@ export interface KeyValueStore {
    * @param bound We can get `Iterator` which seek values greater than `lowerBound` in dictionary order.
    */
   iter(lowerBound: Bytes): Iterator
-  bucket(key: Bytes): KeyValueStore
+  bucket(key: Bytes): Promise<KeyValueStore>
+  close(): Promise<void>
 }

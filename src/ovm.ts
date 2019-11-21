@@ -125,8 +125,9 @@ class OVM {
    * get kvs witness store prefix with given key
    * @param {Bytes} key prefix
    */
-  public store(key: Bytes): DB.WitnessStore {
-    return DB.createWitnessStore(this.database.bucket(key))
+  public async store(key: Bytes): Promise<DB.WitnessStore> {
+    const db = await this.database.bucket(key)
+    return DB.createWitnessStore(db)
   }
 
   /**
@@ -134,7 +135,8 @@ class OVM {
    * get range witness store prefix with given key
    * @param {Bytes} key prefix
    */
-  public rangeStore(key: Bytes): DB.RangeWitnessStore {
-    return DB.createRangeWitnessStore(this.rangeDatabase.bucket(key))
+  public async rangeStore(key: Bytes): Promise<DB.RangeWitnessStore> {
+    const db = await this.rangeDatabase.bucket(key)
+    return DB.createRangeWitnessStore(db)
   }
 }

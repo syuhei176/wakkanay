@@ -130,8 +130,10 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     )
   }
 
-  public bucket(key: Bytes): KeyValueStore {
-    return new InMemoryKeyValueStore(this.concatKeyWithPrefix(key))
+  public bucket(key: Bytes): Promise<KeyValueStore> {
+    return Promise.resolve(
+      new InMemoryKeyValueStore(this.concatKeyWithPrefix(key))
+    )
   }
 
   private concatKeyWithPrefix(key: Bytes): Bytes {
@@ -160,5 +162,9 @@ export class InMemoryKeyValueStore implements KeyValueStore {
 
   private removePrefix(key: Bytes): Bytes {
     return Bytes.from(key.data.slice(this.prefix.data.length))
+  }
+
+  public async close(): Promise<void> {
+    return Promise.resolve()
   }
 }
