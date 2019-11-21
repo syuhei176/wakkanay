@@ -165,6 +165,12 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   }
 
   public async close(): Promise<void> {
-    return Promise.resolve()
+    // do nothing
+    return
+  }
+
+  public async open(): Promise<void> {
+    // do nothing
+    return
   }
 }

@@ -29,4 +29,5 @@ export interface KeyValueStore {
   iter(lowerBound: Bytes): Iterator
   bucket(key: Bytes): Promise<KeyValueStore>
   close(): Promise<void>
+  open(): Promise<void>
 }

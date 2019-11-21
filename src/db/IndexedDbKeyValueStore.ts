@@ -177,6 +177,12 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     )
   }
 
+  public async open(): Promise<void> {
+    // call getDb to open connection if it's been closed.
+    // if it's already open, do nothing.
+    await this.getDb()
+  }
+
   public async close(): Promise<void> {
     return await new Promise(resolve => {
       if (this.db) {
@@ -192,14 +198,14 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
 }
 
 // create key value pair to store in indexeddb
-function createKeyValue(key: string, value: any) {
+function createKeyValue<T>(key: string, value: T) {
   return {
     key,
     value
   }
 }
 
-function createBytesKeyValue({ key, value }: { key: string; value: any }) {
+function createBytesKeyValue<T>({ key, value }: { key: string; value: T }) {
   return {
     key: Bytes.fromString(key),
     value
