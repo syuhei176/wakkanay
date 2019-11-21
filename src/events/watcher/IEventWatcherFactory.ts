@@ -1,4 +1,4 @@
-export { IEventWatcher } from './IEventWatcher'
+import { IEventWatcher } from './IEventWatcher'
 
 export type EventWatcherArg = any
 export interface IEventWatcherFactory {

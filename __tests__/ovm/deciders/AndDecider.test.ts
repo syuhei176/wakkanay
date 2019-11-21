@@ -1,6 +1,6 @@
 import { Property } from '../../../src/ovm/types'
 import { Bytes, Integer } from '../../../src/types/Codables'
-import EthCoder from '../../../src/coder/EthCoder'
+import DefaultCoder from '../../../src/coder'
 import {
   initializeDeciderManager,
   AndDeciderAddress,
@@ -9,15 +9,15 @@ import {
 } from '../helpers/initiateDeciderManager'
 
 describe('AndDecider', () => {
-  const trueProperty = EthCoder.encode(
+  const trueProperty = DefaultCoder.encode(
     new Property(SampleDeciderAddress, [Bytes.fromString('true')]).toStruct()
   )
-  const falseProperty = EthCoder.encode(
+  const falseProperty = DefaultCoder.encode(
     new Property(SampleDeciderAddress, []).toStruct()
   )
   const deciderManager = initializeDeciderManager()
-  const challengeInput0 = EthCoder.encode(Integer.from(0))
-  const challengeInput1 = EthCoder.encode(Integer.from(1))
+  const challengeInput0 = DefaultCoder.encode(Integer.from(0))
+  const challengeInput1 = DefaultCoder.encode(Integer.from(1))
 
   it('decide and(true, true)', async () => {
     const decision = await deciderManager.decide(

@@ -1,4 +1,3 @@
-import EthCoder, { getEthParamType } from '../../src/coder/EthCoder'
 import { Bytes } from '../../src/types/Codables'
 
 describe('Bytes', () => {
