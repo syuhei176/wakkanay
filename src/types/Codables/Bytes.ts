@@ -29,6 +29,10 @@ export default class Bytes implements Codable {
     }
   }
 
+  static fromBuffer(data: Buffer): Bytes {
+    return new Bytes(Uint8Array.from(data))
+  }
+
   constructor(public data: Uint8Array) {}
 
   public get raw(): Uint8Array {
@@ -58,10 +62,22 @@ export default class Bytes implements Codable {
     )
   }
 
-  public static concat(a: Bytes, b: Bytes) {
-    const result = new Uint8Array(a.data.length + b.data.length)
-    result.set(a.data)
-    result.set(b.data, a.data.length)
-    return Bytes.from(result)
+  public equals(target: Bytes): boolean {
+    return Buffer.compare(Buffer.from(this.data), Buffer.from(target.data)) == 0
+  }
+
+  public static concat(a: Bytes | Bytes[], b?: Bytes) {
+    if (a instanceof Bytes && !!b) {
+      const result = new Uint8Array(a.data.length + b.data.length)
+      result.set(a.data)
+      result.set(b.data, a.data.length)
+      return Bytes.from(result)
+    } else {
+      return Bytes.from(
+        Uint8Array.from(
+          Buffer.concat((a as Bytes[]).map(a => Buffer.from(a.data)))
+        )
+      )
+    }
   }
 }
