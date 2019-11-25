@@ -109,9 +109,7 @@ export abstract class AbstractMerkleTree<T extends MerkleTreeNode>
 export abstract class AbstractMerkleVerifier<T extends MerkleTreeNode>
   implements MerkleTreeVerifier<T> {
   constructor(protected hashAlgorythm: Hash = Keccak256) {}
-  decodeProofElements(bytes: Bytes): T[] {
-    throw new Error('Method not implemented')
-  }
+  abstract decodeProofElements(bytes: Bytes): T[]
   verifyInclusion(leaf: T, root: Bytes, inclusionProofBytes: Bytes): boolean {
     const { merklePath, proofElement } = this.calculateMerklePath(
       inclusionProofBytes

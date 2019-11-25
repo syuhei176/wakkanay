@@ -42,6 +42,16 @@ describe('DoubleLayerTree', () => {
     )
     beforeEach(() => {})
     describe('getRoot', () => {
+      it('throw exception invalid data length', async () => {
+        const invalidLeaf = new DoubleLayerTreeLeaf(
+          token0,
+          Integer.from(500),
+          Bytes.fromString('leaf0')
+        )
+        expect(() => {
+          new DoubleLayerTree([leaf0, leaf1, leaf2, invalidLeaf])
+        }).toThrow(new Error('data length is not 32 bytes.'))
+      })
       it('return Merkle Root', async () => {
         const tree = new DoubleLayerTree([leaf0, leaf1, leaf2])
         const root = tree.getRoot()

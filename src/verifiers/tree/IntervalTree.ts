@@ -7,7 +7,9 @@ import { MerkleTreeNode } from './MerkleTreeInterface'
 import { BufferUtils } from '../../utils'
 
 export class IntervalTreeNode implements MerkleTreeNode {
-  constructor(public start: Integer, public data: Bytes) {}
+  constructor(public start: Integer, public data: Bytes) {
+    if (data.data.length !== 32) throw new Error('data length is not 32 bytes.')
+  }
   encode(): Bytes {
     return Bytes.concat([
       this.data,

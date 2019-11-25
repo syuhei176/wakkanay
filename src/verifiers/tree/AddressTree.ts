@@ -6,7 +6,9 @@ import {
 import { MerkleTreeNode } from './MerkleTreeInterface'
 
 export class AddressTreeNode implements MerkleTreeNode {
-  constructor(public address: Address, public data: Bytes) {}
+  constructor(public address: Address, public data: Bytes) {
+    if (data.data.length !== 32) throw new Error('data length is not 32 bytes.')
+  }
   encode(): Bytes {
     return Bytes.concat([this.data, Bytes.fromHexString(this.address.data)])
   }
