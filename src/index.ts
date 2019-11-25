@@ -5,6 +5,7 @@ import * as events from './events'
 import * as network from './network'
 import * as ovm from './ovm'
 import * as types from './types'
+import * as verifiers from './verifiers'
 import * as wallet from './wallet'
 
-export { coder, contract, db, events, network, ovm, types, wallet }
+export { coder, contract, db, events, network, ovm, types, verifiers, wallet }
