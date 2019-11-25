@@ -65,8 +65,16 @@ describe('IntervalTree', () => {
     })
     it('return InclusionProof with even number of leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3])
+      const inclusionProof0 = tree.getInclusionProof(0)
+      const inclusionProof1 = tree.getInclusionProof(1)
       const inclusionProof2 = tree.getInclusionProof(2)
       const inclusionProof3 = tree.getInclusionProof(3)
+      expect(inclusionProof0.toHexString()).toStrictEqual(
+        '0x00000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a2c010000'
+      )
+      expect(inclusionProof1.toHexString()).toStrictEqual(
+        '0x010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a2c010000'
+      )
       expect(inclusionProof2.toHexString()).toStrictEqual(
         '0x02000000fdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f32c010000332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a07000000'
       )
@@ -110,6 +118,28 @@ describe('IntervalTree', () => {
       const inclusionProof0 = tree.getInclusionProof(0)
       const result0 = verifier.verifyInclusion(leaf1, root, inclusionProof0)
       expect(result0).toBeFalsy()
+    })
+    it('throw exception detecting intersection', () => {
+      const root = Bytes.fromHexString(
+        '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
+      )
+      const invalidInclusionProof = Bytes.fromHexString(
+        '0x00000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a00000000'
+      )
+      expect(() => {
+        verifier.verifyInclusion(leaf0, root, invalidInclusionProof)
+      }).toThrow(new Error('Invalid InclusionProof, intersection detected.'))
+    })
+    it('throw exception left.start is not less than right.start', () => {
+      const root = Bytes.fromHexString(
+        '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
+      )
+      const invalidInclusionProof = Bytes.fromHexString(
+        '0x010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a00000000'
+      )
+      expect(() => {
+        verifier.verifyInclusion(leaf1, root, invalidInclusionProof)
+      }).toThrow(new Error('left.start is not less than right.start.'))
     })
   })
   describe('getLeaves', () => {
