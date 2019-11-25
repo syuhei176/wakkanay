@@ -1,51 +1,107 @@
 import { Bytes, Address, Integer } from '../../types'
-import { AbstractMerkleTree } from './AbstractMerkleTree'
+import {
+  AbstractMerkleTree,
+  AbstractMerkleVerifier
+} from './AbstractMerkleTree'
 import { MerkleTreeNode } from './MerkleTreeInterface'
+import { BufferUtils } from '../../utils'
 
 export class IntervalTreeNode implements MerkleTreeNode {
   constructor(public start: Integer, public data: Bytes) {}
+  encode(): Bytes {
+    return Bytes.concat([
+      this.data,
+      Bytes.from(Uint8Array.from(BufferUtils.numberToBuffer(this.start.data)))
+    ])
+  }
   getData(): Bytes {
     return this.data
   }
 }
 
+const MAX_NUMBER = Math.pow(2, 32) - 1
+
 export class IntervalTree extends AbstractMerkleTree<IntervalTreeNode> {
   constructor(leaves: IntervalTreeNode[]) {
-    super(leaves)
+    super(leaves, new IntervalTreeVerifier())
+  }
+  getLeaves(start: number, end: number): number[] {
+    throw new Error('Method not implemented')
+  }
+}
+
+export class IntervalTreeVerifier extends AbstractMerkleVerifier<
+  IntervalTreeNode
+> {
+  computeRootFromInclusionProof(
+    leaf: IntervalTreeNode,
+    merklePath: string,
+    proofElement: IntervalTreeNode[]
+  ): Bytes {
+    const firstRightSiblingIndex = merklePath.indexOf('0')
+    const firstRightSibling =
+      firstRightSiblingIndex >= 0
+        ? proofElement[firstRightSiblingIndex]
+        : undefined
+
+    let computed: IntervalTreeNode = leaf
+    let left: IntervalTreeNode
+    let right: IntervalTreeNode
+    for (let i = 0; i < proofElement.length; i++) {
+      const sibling = proofElement[i]
+
+      if (merklePath[i] === '1') {
+        left = sibling
+        right = computed
+      } else {
+        left = computed
+        right = sibling
+
+        if (
+          firstRightSibling &&
+          right.start.data < firstRightSibling.start.data
+        ) {
+          throw new Error('Invalid InclusionProof, intersection detected.')
+        }
+      }
+      // check left.index < right.index
+      computed = this.computeParent(left, right)
+    }
+    /*
+    const implicitEnd = firstRightSibling
+      ? firstRightSibling.start
+      : this.createEmptyNode().start
+      */
+    return computed.data
+  }
+  decodeProofElements(bytes: Bytes): IntervalTreeNode[] {
+    const buf = Buffer.from(bytes.data)
+    const nodes: IntervalTreeNode[] = []
+    for (let i = 0; i < buf.length; i += 36) {
+      nodes.push(
+        new IntervalTreeNode(
+          Integer.from(
+            BufferUtils.bufferToNumber(buf.subarray(i + 32, i + 36))
+          ),
+          Bytes.from(Uint8Array.from(buf.subarray(i, i + 32)))
+        )
+      )
+    }
+    return nodes
   }
   computeParent(a: IntervalTreeNode, b: IntervalTreeNode): IntervalTreeNode {
+    if (a.start.data > b.start.data) {
+      throw new Error('left.start is not less than right.start.')
+    }
     return new IntervalTreeNode(
       b.start,
-      this.hashAlgorythm.hash(
-        Bytes.concat(this.encodeNode(a), this.encodeNode(b))
-      )
-    )
-  }
-  private encodeNode(node: IntervalTreeNode): Bytes {
-    return Bytes.concat(
-      node.data,
-      Bytes.from(Uint8Array.from(this.bigintToBuffer(node.start.data)))
+      this.hashAlgorythm.hash(Bytes.concat([a.encode(), b.encode()]))
     )
   }
   createEmptyNode(): IntervalTreeNode {
-    return new IntervalTreeNode(Integer.from(1000), Bytes.default())
-  }
-  private bigintToBuffer(start: number): Buffer {
-    const b = Buffer.alloc(4)
-    b.writeUInt32LE(start, 0)
-    return b
-  }
-  getLeaves(start: number, end: number): IntervalTreeNode[] {
-    throw new Error('Method not implemented')
-  }
-  getInclusionProof(leaf: IntervalTreeNode): Bytes {
-    throw new Error('not implemented')
-  }
-  verifyInclusion(
-    leaf: IntervalTreeNode,
-    root: Bytes,
-    inclusionProof: Bytes
-  ): boolean {
-    throw new Error('not implemented')
+    return new IntervalTreeNode(
+      Integer.from(MAX_NUMBER),
+      this.hashAlgorythm.hash(Bytes.default())
+    )
   }
 }

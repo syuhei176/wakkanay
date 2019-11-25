@@ -1,2 +1,3 @@
 import * as ArrayUtils from './ArrayUtils'
-export { ArrayUtils }
+import * as BufferUtils from './BufferUtils'
+export { ArrayUtils, BufferUtils }

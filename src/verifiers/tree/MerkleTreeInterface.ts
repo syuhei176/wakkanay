@@ -1,7 +1,13 @@
-import { Address, Bytes } from '../../types'
+import { Address, Bytes, Struct } from '../../types'
 
 export interface MerkleTreeNode {
   getData(): Bytes
+  encode(): Bytes
+}
+
+export interface InclusionProof {
+  siblings: Bytes
+  leafPosition: number
 }
 
 export interface MerkleTreeGenerator<T extends MerkleTreeNode> {
@@ -10,10 +16,9 @@ export interface MerkleTreeGenerator<T extends MerkleTreeNode> {
 
 export interface MerkleTreeInterface<T extends MerkleTreeNode> {
   getRoot(): Bytes
-  findLeaf(leaf: Bytes): T | null
+  findIndex(leaf: Bytes): number | null
   getLeaf(index: number): T
-  getInclusionProof(leaf: T): Bytes
-  verifyInclusion(leaf: T, root: Bytes, inclusionProof: Bytes): boolean
+  //  getInclusionProof(index: number): Bytes
 }
 
 export interface MerkleTreeVerifier<T extends MerkleTreeNode> {
