@@ -19,7 +19,8 @@ describe('DoubleLayerTree', () => {
     })
   })
   describe('DoubleLayerTree', () => {
-    const token0 = Address.default()
+    const token0 = Address.from('0x0000000000000000000000000000000000000000')
+    const token1 = Address.from('0x0000000000000000000000000000000000000001')
     const leaf0 = new DoubleLayerTreeLeaf(
       token0,
       Integer.from(0),
@@ -40,6 +41,16 @@ describe('DoubleLayerTree', () => {
       Integer.from(5000),
       Keccak256.hash(Bytes.fromString('leaf3'))
     )
+    const leaf10 = new DoubleLayerTreeLeaf(
+      token1,
+      Integer.from(100),
+      Keccak256.hash(Bytes.fromString('token1leaf0'))
+    )
+    const leaf11 = new DoubleLayerTreeLeaf(
+      token1,
+      Integer.from(200),
+      Keccak256.hash(Bytes.fromString('token1leaf1'))
+    )
     beforeEach(() => {})
     describe('getRoot', () => {
       it('throw exception invalid data length', async () => {
@@ -59,23 +70,44 @@ describe('DoubleLayerTree', () => {
           '0x4a49d1b90d42046cfbf2169ba520f7633d793645876370ac0acdb85f3fbcade6'
         )
       })
-      it('return Merkle Root with 4 leaves', async () => {
-        const tree = new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
+      it('return Merkle Root with leaves that belongs to multiple address', async () => {
+        const tree = new DoubleLayerTree([
+          leaf0,
+          leaf1,
+          leaf2,
+          leaf3,
+          leaf10,
+          leaf11
+        ])
         const root = tree.getRoot()
         expect(root.toHexString()).toStrictEqual(
-          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
         )
       })
     })
     describe('getInclusionProof', () => {
       it('return Inclusion Proof', async () => {
-        const tree = new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
-        const inclusionProof = tree.getInclusionProofByAddressAndIndex(
+        const tree = new DoubleLayerTree([
+          leaf0,
+          leaf1,
+          leaf2,
+          leaf3,
+          leaf10,
+          leaf11
+        ])
+        const inclusionProof0 = tree.getInclusionProofByAddressAndIndex(
           token0,
           0
         )
-        expect(inclusionProof.toHexString()).toStrictEqual(
-          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c428813000000000000'
+        const inclusionProof1 = tree.getInclusionProofByAddressAndIndex(
+          token0,
+          1
+        )
+        expect(inclusionProof0.toHexString()).toStrictEqual(
+          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4288130000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
+        )
+        expect(inclusionProof1.toHexString()).toStrictEqual(
+          '0x4c000000010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4288130000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
         )
       })
     })
@@ -101,6 +133,30 @@ describe('DoubleLayerTree', () => {
         )
         const result = verifier.verifyInclusion(leaf1, root, inclusionProof)
         expect(result).toBeFalsy()
+      })
+      it('throw exception detecting intersection', async () => {
+        const verifier = new DoubleLayerTreeVerifier()
+        const root = Bytes.fromHexString(
+          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+        )
+        const invalidInclusionProof = Bytes.fromHexString(
+          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4200000000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
+        )
+        expect(() => {
+          verifier.verifyInclusion(leaf0, root, invalidInclusionProof)
+        }).toThrow(new Error('Invalid InclusionProof, intersection detected.'))
+      })
+      it('throw exception left.start is not less than right.start', async () => {
+        const verifier = new DoubleLayerTreeVerifier()
+        const root = Bytes.fromHexString(
+          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+        )
+        const invalidInclusionProof = Bytes.fromHexString(
+          '0x4c000000010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4200000000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
+        )
+        expect(() => {
+          verifier.verifyInclusion(leaf1, root, invalidInclusionProof)
+        }).toThrow(new Error('left.start is not less than right.start.'))
       })
     })
     describe('getLeaves', () => {
