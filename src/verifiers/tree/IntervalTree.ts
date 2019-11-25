@@ -26,7 +26,19 @@ export class IntervalTree extends AbstractMerkleTree<IntervalTreeNode> {
     super(leaves, new IntervalTreeVerifier())
   }
   getLeaves(start: number, end: number): number[] {
-    throw new Error('Method not implemented')
+    const results: number[] = []
+    this.leaves.forEach((l, index) => {
+      const targetStart = l.start.data
+      const targetEnd = this.leaves[index + 1]
+        ? this.leaves[index + 1].start.data
+        : MAX_NUMBER
+      const maxStart = Math.max(targetStart, start)
+      const maxEnd = Math.min(targetEnd, end)
+      if (maxStart < maxEnd) {
+        results.push(index)
+      }
+    })
+    return results
   }
 }
 

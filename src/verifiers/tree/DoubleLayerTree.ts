@@ -18,6 +18,7 @@ import {
 } from './IntervalTree'
 import { BufferUtils } from '../../utils'
 import { AbstractMerkleTree } from './AbstractMerkleTree'
+import { add } from 'libsodium-wrappers'
 
 export class DoubleLayerTreeLeaf implements MerkleTreeNode {
   constructor(
@@ -85,7 +86,11 @@ export class DoubleLayerTree
     throw new Error('not implemented')
   }
   getLeaves(address: Address, start: number, end: number): number[] {
-    throw new Error('not implemented')
+    const tree = this.intervalTreeMap.get(address.data)
+    if (tree) {
+      return tree.getLeaves(start, end)
+    }
+    throw new Error('address not found in address tree')
   }
   getInclusionProofByAddressAndIndex(address: Address, index: number): Bytes {
     const addressTreeIndex = this.addressTree.getIndexByAddress(address)

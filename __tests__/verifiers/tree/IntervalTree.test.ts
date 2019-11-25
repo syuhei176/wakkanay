@@ -112,4 +112,16 @@ describe('IntervalTree', () => {
       expect(result0).toBeFalsy()
     })
   })
+  describe('getLeaves', () => {
+    it('return leaves', async () => {
+      const tree = new IntervalTree([leaf0, leaf1, leaf2])
+      const leaves = tree.getLeaves(0, 100)
+      expect(leaves.length).toStrictEqual(3)
+    })
+    it('return leaves within partially', async () => {
+      const tree = new IntervalTree([leaf0, leaf1, leaf2])
+      const leaves = tree.getLeaves(5, 100)
+      expect(leaves.length).toStrictEqual(3)
+    })
+  })
 })

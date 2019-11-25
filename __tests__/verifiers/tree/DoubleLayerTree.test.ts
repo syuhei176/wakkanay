@@ -93,5 +93,17 @@ describe('DoubleLayerTree', () => {
         expect(result).toBeFalsy()
       })
     })
+    describe('getLeaves', () => {
+      it('return leaves', async () => {
+        const tree = new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
+        const leaves = tree.getLeaves(token0, 0, 100)
+        expect(leaves.length).toStrictEqual(3)
+      })
+      it('return leaves within partially', async () => {
+        const tree = new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
+        const leaves = tree.getLeaves(token0, 5, 100)
+        expect(leaves.length).toStrictEqual(3)
+      })
+    })
   })
 })
