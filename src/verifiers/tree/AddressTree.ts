@@ -12,9 +12,6 @@ export class AddressTreeNode implements MerkleTreeNode {
   encode(): Bytes {
     return Bytes.concat([this.data, Bytes.fromHexString(this.address.data)])
   }
-  getData(): Bytes {
-    return this.data
-  }
 }
 
 export class AddressTree extends AbstractMerkleTree<AddressTreeNode> {

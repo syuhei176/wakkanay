@@ -36,11 +36,11 @@ export abstract class AbstractMerkleTree<T extends MerkleTreeNode>
     this.calculateRoot(parents, level + 1)
   }
   getRoot(): Bytes {
-    return this.levels[this.levels.length - 1][0].getData()
+    return this.levels[this.levels.length - 1][0].data
   }
   findIndex(leaf: Bytes): number | null {
     const index = this.leaves.findIndex(
-      l => l.getData().toHexString() == leaf.toHexString()
+      l => l.data.toHexString() == leaf.toHexString()
     )
     return index >= 0 ? index : null
   }

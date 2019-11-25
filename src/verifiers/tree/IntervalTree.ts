@@ -16,9 +16,6 @@ export class IntervalTreeNode implements MerkleTreeNode {
       Bytes.from(Uint8Array.from(BufferUtils.numberToBuffer(this.start.data)))
     ])
   }
-  getData(): Bytes {
-    return this.data
-  }
 }
 
 const MAX_NUMBER = Math.pow(2, 32) - 1

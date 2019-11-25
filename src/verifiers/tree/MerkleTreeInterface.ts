@@ -1,7 +1,7 @@
 import { Address, Bytes, Struct } from '../../types'
 
 export interface MerkleTreeNode {
-  getData(): Bytes
+  readonly data: Bytes
   encode(): Bytes
 }
 
