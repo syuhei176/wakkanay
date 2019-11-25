@@ -1,6 +1,5 @@
 import { Bytes, Address, Integer, Struct } from '../../types'
 import {
-  InclusionProof,
   MerkleTreeInterface,
   MerkleTreeGenerator,
   MerkleTreeNode,
@@ -17,8 +16,6 @@ import {
   IntervalTreeVerifier
 } from './IntervalTree'
 import { BufferUtils } from '../../utils'
-import { AbstractMerkleTree } from './AbstractMerkleTree'
-import { add } from 'libsodium-wrappers'
 
 export class DoubleLayerTreeLeaf implements MerkleTreeNode {
   constructor(
@@ -46,6 +43,12 @@ export class DoubleLayerTreeGenerator
   }
 }
 
+/**
+ * DoubleLayerTree class
+ *     This class construct double layer tree which has 2 layers.
+ *     The 1st layer is address tree and 2nd layer is interval tree.
+ *     Please see https://docs.plasma.group/projects/spec/en/latest/src/01-core/double-layer-tree.html
+ */
 export class DoubleLayerTree
   implements MerkleTreeInterface<DoubleLayerTreeLeaf> {
   addressTree: AddressTree
@@ -115,6 +118,9 @@ export class DoubleLayerTree
   }
 }
 
+/**
+ * DoubleLayerTreeVerifier is the class to verify inclusion of Double Layer Tree.
+ */
 export class DoubleLayerTreeVerifier
   implements MerkleTreeVerifier<DoubleLayerTreeLeaf> {
   verifyInclusion(
