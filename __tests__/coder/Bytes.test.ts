@@ -21,4 +21,24 @@ describe('Bytes', () => {
       expect(h.toHexString()).toBe('0x0012345678')
     })
   })
+  describe('concat', () => {
+    test('return concatenated bytes', () => {
+      const b1 = Bytes.fromHexString('0x0101')
+      const b2 = Bytes.fromHexString('0x0202')
+      const b = Bytes.concat([b1, b2])
+      expect(b.toHexString()).toBe('0x01010202')
+    })
+  })
+  describe('equals', () => {
+    test('return true', () => {
+      const b1 = Bytes.fromHexString('0x010203')
+      const b2 = Bytes.fromHexString('0x010203')
+      expect(b1.equals(b2)).toBeTruthy()
+    })
+    test('return false', () => {
+      const b1 = Bytes.fromHexString('0x010203')
+      const b2 = Bytes.fromHexString('0x010204')
+      expect(b1.equals(b2)).toBeFalsy()
+    })
+  })
 })
