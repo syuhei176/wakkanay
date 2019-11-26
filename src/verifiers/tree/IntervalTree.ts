@@ -26,7 +26,7 @@ export class IntervalTreeNode implements MerkleTreeNode {
   encode(): Bytes {
     return Bytes.concat([
       this.data,
-      Bytes.fromHexString(this.start.data.toString(16))
+      Bytes.fromHexString(this.start.data.toString(16)).padZero(32)
     ])
   }
 }

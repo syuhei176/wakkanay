@@ -33,21 +33,21 @@ describe('IntervalTree', () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0xb3c02deef1a1beeaa2899ac0fbeca57a13aa36dff9742c974113f2ceef7f7278'
+        '0x3ec5a3c49278e6d89a313d2f8716b1cf62534f3c31fdcade30809fd90ee47368'
       )
     })
     it('return Merkle Root with even number of leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x295438ca451d0bfcb2ae28086c9a7d79bdf94736eac89b9e44a1af3f257fcb5d'
+        '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
     })
     it('return Merkle Root with leaf which has big number as start', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3, leafBigNumber])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x32ceeebf21cc9f9562929b7c84ab64224fc73bc4042e06740d6492145b0cb9a5'
+        '0xc6cc7cbcdbb1c6eeb1d42e4866dc8319645bb1081a6c93ceb54eb11eb4be3f1c'
       )
     })
   })
@@ -68,7 +68,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.MAX_NUMBER,
             Bytes.fromHexString(
-              '0x70292008554cf98a985dae6b98f9a3a3247f40b02c7b0e210f49fd4d1925b010'
+              '0xe99f92621ea9ca2e0709f58dc56c139ecf076c388952df2b5cd7a6ca1ae2df5c'
             )
           )
         ]
@@ -85,7 +85,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.MAX_NUMBER,
             Bytes.fromHexString(
-              '0x70292008554cf98a985dae6b98f9a3a3247f40b02c7b0e210f49fd4d1925b010'
+              '0xe99f92621ea9ca2e0709f58dc56c139ecf076c388952df2b5cd7a6ca1ae2df5c'
             )
           )
         ]
@@ -109,7 +109,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(300n),
             Bytes.fromHexString(
-              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
+              '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
             )
           )
         ]
@@ -126,7 +126,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(300n),
             Bytes.fromHexString(
-              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
+              '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
             )
           )
         ]
@@ -143,7 +143,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(7n),
             Bytes.fromHexString(
-              '0xd62f20cef4c9739c04c2302624e272673b3655b450f1e6afbe8a28bab1d78f95'
+              '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
             )
           )
         ]
@@ -160,7 +160,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(7n),
             Bytes.fromHexString(
-              '0xd62f20cef4c9739c04c2302624e272673b3655b450f1e6afbe8a28bab1d78f95'
+              '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
             )
           )
         ]
@@ -205,7 +205,7 @@ describe('IntervalTree', () => {
     })
     it('throw exception detecting intersection', () => {
       const root = Bytes.fromHexString(
-        '0x295438ca451d0bfcb2ae28086c9a7d79bdf94736eac89b9e44a1af3f257fcb5d'
+        '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
       const invalidInclusionProof = {
         leafPosition: 0,
@@ -219,7 +219,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(0n),
             Bytes.fromHexString(
-              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
+              '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
             )
           )
         ]
@@ -230,7 +230,7 @@ describe('IntervalTree', () => {
     })
     it('throw exception left.start is not less than right.start', () => {
       const root = Bytes.fromHexString(
-        '0x295438ca451d0bfcb2ae28086c9a7d79bdf94736eac89b9e44a1af3f257fcb5d'
+        '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
       const invalidInclusionProof = {
         leafPosition: 1,
@@ -244,7 +244,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(0n),
             Bytes.fromHexString(
-              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
+              '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
             )
           )
         ]
