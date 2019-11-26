@@ -1,4 +1,4 @@
-import { Bytes, Address, Integer, Struct } from '../../types'
+import { Bytes, Address, BigNumber } from '../../types'
 import {
   MerkleTreeInterface,
   MerkleTreeGenerator,
@@ -26,7 +26,7 @@ export interface DoubleLayerInclusionProof {
 export class DoubleLayerTreeLeaf implements MerkleTreeNode {
   constructor(
     public address: Address,
-    public start: Integer,
+    public start: BigNumber,
     public data: Bytes
   ) {}
   encode(): Bytes {
@@ -94,7 +94,7 @@ export class DoubleLayerTree
   getLeaf(index: number): DoubleLayerTreeLeaf {
     throw new Error('not implemented')
   }
-  getLeaves(address: Address, start: number, end: number): number[] {
+  getLeaves(address: Address, start: bigint, end: bigint): number[] {
     const tree = this.intervalTreeMap.get(address.data)
     if (tree) {
       return tree.getLeaves(start, end)

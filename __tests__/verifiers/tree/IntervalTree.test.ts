@@ -4,27 +4,27 @@ import {
   IntervalTreeVerifier
 } from '../../../src/verifiers/tree'
 import { Keccak256 } from '../../../src/verifiers/hash/Keccak256'
-import { Bytes, Integer } from '../../../src/types'
+import { Bytes, BigNumber } from '../../../src/types'
 
 describe('IntervalTree', () => {
   const leaf0 = new IntervalTreeNode(
-    Integer.from(0),
+    BigNumber.from(BigInt(0)),
     Keccak256.hash(Bytes.fromString('leaf0'))
   )
   const leaf1 = new IntervalTreeNode(
-    Integer.from(7),
+    BigNumber.from(7n),
     Keccak256.hash(Bytes.fromString('leaf1'))
   )
   const leaf2 = new IntervalTreeNode(
-    Integer.from(15),
+    BigNumber.from(15n),
     Keccak256.hash(Bytes.fromString('leaf2'))
   )
   const leaf3 = new IntervalTreeNode(
-    Integer.from(300),
+    BigNumber.from(300n),
     Keccak256.hash(Bytes.fromString('leaf3'))
   )
   const leafBigNumber = new IntervalTreeNode(
-    Integer.from(72943610),
+    BigNumber.from(72943610n),
     Keccak256.hash(Bytes.fromString('leaf4'))
   )
   beforeEach(() => {})
@@ -33,21 +33,21 @@ describe('IntervalTree', () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x4a49d1b90d42046cfbf2169ba520f7633d793645876370ac0acdb85f3fbcade6'
+        '0xb3c02deef1a1beeaa2899ac0fbeca57a13aa36dff9742c974113f2ceef7f7278'
       )
     })
     it('return Merkle Root with even number of leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
+        '0x295438ca451d0bfcb2ae28086c9a7d79bdf94736eac89b9e44a1af3f257fcb5d'
       )
     })
     it('return Merkle Root with leaf which has big number as start', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3, leafBigNumber])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x5fcc7e390d4144644a7299e5778fbf2e4aae70bbb0fe03a84e94267151e28017'
+        '0x32ceeebf21cc9f9562929b7c84ab64224fc73bc4042e06740d6492145b0cb9a5'
       )
     })
   })
@@ -60,15 +60,15 @@ describe('IntervalTree', () => {
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(7),
+            BigNumber.from(7n),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(0xffffffff),
+            BigNumber.MAX_NUMBER,
             Bytes.fromHexString(
-              '0xe773031f8fe828e549ae4da698004d32bb7f3510a8ca3794010f1fe5b0637b30'
+              '0x70292008554cf98a985dae6b98f9a3a3247f40b02c7b0e210f49fd4d1925b010'
             )
           )
         ]
@@ -77,15 +77,15 @@ describe('IntervalTree', () => {
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(0),
+            BigNumber.from(0n),
             Bytes.fromHexString(
               '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(0xffffffff),
+            BigNumber.MAX_NUMBER,
             Bytes.fromHexString(
-              '0xe773031f8fe828e549ae4da698004d32bb7f3510a8ca3794010f1fe5b0637b30'
+              '0x70292008554cf98a985dae6b98f9a3a3247f40b02c7b0e210f49fd4d1925b010'
             )
           )
         ]
@@ -101,15 +101,15 @@ describe('IntervalTree', () => {
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(7),
+            BigNumber.from(7n),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(300),
+            BigNumber.from(300n),
             Bytes.fromHexString(
-              '0xc09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
             )
           )
         ]
@@ -118,15 +118,15 @@ describe('IntervalTree', () => {
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(0),
+            BigNumber.from(0n),
             Bytes.fromHexString(
               '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(300),
+            BigNumber.from(300n),
             Bytes.fromHexString(
-              '0xc09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
             )
           )
         ]
@@ -135,15 +135,15 @@ describe('IntervalTree', () => {
         leafPosition: 2,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(300),
+            BigNumber.from(300n),
             Bytes.fromHexString(
               '0xfdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f3'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(7),
+            BigNumber.from(7n),
             Bytes.fromHexString(
-              '0x332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a'
+              '0xd62f20cef4c9739c04c2302624e272673b3655b450f1e6afbe8a28bab1d78f95'
             )
           )
         ]
@@ -152,15 +152,15 @@ describe('IntervalTree', () => {
         leafPosition: 3,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(15),
+            BigNumber.from(15n),
             Bytes.fromHexString(
-              'ba620d61dac4ddf2d7905722b259b0bd34ec4d37c5796d9a22537c54b3f972d8'
+              '0xba620d61dac4ddf2d7905722b259b0bd34ec4d37c5796d9a22537c54b3f972d8'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(7),
+            BigNumber.from(7n),
             Bytes.fromHexString(
-              '332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a'
+              '0xd62f20cef4c9739c04c2302624e272673b3655b450f1e6afbe8a28bab1d78f95'
             )
           )
         ]
@@ -205,21 +205,21 @@ describe('IntervalTree', () => {
     })
     it('throw exception detecting intersection', () => {
       const root = Bytes.fromHexString(
-        '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
+        '0x295438ca451d0bfcb2ae28086c9a7d79bdf94736eac89b9e44a1af3f257fcb5d'
       )
       const invalidInclusionProof = {
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(7),
+            BigNumber.from(7n),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(0x00000000),
+            BigNumber.from(0n),
             Bytes.fromHexString(
-              '0xc09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
             )
           )
         ]
@@ -230,21 +230,21 @@ describe('IntervalTree', () => {
     })
     it('throw exception left.start is not less than right.start', () => {
       const root = Bytes.fromHexString(
-        '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
+        '0x295438ca451d0bfcb2ae28086c9a7d79bdf94736eac89b9e44a1af3f257fcb5d'
       )
       const invalidInclusionProof = {
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
-            Integer.from(0),
+            BigNumber.from(0n),
             Bytes.fromHexString(
-              '6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+              '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(0),
+            BigNumber.from(0n),
             Bytes.fromHexString(
-              'c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+              '0xbb3c3d12ce9cc6b2de4be3085a5d82baedb44b622ab80853020104e03b9fa34e'
             )
           )
         ]
@@ -257,12 +257,12 @@ describe('IntervalTree', () => {
   describe('getLeaves', () => {
     it('return leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
-      const leaves = tree.getLeaves(0, 100)
+      const leaves = tree.getLeaves(0n, 100n)
       expect(leaves.length).toStrictEqual(3)
     })
     it('return leaves within partially', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
-      const leaves = tree.getLeaves(5, 100)
+      const leaves = tree.getLeaves(5n, 100n)
       expect(leaves.length).toStrictEqual(3)
     })
   })

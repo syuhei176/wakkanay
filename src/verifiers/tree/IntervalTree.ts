@@ -1,10 +1,10 @@
-import { Bytes, Address, Integer } from '../../types'
+import { Bytes, BigNumber } from '../../types'
 import {
   AbstractMerkleTree,
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
 import { InclusionProof, MerkleTreeNode } from './MerkleTreeInterface'
-import { BufferUtils } from '../../utils'
+import { BigIntMath } from '../../utils'
 
 export class IntervalTreeInclusionProof
   implements InclusionProof<IntervalTreeNode> {
@@ -15,18 +15,21 @@ export class IntervalTreeInclusionProof
 }
 
 export class IntervalTreeNode implements MerkleTreeNode {
-  constructor(public start: Integer, public data: Bytes) {
+  /**
+   *
+   * @param start is 32 byte integer and lower bound of range.
+   * @param data is hash of leaf data.
+   */
+  constructor(public start: BigNumber, public data: Bytes) {
     if (data.data.length !== 32) throw new Error('data length is not 32 bytes.')
   }
   encode(): Bytes {
     return Bytes.concat([
       this.data,
-      Bytes.from(Uint8Array.from(BufferUtils.numberToBuffer(this.start.data)))
+      Bytes.fromHexString(this.start.data.toString(16))
     ])
   }
 }
-
-const MAX_NUMBER = Math.pow(2, 32) - 1
 
 export class IntervalTree extends AbstractMerkleTree<
   IntervalTreeNode,
@@ -35,15 +38,15 @@ export class IntervalTree extends AbstractMerkleTree<
   constructor(leaves: IntervalTreeNode[]) {
     super(leaves, new IntervalTreeVerifier())
   }
-  getLeaves(start: number, end: number): number[] {
+  getLeaves(start: bigint, end: bigint): number[] {
     const results: number[] = []
     this.leaves.forEach((l, index) => {
-      const targetStart = l.start.data
+      const targetStart = l.start
       const targetEnd = this.leaves[index + 1]
         ? this.leaves[index + 1].start.data
-        : MAX_NUMBER
-      const maxStart = Math.max(targetStart, start)
-      const maxEnd = Math.min(targetEnd, end)
+        : BigNumber.MAX_NUMBER.data
+      const maxStart = BigIntMath.max(targetStart.data, start)
+      const maxEnd = BigIntMath.min(targetEnd, end)
       if (maxStart < maxEnd) {
         results.push(index)
       }
@@ -110,7 +113,7 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
 
   createEmptyNode(): IntervalTreeNode {
     return new IntervalTreeNode(
-      Integer.from(MAX_NUMBER),
+      BigNumber.MAX_NUMBER,
       this.hashAlgorythm.hash(Bytes.default())
     )
   }

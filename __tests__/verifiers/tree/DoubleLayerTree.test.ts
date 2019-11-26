@@ -8,7 +8,7 @@ import {
   AddressTreeNode,
   IntervalTreeNode
 } from '../../../src/verifiers/tree'
-import { Bytes, Integer, Address } from '../../../src/types'
+import { Bytes, BigNumber, Address } from '../../../src/types'
 import { Keccak256 } from '../../../src/verifiers/hash/Keccak256'
 
 describe('DoubleLayerTree', () => {
@@ -27,32 +27,32 @@ describe('DoubleLayerTree', () => {
     const token1 = Address.from('0x0000000000000000000000000000000000000001')
     const leaf0 = new DoubleLayerTreeLeaf(
       token0,
-      Integer.from(0),
+      BigNumber.from(0n),
       Keccak256.hash(Bytes.fromString('leaf0'))
     )
     const leaf1 = new DoubleLayerTreeLeaf(
       token0,
-      Integer.from(7),
+      BigNumber.from(7n),
       Keccak256.hash(Bytes.fromString('leaf1'))
     )
     const leaf2 = new DoubleLayerTreeLeaf(
       token0,
-      Integer.from(15),
+      BigNumber.from(15n),
       Keccak256.hash(Bytes.fromString('leaf2'))
     )
     const leaf3 = new DoubleLayerTreeLeaf(
       token0,
-      Integer.from(5000),
+      BigNumber.from(5000n),
       Keccak256.hash(Bytes.fromString('leaf3'))
     )
     const leaf10 = new DoubleLayerTreeLeaf(
       token1,
-      Integer.from(100),
+      BigNumber.from(100n),
       Keccak256.hash(Bytes.fromString('token1leaf0'))
     )
     const leaf11 = new DoubleLayerTreeLeaf(
       token1,
-      Integer.from(200),
+      BigNumber.from(200n),
       Keccak256.hash(Bytes.fromString('token1leaf1'))
     )
     beforeEach(() => {})
@@ -60,7 +60,7 @@ describe('DoubleLayerTree', () => {
       it('throw exception invalid data length', async () => {
         const invalidLeaf = new DoubleLayerTreeLeaf(
           token0,
-          Integer.from(500),
+          BigNumber.from(500n),
           Bytes.fromString('leaf0')
         )
         expect(() => {
@@ -71,7 +71,7 @@ describe('DoubleLayerTree', () => {
         const tree = new DoubleLayerTree([leaf0, leaf1, leaf2])
         const root = tree.getRoot()
         expect(root.toHexString()).toStrictEqual(
-          '0x4a49d1b90d42046cfbf2169ba520f7633d793645876370ac0acdb85f3fbcade6'
+          '0xb3c02deef1a1beeaa2899ac0fbeca57a13aa36dff9742c974113f2ceef7f7278'
         )
       })
       it('return Merkle Root with leaves that belongs to multiple address', async () => {
@@ -85,7 +85,7 @@ describe('DoubleLayerTree', () => {
         ])
         const root = tree.getRoot()
         expect(root.toHexString()).toStrictEqual(
-          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
+          '0x035a06175d142ae49863b8a36ed96ab1501a2246d788d3bce130fbca6d6fb533'
         )
       })
     })
@@ -112,21 +112,21 @@ describe('DoubleLayerTree', () => {
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
               Bytes.fromHexString(
-                '0x3976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c3'
+                '0x5f57670cfe1f6a20e334282a42a5a340056876b4990beeaae749808323202803'
               )
             )
           ]),
           intervalInclusionProof: new IntervalTreeInclusionProof(0, [
             new IntervalTreeNode(
-              Integer.from(7),
+              BigNumber.from(7n),
               Bytes.fromHexString(
                 '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
               )
             ),
             new IntervalTreeNode(
-              Integer.from(5000),
+              BigNumber.from(5000n),
               Bytes.fromHexString(
-                '0xe2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c42'
+                '0x5c9325f01140a171a76dd4ac2111bfe6d404f7fd8fdee094ecfb0164a9c7315b'
               )
             )
           ])
@@ -136,21 +136,21 @@ describe('DoubleLayerTree', () => {
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
               Bytes.fromHexString(
-                '0x3976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c3'
+                '0x5f57670cfe1f6a20e334282a42a5a340056876b4990beeaae749808323202803'
               )
             )
           ]),
           intervalInclusionProof: new IntervalTreeInclusionProof(1, [
             new IntervalTreeNode(
-              Integer.from(0),
+              BigNumber.from(0n),
               Bytes.fromHexString(
                 '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
               )
             ),
             new IntervalTreeNode(
-              Integer.from(5000),
+              BigNumber.from(5000n),
               Bytes.fromHexString(
-                '0xe2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c42'
+                '0x5c9325f01140a171a76dd4ac2111bfe6d404f7fd8fdee094ecfb0164a9c7315b'
               )
             )
           ])
@@ -164,21 +164,21 @@ describe('DoubleLayerTree', () => {
           new AddressTreeNode(
             Address.from('0x0000000000000000000000000000000000000001'),
             Bytes.fromHexString(
-              '0x3976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c3'
+              '0x5f57670cfe1f6a20e334282a42a5a340056876b4990beeaae749808323202803'
             )
           )
         ]),
         intervalInclusionProof: new IntervalTreeInclusionProof(0, [
           new IntervalTreeNode(
-            Integer.from(7),
+            BigNumber.from(7n),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
-            Integer.from(5000),
+            BigNumber.from(5000n),
             Bytes.fromHexString(
-              '0xe2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c42'
+              '0x5c9325f01140a171a76dd4ac2111bfe6d404f7fd8fdee094ecfb0164a9c7315b'
             )
           )
         ])
@@ -186,7 +186,7 @@ describe('DoubleLayerTree', () => {
       it('return true', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
+          '0x035a06175d142ae49863b8a36ed96ab1501a2246d788d3bce130fbca6d6fb533'
         )
         const result = verifier.verifyInclusion(
           leaf0,
@@ -198,7 +198,7 @@ describe('DoubleLayerTree', () => {
       it('return false with invalid proof', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
+          '0x035a06175d142ae49863b8a36ed96ab1501a2246d788d3bce130fbca6d6fb533'
         )
         const result = verifier.verifyInclusion(
           leaf1,
@@ -210,28 +210,28 @@ describe('DoubleLayerTree', () => {
       it('throw exception detecting intersection', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
+          '0x035a06175d142ae49863b8a36ed96ab1501a2246d788d3bce130fbca6d6fb533'
         )
         const invalidInclusionProof = {
           addressInclusionProof: new AddressTreeInclusionProof(0, [
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
               Bytes.fromHexString(
-                '0x3976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c3'
+                '0x5f57670cfe1f6a20e334282a42a5a340056876b4990beeaae749808323202803'
               )
             )
           ]),
           intervalInclusionProof: new IntervalTreeInclusionProof(0, [
             new IntervalTreeNode(
-              Integer.from(7),
+              BigNumber.from(7n),
               Bytes.fromHexString(
                 '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
               )
             ),
             new IntervalTreeNode(
-              Integer.from(0),
+              BigNumber.from(0n),
               Bytes.fromHexString(
-                '0xe2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c42'
+                '0x5c9325f01140a171a76dd4ac2111bfe6d404f7fd8fdee094ecfb0164a9c7315b'
               )
             )
           ])
@@ -243,28 +243,28 @@ describe('DoubleLayerTree', () => {
       it('throw exception left.start is not less than right.start', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
+          '0x035a06175d142ae49863b8a36ed96ab1501a2246d788d3bce130fbca6d6fb533'
         )
         const invalidInclusionProof = {
           addressInclusionProof: new AddressTreeInclusionProof(0, [
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
               Bytes.fromHexString(
-                '0x3976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c3'
+                '0x5f57670cfe1f6a20e334282a42a5a340056876b4990beeaae749808323202803'
               )
             )
           ]),
           intervalInclusionProof: new IntervalTreeInclusionProof(1, [
             new IntervalTreeNode(
-              Integer.from(0),
+              BigNumber.from(0n),
               Bytes.fromHexString(
                 '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
               )
             ),
             new IntervalTreeNode(
-              Integer.from(0),
+              BigNumber.from(0n),
               Bytes.fromHexString(
-                '0xe2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c42'
+                '0x5c9325f01140a171a76dd4ac2111bfe6d404f7fd8fdee094ecfb0164a9c7315b'
               )
             )
           ])
@@ -278,12 +278,12 @@ describe('DoubleLayerTree', () => {
     describe('getLeaves', () => {
       it('return leaves', async () => {
         const tree = new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
-        const leaves = tree.getLeaves(token0, 0, 100)
+        const leaves = tree.getLeaves(token0, BigInt(0), BigInt(100))
         expect(leaves.length).toStrictEqual(3)
       })
       it('return leaves within partially', async () => {
         const tree = new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
-        const leaves = tree.getLeaves(token0, 5, 100)
+        const leaves = tree.getLeaves(token0, BigInt(5), BigInt(100))
         expect(leaves.length).toStrictEqual(3)
       })
     })
