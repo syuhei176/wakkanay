@@ -2,6 +2,7 @@ import { Coder } from './Coder'
 import {
   Codable,
   Address,
+  BigNumber,
   Bytes,
   Integer,
   List,
@@ -13,6 +14,8 @@ import { JsonDecodeError } from './Error'
 export function encodeInner(e: Codable): any {
   if (e instanceof Integer) {
     return e.data
+  } else if (e instanceof BigNumber) {
+    return e.data.toString(10)
   } else if (e instanceof Address) {
     return e.data
   } else if (e instanceof Bytes) {
@@ -35,6 +38,8 @@ export function encodeInner(e: Codable): any {
 export function decodeInner(d: Codable, input: any): Codable {
   if (d instanceof Integer) {
     d.setData(input)
+  } else if (d instanceof BigNumber) {
+    d.setData(BigInt(input))
   } else if (d instanceof Address) {
     d.setData(input)
   } else if (d instanceof Bytes) {
