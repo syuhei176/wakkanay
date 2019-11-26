@@ -115,10 +115,10 @@ describe('DoubleLayerTree', () => {
       it('return true', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
         )
         const inclusionProof = Bytes.fromHexString(
-          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c428813000000000000'
+          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4288130000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
         )
         const result = verifier.verifyInclusion(leaf0, root, inclusionProof)
         expect(result).toBeTruthy()
@@ -126,10 +126,10 @@ describe('DoubleLayerTree', () => {
       it('return false with invalid proof', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
         )
         const inclusionProof = Bytes.fromHexString(
-          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c428813000000000000'
+          '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4288130000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
         )
         const result = verifier.verifyInclusion(leaf1, root, inclusionProof)
         expect(result).toBeFalsy()
@@ -137,7 +137,7 @@ describe('DoubleLayerTree', () => {
       it('throw exception detecting intersection', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
         )
         const invalidInclusionProof = Bytes.fromHexString(
           '0x4c00000000000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4200000000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
@@ -149,7 +149,7 @@ describe('DoubleLayerTree', () => {
       it('throw exception left.start is not less than right.start', async () => {
         const verifier = new DoubleLayerTreeVerifier()
         const root = Bytes.fromHexString(
-          '0x22a1b078fc6e327f3aeb1ce67f7bb8e79842af7d71b0010ae399dccedcbea9d3'
+          '0xa34d4463f99ddbe6ffb3448cb791d1ce820bdf24040fccd49ce0b263910ab56e'
         )
         const invalidInclusionProof = Bytes.fromHexString(
           '0x4c000000010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000e2c6d421a374d1a99d7f7a0edab00248456de98c4481a3bc50b69d7078be1c4200000000000000003976203688d2e19df2eeb8f1b6dd81dc84b9c69fa9bab08e133d9633859eb2c30000000000000000000000000000000000000001'
