@@ -21,17 +21,17 @@ export function createWitnessStore(kvs: KeyValueStore): WitnessStore {
 }
 
 export interface RangeWitnessStore {
-  storeWitness(start: number, end: number, witness: Bytes): Promise<void>
-  getWitness(start: number, end: number): Promise<Range[]>
+  storeWitness(start: bigint, end: bigint, witness: Bytes): Promise<void>
+  getWitness(start: bigint, end: bigint): Promise<Range[]>
 }
 
 // create witness store instance by key value store
 export function createRangeWitnessStore(kvs: RangeStore): RangeWitnessStore {
   return {
-    getWitness(start: number, end: number) {
+    getWitness(start: bigint, end: bigint) {
       return kvs.get(start, end)
     },
-    storeWitness(start: number, end: number, value: Bytes) {
+    storeWitness(start: bigint, end: bigint, value: Bytes) {
       return kvs.put(start, end, value)
     }
   }
