@@ -41,4 +41,16 @@ describe('Bytes', () => {
       expect(b1.equals(b2)).toBeFalsy()
     })
   })
+  describe('padZero', () => {
+    test('suceed to pad zeros', () => {
+      const b = Bytes.fromHexString('0x010203')
+      b.padZero(8)
+      expect(b.toHexString()).toBe('0x0000000000010203')
+    })
+    test('return false', () => {
+      const b1 = Bytes.fromHexString('0x010203')
+      const b2 = Bytes.fromHexString('0x010204')
+      expect(b1.equals(b2)).toBeFalsy()
+    })
+  })
 })

@@ -5,9 +5,9 @@ export interface MerkleTreeNode {
   encode(): Bytes
 }
 
-export interface InclusionProof {
-  siblings: Bytes
-  leafPosition: number
+export interface InclusionProof<T extends MerkleTreeNode> {
+  readonly leafPosition: number
+  readonly siblings: T[]
 }
 
 export interface MerkleTreeGenerator<T extends MerkleTreeNode> {
@@ -21,6 +21,6 @@ export interface MerkleTreeInterface<T extends MerkleTreeNode> {
   //  getInclusionProof(index: number): Bytes
 }
 
-export interface MerkleTreeVerifier<T extends MerkleTreeNode> {
-  verifyInclusion(leaf: T, root: Bytes, inclusionProof: Bytes): boolean
+export interface MerkleTreeVerifier<T extends MerkleTreeNode, I> {
+  verifyInclusion(leaf: T, root: Bytes, inclusionProof: I): boolean
 }

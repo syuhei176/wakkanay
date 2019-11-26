@@ -62,6 +62,14 @@ export default class Bytes implements Codable {
     )
   }
 
+  public padZero(length: number): Bytes {
+    const buffer = new ArrayBuffer(length)
+    const newData = new Uint8Array(buffer)
+    newData.set(this.data, length - this.data.length)
+    this.data = newData
+    return this
+  }
+
   public equals(target: Bytes): boolean {
     return Buffer.compare(Buffer.from(this.data), Buffer.from(target.data)) == 0
   }
