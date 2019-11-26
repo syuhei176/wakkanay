@@ -8,14 +8,20 @@ import {
 import {
   AddressTree,
   AddressTreeNode,
-  AddressTreeVerifier
+  AddressTreeVerifier,
+  AddressTreeInclusionProof
 } from './AddressTree'
 import {
   IntervalTree,
   IntervalTreeNode,
-  IntervalTreeVerifier
+  IntervalTreeVerifier,
+  IntervalTreeInclusionProof
 } from './IntervalTree'
-import { BufferUtils } from '../../utils'
+
+export interface DoubleLayerInclusionProof {
+  intervalInclusionProof: IntervalTreeInclusionProof
+  addressInclusionProof: AddressTreeInclusionProof
+}
 
 export class DoubleLayerTreeLeaf implements MerkleTreeNode {
   constructor(
@@ -95,7 +101,10 @@ export class DoubleLayerTree
     }
     throw new Error('address not found in address tree')
   }
-  getInclusionProofByAddressAndIndex(address: Address, index: number): Bytes {
+  getInclusionProofByAddressAndIndex(
+    address: Address,
+    index: number
+  ): DoubleLayerInclusionProof {
     const addressTreeIndex = this.addressTree.getIndexByAddress(address)
     if (addressTreeIndex !== null) {
       const addressInclusionProof = this.addressTree.getInclusionProof(
@@ -104,14 +113,10 @@ export class DoubleLayerTree
       const intervalTree = this.intervalTreeMap.get(address.data)
       if (intervalTree) {
         const intervalInclusionProof = intervalTree.getInclusionProof(index)
-        const header = Bytes.fromBuffer(
-          BufferUtils.numberToBuffer(intervalInclusionProof.data.length)
-        )
-        return Bytes.concat([
-          header,
+        return {
           intervalInclusionProof,
           addressInclusionProof
-        ])
+        }
       }
     }
     throw new Error('address not found in address tree')
@@ -122,43 +127,29 @@ export class DoubleLayerTree
  * DoubleLayerTreeVerifier is the class to verify inclusion of Double Layer Tree.
  */
 export class DoubleLayerTreeVerifier
-  implements MerkleTreeVerifier<DoubleLayerTreeLeaf> {
+  implements
+    MerkleTreeVerifier<DoubleLayerTreeLeaf, DoubleLayerInclusionProof> {
   verifyInclusion(
     leaf: DoubleLayerTreeLeaf,
     root: Bytes,
-    inclusionProofBytes: Bytes
+    inclusionProof: DoubleLayerInclusionProof
   ): boolean {
     const intervalTreeVerifier = new IntervalTreeVerifier()
     const addressTreeVerifier = new AddressTreeVerifier()
     const intervalNode = new IntervalTreeNode(leaf.start, leaf.data)
 
-    const inclusionProofs = this.decodeInclusionProof(inclusionProofBytes)
-    const {
-      merklePath,
-      proofElement
-    } = intervalTreeVerifier.calculateMerklePath(inclusionProofs[0])
+    const merklePath = intervalTreeVerifier.calculateMerklePath(
+      inclusionProof.intervalInclusionProof
+    )
     const intervalRoot = intervalTreeVerifier.computeRootFromInclusionProof(
       intervalNode,
       merklePath,
-      proofElement
+      inclusionProof.intervalInclusionProof.siblings
     )
     return addressTreeVerifier.verifyInclusion(
       new AddressTreeNode(leaf.address, intervalRoot),
       root,
-      inclusionProofs[1]
+      inclusionProof.addressInclusionProof
     )
-  }
-  /**
-   * decodeInclusionProof
-   * @param bytes inclusion proof of double layer tree
-   * @return [interval tree inclusion proof, address tree inclusion proof]
-   */
-  private decodeInclusionProof(bytes: Bytes): [Bytes, Bytes] {
-    const buf = Buffer.from(bytes.data)
-    const header = BufferUtils.bufferToNumber(buf.subarray(0, 4))
-    return [
-      Bytes.fromBuffer(buf.subarray(4, 4 + header)),
-      Bytes.fromBuffer(buf.subarray(4 + header))
-    ]
   }
 }

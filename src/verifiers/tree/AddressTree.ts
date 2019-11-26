@@ -3,7 +3,15 @@ import {
   AbstractMerkleTree,
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
-import { MerkleTreeNode } from './MerkleTreeInterface'
+import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
+
+export class AddressTreeInclusionProof
+  implements InclusionProof<AddressTreeNode> {
+  constructor(
+    public leafPosition: number,
+    public siblings: AddressTreeNode[]
+  ) {}
+}
 
 export class AddressTreeNode implements MerkleTreeNode {
   constructor(public address: Address, public data: Bytes) {
@@ -14,7 +22,10 @@ export class AddressTreeNode implements MerkleTreeNode {
   }
 }
 
-export class AddressTree extends AbstractMerkleTree<AddressTreeNode> {
+export class AddressTree extends AbstractMerkleTree<
+  AddressTreeNode,
+  AddressTreeInclusionProof
+> {
   constructor(leaves: AddressTreeNode[]) {
     super(leaves, new AddressTreeVerifier())
   }
@@ -25,7 +36,8 @@ export class AddressTree extends AbstractMerkleTree<AddressTreeNode> {
 }
 
 export class AddressTreeVerifier extends AbstractMerkleVerifier<
-  AddressTreeNode
+  AddressTreeNode,
+  AddressTreeInclusionProof
 > {
   computeRootFromInclusionProof(
     leaf: AddressTreeNode,
@@ -48,24 +60,6 @@ export class AddressTreeVerifier extends AbstractMerkleVerifier<
       computed = this.computeParent(left, right)
     }
     return computed.data
-  }
-
-  decodeProofElements(bytes: Bytes): AddressTreeNode[] {
-    const buf = Buffer.from(bytes.data)
-    const nodes: AddressTreeNode[] = []
-    for (let i = 0; i < buf.length; i += 52) {
-      nodes.push(
-        new AddressTreeNode(
-          Address.from(
-            Bytes.from(
-              Uint8Array.from(buf.subarray(i + 32, i + 52))
-            ).toHexString()
-          ),
-          Bytes.from(Uint8Array.from(buf.subarray(i, i + 32)))
-        )
-      )
-    }
-    return nodes
   }
 
   computeParent(a: AddressTreeNode, b: AddressTreeNode): AddressTreeNode {

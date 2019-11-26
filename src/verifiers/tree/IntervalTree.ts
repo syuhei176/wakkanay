@@ -3,8 +3,16 @@ import {
   AbstractMerkleTree,
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
-import { MerkleTreeNode } from './MerkleTreeInterface'
+import { InclusionProof, MerkleTreeNode } from './MerkleTreeInterface'
 import { BufferUtils } from '../../utils'
+
+export class IntervalTreeInclusionProof
+  implements InclusionProof<IntervalTreeNode> {
+  constructor(
+    public leafPosition: number,
+    public siblings: IntervalTreeNode[]
+  ) {}
+}
 
 export class IntervalTreeNode implements MerkleTreeNode {
   constructor(public start: Integer, public data: Bytes) {
@@ -20,7 +28,10 @@ export class IntervalTreeNode implements MerkleTreeNode {
 
 const MAX_NUMBER = Math.pow(2, 32) - 1
 
-export class IntervalTree extends AbstractMerkleTree<IntervalTreeNode> {
+export class IntervalTree extends AbstractMerkleTree<
+  IntervalTreeNode,
+  IntervalTreeInclusionProof
+> {
   constructor(leaves: IntervalTreeNode[]) {
     super(leaves, new IntervalTreeVerifier())
   }
@@ -42,7 +53,8 @@ export class IntervalTree extends AbstractMerkleTree<IntervalTreeNode> {
 }
 
 export class IntervalTreeVerifier extends AbstractMerkleVerifier<
-  IntervalTreeNode
+  IntervalTreeNode,
+  IntervalTreeInclusionProof
 > {
   computeRootFromInclusionProof(
     leaf: IntervalTreeNode,
@@ -85,21 +97,7 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
       */
     return computed.data
   }
-  decodeProofElements(bytes: Bytes): IntervalTreeNode[] {
-    const buf = Buffer.from(bytes.data)
-    const nodes: IntervalTreeNode[] = []
-    for (let i = 0; i < buf.length; i += 36) {
-      nodes.push(
-        new IntervalTreeNode(
-          Integer.from(
-            BufferUtils.bufferToNumber(buf.subarray(i + 32, i + 36))
-          ),
-          Bytes.from(Uint8Array.from(buf.subarray(i, i + 32)))
-        )
-      )
-    }
-    return nodes
-  }
+
   computeParent(a: IntervalTreeNode, b: IntervalTreeNode): IntervalTreeNode {
     if (a.start.data > b.start.data) {
       throw new Error('left.start is not less than right.start.')
@@ -109,6 +107,7 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
       this.hashAlgorythm.hash(Bytes.concat([a.encode(), b.encode()]))
     )
   }
+
   createEmptyNode(): IntervalTreeNode {
     return new IntervalTreeNode(
       Integer.from(MAX_NUMBER),

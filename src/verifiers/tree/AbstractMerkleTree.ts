@@ -9,12 +9,14 @@ import { ArrayUtils, BufferUtils } from '../../utils'
 import { Hash } from '../hash/Hash'
 import { Keccak256 } from '../hash/Keccak256'
 
-export abstract class AbstractMerkleTree<T extends MerkleTreeNode>
-  implements MerkleTreeInterface<T> {
+export abstract class AbstractMerkleTree<
+  T extends MerkleTreeNode,
+  I extends InclusionProof<T>
+> implements MerkleTreeInterface<T> {
   levels: T[][] = []
   constructor(
     protected leaves: T[],
-    public verifier: AbstractMerkleVerifier<T>
+    public verifier: AbstractMerkleVerifier<T, I>
   ) {
     this.calculateRoot(leaves, 0)
   }
@@ -47,7 +49,7 @@ export abstract class AbstractMerkleTree<T extends MerkleTreeNode>
   getLeaf(index: number): T {
     return this.leaves[index]
   }
-  getInclusionProof(index: number): Bytes {
+  getInclusionProof(index: number): { leafPosition: number; siblings: T[] } {
     if (!(index in this.levels[0])) {
       throw new Error(`${index} isn't in leaves.`)
     }
@@ -63,23 +65,9 @@ export abstract class AbstractMerkleTree<T extends MerkleTreeNode>
       parentIndex = this.getParentIndex(siblingIndex)
       siblingIndex = this.getSiblingIndex(parentIndex)
     }
-    const siblings = Bytes.concat(inclusionProofElement.map(p => p.encode()))
-    return AbstractMerkleTree.encodeInclusionProof({
-      siblings,
-      leafPosition: index
-    })
-  }
-  static encodeInclusionProof(inclusionProof: InclusionProof): Bytes {
-    return Bytes.concat(
-      Bytes.fromBuffer(BufferUtils.numberToBuffer(inclusionProof.leafPosition)),
-      inclusionProof.siblings
-    )
-  }
-  static decodeInclusionProof(inclusionProof: Bytes): InclusionProof {
-    const buf = Buffer.from(inclusionProof.data)
     return {
-      siblings: Bytes.fromBuffer(buf.subarray(4)),
-      leafPosition: BufferUtils.bufferToNumber(buf.subarray(0, 4))
+      leafPosition: index,
+      siblings: inclusionProofElement
     }
   }
   /**
@@ -106,39 +94,28 @@ export abstract class AbstractMerkleTree<T extends MerkleTreeNode>
   }
 }
 
-export abstract class AbstractMerkleVerifier<T extends MerkleTreeNode>
-  implements MerkleTreeVerifier<T> {
+export abstract class AbstractMerkleVerifier<
+  T extends MerkleTreeNode,
+  I extends InclusionProof<T>
+> implements MerkleTreeVerifier<T, I> {
   constructor(protected hashAlgorythm: Hash = Keccak256) {}
-  abstract decodeProofElements(bytes: Bytes): T[]
-  verifyInclusion(leaf: T, root: Bytes, inclusionProofBytes: Bytes): boolean {
-    const { merklePath, proofElement } = this.calculateMerklePath(
-      inclusionProofBytes
-    )
+  verifyInclusion(leaf: T, root: Bytes, inclusionProof: I): boolean {
+    const merklePath = this.calculateMerklePath(inclusionProof)
     const computeRoot = this.computeRootFromInclusionProof(
       leaf,
       merklePath,
-      proofElement
+      inclusionProof.siblings
     )
     return computeRoot.equals(root)
   }
 
-  calculateMerklePath(
-    inclusionProofBytes: Bytes
-  ): { merklePath: string; proofElement: T[] } {
-    const inclusionProof = AbstractMerkleTree.decodeInclusionProof(
-      inclusionProofBytes
-    )
-    const proofElement = this.decodeProofElements(inclusionProof.siblings)
-    const merklePath = inclusionProof.leafPosition
+  calculateMerklePath(inclusionProof: I): string {
+    return inclusionProof.leafPosition
       .toString(2)
-      .padStart(proofElement.length, '0')
+      .padStart(inclusionProof.siblings.length, '0')
       .split('')
       .reverse()
       .join('')
-    return {
-      merklePath,
-      proofElement
-    }
   }
   abstract computeRootFromInclusionProof(
     leaf: T,

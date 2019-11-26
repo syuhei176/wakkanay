@@ -56,12 +56,40 @@ describe('IntervalTree', () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
       const inclusionProof0 = tree.getInclusionProof(0)
       const inclusionProof1 = tree.getInclusionProof(1)
-      expect(inclusionProof0.toHexString()).toStrictEqual(
-        '0x00000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000e773031f8fe828e549ae4da698004d32bb7f3510a8ca3794010f1fe5b0637b30ffffffff'
-      )
-      expect(inclusionProof1.toHexString()).toStrictEqual(
-        '0x010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000e773031f8fe828e549ae4da698004d32bb7f3510a8ca3794010f1fe5b0637b30ffffffff'
-      )
+      expect(inclusionProof0).toStrictEqual({
+        leafPosition: 0,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(7),
+            Bytes.fromHexString(
+              '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(0xffffffff),
+            Bytes.fromHexString(
+              '0xe773031f8fe828e549ae4da698004d32bb7f3510a8ca3794010f1fe5b0637b30'
+            )
+          )
+        ]
+      })
+      expect(inclusionProof1).toStrictEqual({
+        leafPosition: 1,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(0),
+            Bytes.fromHexString(
+              '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(0xffffffff),
+            Bytes.fromHexString(
+              '0xe773031f8fe828e549ae4da698004d32bb7f3510a8ca3794010f1fe5b0637b30'
+            )
+          )
+        ]
+      })
     })
     it('return InclusionProof with even number of leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3])
@@ -69,18 +97,74 @@ describe('IntervalTree', () => {
       const inclusionProof1 = tree.getInclusionProof(1)
       const inclusionProof2 = tree.getInclusionProof(2)
       const inclusionProof3 = tree.getInclusionProof(3)
-      expect(inclusionProof0.toHexString()).toStrictEqual(
-        '0x00000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a2c010000'
-      )
-      expect(inclusionProof1.toHexString()).toStrictEqual(
-        '0x010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a2c010000'
-      )
-      expect(inclusionProof2.toHexString()).toStrictEqual(
-        '0x02000000fdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f32c010000332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a07000000'
-      )
-      expect(inclusionProof3.toHexString()).toStrictEqual(
-        '0x03000000ba620d61dac4ddf2d7905722b259b0bd34ec4d37c5796d9a22537c54b3f972d80f000000332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a07000000'
-      )
+      expect(inclusionProof0).toStrictEqual({
+        leafPosition: 0,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(7),
+            Bytes.fromHexString(
+              '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(300),
+            Bytes.fromHexString(
+              '0xc09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+            )
+          )
+        ]
+      })
+      expect(inclusionProof1).toStrictEqual({
+        leafPosition: 1,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(0),
+            Bytes.fromHexString(
+              '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(300),
+            Bytes.fromHexString(
+              '0xc09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+            )
+          )
+        ]
+      })
+      expect(inclusionProof2).toStrictEqual({
+        leafPosition: 2,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(300),
+            Bytes.fromHexString(
+              '0xfdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f3'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(7),
+            Bytes.fromHexString(
+              '0x332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a'
+            )
+          )
+        ]
+      })
+      expect(inclusionProof3).toStrictEqual({
+        leafPosition: 3,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(15),
+            Bytes.fromHexString(
+              'ba620d61dac4ddf2d7905722b259b0bd34ec4d37c5796d9a22537c54b3f972d8'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(7),
+            Bytes.fromHexString(
+              '332102f598c3de984496b1e7c77d0e4c858a2e0e063ed2e1c63331e85c38173a'
+            )
+          )
+        ]
+      })
     })
   })
   describe('verifyInclusion', () => {
@@ -123,9 +207,23 @@ describe('IntervalTree', () => {
       const root = Bytes.fromHexString(
         '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
       )
-      const invalidInclusionProof = Bytes.fromHexString(
-        '0x00000000036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da07000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a00000000'
-      )
+      const invalidInclusionProof = {
+        leafPosition: 0,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(7),
+            Bytes.fromHexString(
+              '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(0x00000000),
+            Bytes.fromHexString(
+              '0xc09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+            )
+          )
+        ]
+      }
       expect(() => {
         verifier.verifyInclusion(leaf0, root, invalidInclusionProof)
       }).toThrow(new Error('Invalid InclusionProof, intersection detected.'))
@@ -134,9 +232,23 @@ describe('IntervalTree', () => {
       const root = Bytes.fromHexString(
         '0x4117eee42ff1ddefc65223c1560b411da17da6a6afed5ea4796ca952cfa95587'
       )
-      const invalidInclusionProof = Bytes.fromHexString(
-        '0x010000006fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a3000000000c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a00000000'
-      )
+      const invalidInclusionProof = {
+        leafPosition: 1,
+        siblings: [
+          new IntervalTreeNode(
+            Integer.from(0),
+            Bytes.fromHexString(
+              '6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+            )
+          ),
+          new IntervalTreeNode(
+            Integer.from(0),
+            Bytes.fromHexString(
+              'c09681b30efdae69430f6661b21f80c49a6864061578412256a53e92cefc253a'
+            )
+          )
+        ]
+      }
       expect(() => {
         verifier.verifyInclusion(leaf1, root, invalidInclusionProof)
       }).toThrow(new Error('left.start is not less than right.start.'))
