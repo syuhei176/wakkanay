@@ -1,9 +1,8 @@
-import { Bytes, Address, Integer } from '../../types'
+import { Bytes } from '../../types'
 import {
   MerkleTreeInterface,
   MerkleTreeNode,
-  InclusionProof,
-  MerkleTreeVerifier
+  InclusionProof
 } from './MerkleTreeInterface'
 import { ArrayUtils, BufferUtils } from '../../utils'
 import { Hash } from '../hash/Hash'

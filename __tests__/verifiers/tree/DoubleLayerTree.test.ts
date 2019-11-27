@@ -116,20 +116,24 @@ describe('DoubleLayerTree', () => {
               )
             )
           ]),
-          intervalInclusionProof: new IntervalTreeInclusionProof(0, [
-            new IntervalTreeNode(
-              BigNumber.from(7n),
-              Bytes.fromHexString(
-                '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+          intervalInclusionProof: new IntervalTreeInclusionProof(
+            BigNumber.from(0n),
+            0,
+            [
+              new IntervalTreeNode(
+                BigNumber.from(7n),
+                Bytes.fromHexString(
+                  '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+                )
+              ),
+              new IntervalTreeNode(
+                BigNumber.from(5000n),
+                Bytes.fromHexString(
+                  '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+                )
               )
-            ),
-            new IntervalTreeNode(
-              BigNumber.from(5000n),
-              Bytes.fromHexString(
-                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
-              )
-            )
-          ])
+            ]
+          )
         })
         expect(inclusionProof1).toEqual({
           addressInclusionProof: new AddressTreeInclusionProof(0, [
@@ -140,20 +144,24 @@ describe('DoubleLayerTree', () => {
               )
             )
           ]),
-          intervalInclusionProof: new IntervalTreeInclusionProof(1, [
-            new IntervalTreeNode(
-              BigNumber.from(0n),
-              Bytes.fromHexString(
-                '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+          intervalInclusionProof: new IntervalTreeInclusionProof(
+            BigNumber.from(7n),
+            1,
+            [
+              new IntervalTreeNode(
+                BigNumber.from(0n),
+                Bytes.fromHexString(
+                  '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+                )
+              ),
+              new IntervalTreeNode(
+                BigNumber.from(5000n),
+                Bytes.fromHexString(
+                  '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+                )
               )
-            ),
-            new IntervalTreeNode(
-              BigNumber.from(5000n),
-              Bytes.fromHexString(
-                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
-              )
-            )
-          ])
+            ]
+          )
         })
       })
     })
@@ -168,20 +176,24 @@ describe('DoubleLayerTree', () => {
             )
           )
         ]),
-        intervalInclusionProof: new IntervalTreeInclusionProof(0, [
-          new IntervalTreeNode(
-            BigNumber.from(7n),
-            Bytes.fromHexString(
-              '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+        intervalInclusionProof: new IntervalTreeInclusionProof(
+          BigNumber.from(0n),
+          0,
+          [
+            new IntervalTreeNode(
+              BigNumber.from(7n),
+              Bytes.fromHexString(
+                '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+              )
+            ),
+            new IntervalTreeNode(
+              BigNumber.from(5000n),
+              Bytes.fromHexString(
+                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+              )
             )
-          ),
-          new IntervalTreeNode(
-            BigNumber.from(5000n),
-            Bytes.fromHexString(
-              '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
-            )
-          )
-        ])
+          ]
+        )
       }
       it('return true', async () => {
         const verifier = new DoubleLayerTreeVerifier()
@@ -210,20 +222,24 @@ describe('DoubleLayerTree', () => {
               )
             )
           ]),
-          intervalInclusionProof: new IntervalTreeInclusionProof(2, [
-            new IntervalTreeNode(
-              BigNumber.from(5000n),
-              Bytes.fromHexString(
-                '0xfdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f3'
+          intervalInclusionProof: new IntervalTreeInclusionProof(
+            BigNumber.from(15n),
+            2,
+            [
+              new IntervalTreeNode(
+                BigNumber.from(5000n),
+                Bytes.fromHexString(
+                  '0xfdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f3'
+                )
+              ),
+              new IntervalTreeNode(
+                BigNumber.from(7n),
+                Bytes.fromHexString(
+                  '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
+                )
               )
-            ),
-            new IntervalTreeNode(
-              BigNumber.from(7n),
-              Bytes.fromHexString(
-                '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
-              )
-            )
-          ])
+            ]
+          )
         }
         const result = verifier.verifyInclusion(
           leaf2,
@@ -281,20 +297,24 @@ describe('DoubleLayerTree', () => {
               )
             )
           ]),
-          intervalInclusionProof: new IntervalTreeInclusionProof(0, [
-            new IntervalTreeNode(
-              BigNumber.from(7n),
-              Bytes.fromHexString(
-                '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+          intervalInclusionProof: new IntervalTreeInclusionProof(
+            BigNumber.from(0n),
+            0,
+            [
+              new IntervalTreeNode(
+                BigNumber.from(7n),
+                Bytes.fromHexString(
+                  '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+                )
+              ),
+              new IntervalTreeNode(
+                BigNumber.from(0n),
+                Bytes.fromHexString(
+                  '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+                )
               )
-            ),
-            new IntervalTreeNode(
-              BigNumber.from(0n),
-              Bytes.fromHexString(
-                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
-              )
-            )
-          ])
+            ]
+          )
         }
         expect(() => {
           verifier.verifyInclusion(
@@ -319,20 +339,24 @@ describe('DoubleLayerTree', () => {
               )
             )
           ]),
-          intervalInclusionProof: new IntervalTreeInclusionProof(1, [
-            new IntervalTreeNode(
-              BigNumber.from(0n),
-              Bytes.fromHexString(
-                '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+          intervalInclusionProof: new IntervalTreeInclusionProof(
+            BigNumber.from(7n),
+            1,
+            [
+              new IntervalTreeNode(
+                BigNumber.from(0n),
+                Bytes.fromHexString(
+                  '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
+                )
+              ),
+              new IntervalTreeNode(
+                BigNumber.from(0n),
+                Bytes.fromHexString(
+                  '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+                )
               )
-            ),
-            new IntervalTreeNode(
-              BigNumber.from(0n),
-              Bytes.fromHexString(
-                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
-              )
-            )
-          ])
+            ]
+          )
         }
         expect(() => {
           verifier.verifyInclusion(

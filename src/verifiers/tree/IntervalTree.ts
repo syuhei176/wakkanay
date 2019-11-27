@@ -9,6 +9,7 @@ import { BigIntMath } from '../../utils'
 export class IntervalTreeInclusionProof
   implements InclusionProof<IntervalTreeNode> {
   constructor(
+    public leafStart: BigNumber,
     public leafPosition: number,
     public siblings: IntervalTreeNode[]
   ) {}
@@ -38,6 +39,15 @@ export class IntervalTree extends AbstractMerkleTree<
   constructor(leaves: IntervalTreeNode[]) {
     super(leaves, new IntervalTreeVerifier())
   }
+  getInclusionProof(index: number): IntervalTreeInclusionProof {
+    const inclusionProof = super.getInclusionProof(index)
+    return new IntervalTreeInclusionProof(
+      this.levels[0][index].start,
+      inclusionProof.leafPosition,
+      inclusionProof.siblings
+    )
+  }
+
   getLeaves(start: bigint, end: bigint): number[] {
     const results: number[] = []
     this.leaves.forEach((l, index) => {
