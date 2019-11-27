@@ -1,4 +1,4 @@
-import { Integer, Struct } from './Codables'
+import { Integer, Struct, BigNumber } from './Codables'
 
 export type ParamType = {
   name?: string
@@ -8,7 +8,7 @@ export type ParamType = {
 }
 
 export class Range {
-  constructor(private start: Integer, private end: Integer) {}
+  constructor(readonly start: BigNumber, readonly end: BigNumber) {}
   public toStruct(): Struct {
     return new Struct({
       start: this.start,
@@ -17,8 +17,8 @@ export class Range {
   }
   public static fromStruct(_struct: Struct): Range {
     return new Range(
-      _struct.data['start'] as Integer,
-      _struct.data['end'] as Integer
+      _struct.data['start'] as BigNumber,
+      _struct.data['end'] as BigNumber
     )
   }
 }
