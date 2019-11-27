@@ -64,6 +64,13 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
     merklePath: string,
     proofElement: IntervalTreeNode[]
   ): Bytes {
+    return this.computeRootAndImplicitEnd(leaf, merklePath, proofElement).root
+  }
+  computeRootAndImplicitEnd(
+    leaf: IntervalTreeNode,
+    merklePath: string,
+    proofElement: IntervalTreeNode[]
+  ): { root: Bytes; implicitEnd: BigNumber } {
     const firstRightSiblingIndex = merklePath.indexOf('0')
     const firstRightSibling =
       firstRightSiblingIndex >= 0
@@ -93,12 +100,10 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
       // check left.index < right.index
       computed = this.computeParent(left, right)
     }
-    /*
     const implicitEnd = firstRightSibling
       ? firstRightSibling.start
       : this.createEmptyNode().start
-      */
-    return computed.data
+    return { root: computed.data, implicitEnd }
   }
 
   computeParent(a: IntervalTreeNode, b: IntervalTreeNode): IntervalTreeNode {
