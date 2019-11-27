@@ -136,6 +136,13 @@ export interface DoubleLayerTreeVerifier {
  * DoubleLayerTreeVerifier is the class to verify inclusion of Double Layer Tree.
  */
 export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
+  /**
+   * verifyInclusion verify leaf data is included or not in specific range.
+   * @param leaf The leaf to verify
+   * @param range The range to verify it within implicit range
+   * @param root The merkle root of tree
+   * @param inclusionProof proof data to verify inclusion
+   */
   verifyInclusion(
     leaf: DoubleLayerTreeLeaf,
     range: Range,
