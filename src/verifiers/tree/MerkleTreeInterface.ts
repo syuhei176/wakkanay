@@ -18,7 +18,6 @@ export interface MerkleTreeInterface<T extends MerkleTreeNode> {
   getRoot(): Bytes
   findIndex(leaf: Bytes): number | null
   getLeaf(index: number): T
-  //  getInclusionProof(index: number): Bytes
 }
 
 export interface MerkleTreeVerifier<T extends MerkleTreeNode, I> {

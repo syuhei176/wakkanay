@@ -1,9 +1,8 @@
-import { Bytes, Address, Integer } from '../../types'
+import { Bytes } from '../../types'
 import {
   MerkleTreeInterface,
   MerkleTreeNode,
-  InclusionProof,
-  MerkleTreeVerifier
+  InclusionProof
 } from './MerkleTreeInterface'
 import { ArrayUtils, BufferUtils } from '../../utils'
 import { Hash } from '../hash/Hash'
@@ -97,7 +96,7 @@ export abstract class AbstractMerkleTree<
 export abstract class AbstractMerkleVerifier<
   T extends MerkleTreeNode,
   I extends InclusionProof<T>
-> implements MerkleTreeVerifier<T, I> {
+> {
   constructor(protected hashAlgorythm: Hash = Keccak256) {}
   verifyInclusion(leaf: T, root: Bytes, inclusionProof: I): boolean {
     const merklePath = this.calculateMerklePath(inclusionProof)

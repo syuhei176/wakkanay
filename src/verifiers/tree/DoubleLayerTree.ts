@@ -1,4 +1,4 @@
-import { Bytes, Address, BigNumber } from '../../types'
+import { Bytes, Address, BigNumber, Range } from '../../types'
 import {
   MerkleTreeInterface,
   MerkleTreeGenerator,
@@ -123,14 +123,29 @@ export class DoubleLayerTree
   }
 }
 
+export interface DoubleLayerTreeVerifier {
+  verifyInclusion(
+    leaf: DoubleLayerTreeLeaf,
+    range: Range,
+    root: Bytes,
+    inclusionProof: DoubleLayerInclusionProof
+  ): boolean
+}
+
 /**
  * DoubleLayerTreeVerifier is the class to verify inclusion of Double Layer Tree.
  */
-export class DoubleLayerTreeVerifier
-  implements
-    MerkleTreeVerifier<DoubleLayerTreeLeaf, DoubleLayerInclusionProof> {
+export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
+  /**
+   * verifyInclusion verify leaf data is included or not in specific range.
+   * @param leaf The leaf to verify
+   * @param range The range to verify it within implicit range
+   * @param root The merkle root of tree
+   * @param inclusionProof proof data to verify inclusion
+   */
   verifyInclusion(
     leaf: DoubleLayerTreeLeaf,
+    range: Range,
     root: Bytes,
     inclusionProof: DoubleLayerInclusionProof
   ): boolean {
@@ -141,13 +156,19 @@ export class DoubleLayerTreeVerifier
     const merklePath = intervalTreeVerifier.calculateMerklePath(
       inclusionProof.intervalInclusionProof
     )
-    const intervalRoot = intervalTreeVerifier.computeRootFromInclusionProof(
+    const computeIntervalRootAndEnd = intervalTreeVerifier.computeRootAndImplicitEnd(
       intervalNode,
       merklePath,
       inclusionProof.intervalInclusionProof.siblings
     )
+    if (
+      computeIntervalRootAndEnd.implicitEnd.data < range.end.data ||
+      range.start.data < leaf.start.data
+    ) {
+      throw new Error('required range must not exceed the implicit range')
+    }
     return addressTreeVerifier.verifyInclusion(
-      new AddressTreeNode(leaf.address, intervalRoot),
+      new AddressTreeNode(leaf.address, computeIntervalRootAndEnd.root),
       root,
       inclusionProof.addressInclusionProof
     )

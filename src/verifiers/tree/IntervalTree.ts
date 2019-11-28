@@ -9,6 +9,7 @@ import { BigIntMath } from '../../utils'
 export class IntervalTreeInclusionProof
   implements InclusionProof<IntervalTreeNode> {
   constructor(
+    public leafStart: BigNumber,
     public leafPosition: number,
     public siblings: IntervalTreeNode[]
   ) {}
@@ -38,6 +39,15 @@ export class IntervalTree extends AbstractMerkleTree<
   constructor(leaves: IntervalTreeNode[]) {
     super(leaves, new IntervalTreeVerifier())
   }
+  getInclusionProof(index: number): IntervalTreeInclusionProof {
+    const inclusionProof = super.getInclusionProof(index)
+    return new IntervalTreeInclusionProof(
+      this.levels[0][index].start,
+      inclusionProof.leafPosition,
+      inclusionProof.siblings
+    )
+  }
+
   getLeaves(start: bigint, end: bigint): number[] {
     const results: number[] = []
     this.leaves.forEach((l, index) => {
@@ -64,6 +74,13 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
     merklePath: string,
     proofElement: IntervalTreeNode[]
   ): Bytes {
+    return this.computeRootAndImplicitEnd(leaf, merklePath, proofElement).root
+  }
+  computeRootAndImplicitEnd(
+    leaf: IntervalTreeNode,
+    merklePath: string,
+    proofElement: IntervalTreeNode[]
+  ): { root: Bytes; implicitEnd: BigNumber } {
     const firstRightSiblingIndex = merklePath.indexOf('0')
     const firstRightSibling =
       firstRightSiblingIndex >= 0
@@ -93,12 +110,10 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
       // check left.index < right.index
       computed = this.computeParent(left, right)
     }
-    /*
     const implicitEnd = firstRightSibling
       ? firstRightSibling.start
       : this.createEmptyNode().start
-      */
-    return computed.data
+    return { root: computed.data, implicitEnd }
   }
 
   computeParent(a: IntervalTreeNode, b: IntervalTreeNode): IntervalTreeNode {
