@@ -5,7 +5,8 @@ import {
   Integer,
   List,
   Tuple,
-  Struct
+  Struct,
+  BigNumber
 } from '../../src/types/Codables'
 
 describe('JsonCoder', () => {
@@ -64,6 +65,14 @@ describe('JsonCoder', () => {
       const list = List.from(Bytes, [])
 
       expect(JsonCoder.encode(list).intoString()).toBe('[]')
+    })
+
+    test('encode big number', () => {
+      const bigNumber = BigNumber.from(2n ** 80n)
+
+      expect(JsonCoder.encode(bigNumber).intoString()).toBe(
+        '"1208925819614629174706176"'
+      )
     })
   })
 
@@ -141,6 +150,15 @@ describe('JsonCoder', () => {
           })
         ])
       )
+    })
+
+    test('decode big number', () => {
+      expect(
+        JsonCoder.decode(
+          BigNumber.default(),
+          Bytes.fromString('"1208925819614629174706176"')
+        )
+      ).toStrictEqual(BigNumber.from(2n ** 80n))
     })
   })
 })

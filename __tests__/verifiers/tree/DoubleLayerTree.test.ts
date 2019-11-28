@@ -107,12 +107,6 @@ describe('DoubleLayerTree', () => {
           token0,
           1
         )
-        console.log(
-          inclusionProof0.intervalInclusionProof.siblings[1].data.toHexString()
-        )
-        console.log(
-          inclusionProof1.intervalInclusionProof.siblings[1].data.toHexString()
-        )
         expect(inclusionProof0).toEqual({
           addressInclusionProof: new AddressTreeInclusionProof(0, [
             new AddressTreeNode(
