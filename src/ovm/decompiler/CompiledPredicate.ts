@@ -35,6 +35,7 @@ export class CompiledPredicate {
       c.definition.inputs.map(i => {
         if (i.predicate.type == 'AtomicPredicate') {
           let atomicPredicateAddress: Address
+          let isCompiledPredicate: boolean = false
           const atomicPredicate = convertStringToAtomicPredicate(
             i.predicate.source
           )
@@ -44,15 +45,20 @@ export class CompiledPredicate {
             )
           } else {
             atomicPredicateAddress = originalAddress
+            isCompiledPredicate = true
           }
           return Coder.encode(
             new Property(
               atomicPredicateAddress,
-              i.inputs.map(i => {
+              i.inputs.map((i, index) => {
                 if (i.type == 'NormalInput') {
                   return inputs[i.inputIndex]
                 } else {
-                  return FreeVariable.from(i.placeholder)
+                  if (isCompiledPredicate && index == 0) {
+                    return Bytes.fromString(i.placeholder)
+                  } else {
+                    return FreeVariable.from(i.placeholder)
+                  }
                 }
               })
             ).toStruct()

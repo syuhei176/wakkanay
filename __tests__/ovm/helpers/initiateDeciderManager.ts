@@ -12,7 +12,7 @@ import {
   IsHashPreimageDecider,
   IsValidSignatureDecider
 } from '../../../src/ovm/deciders'
-import { LogicalConnective } from '../../../src/ovm/types'
+import { LogicalConnective, AtomicPredicate } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import { InMemoryKeyValueStore } from '../../../src/db'
 
@@ -69,7 +69,11 @@ export function initializeDeciderManager() {
     new OrDecider(),
     LogicalConnective.Or
   )
-  deciderManager.setDecider(LessThanDeciderAddress, new LessThanDecider())
+  deciderManager.setDecider(
+    LessThanDeciderAddress,
+    new LessThanDecider(),
+    AtomicPredicate.IsLessThan
+  )
   deciderManager.setDecider(
     ForAllSuchThatDeciderAddress,
     new ForAllSuchThatDecider(),

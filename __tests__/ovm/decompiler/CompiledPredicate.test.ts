@@ -3,7 +3,8 @@ import { Address, Bytes, Integer } from '../../../src/types/Codables'
 import DefaultCoder from '../../../src/coder'
 import {
   initializeDeciderManager,
-  ForAllSuchThatDeciderAddress
+  ForAllSuchThatDeciderAddress,
+  LessThanDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import { CompiledPredicate } from '../../../src/ovm/decompiler/CompiledPredicate'
 import { transpiler } from 'ovm-compiler'
@@ -54,18 +55,14 @@ describe('CompiledPredicate', () => {
           inputs: [
             {
               type: 'AtomicProposition',
-              predicate: { type: 'AtomicPredicate', source: 'LessThan' },
+              predicate: { type: 'AtomicPredicate', source: 'IsLessThan' },
               inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
             },
             {
               type: 'AtomicProposition',
               predicate: { type: 'AtomicPredicate', source: 'TestFA' },
               inputs: [
-                {
-                  type: 'VariableInput',
-                  placeholder: 'TestFA',
-                  children: []
-                },
+                { type: 'VariableInput', placeholder: 'TestFA', children: [] },
                 { type: 'VariableInput', placeholder: 'b', children: [] }
               ]
             }
@@ -88,14 +85,20 @@ describe('CompiledPredicate', () => {
       TestPredicateAddress,
       [Bytes.fromString('TestF'), Coder.encode(Integer.from(10))]
     )
+
     expect(property).toEqual({
       deciderAddress: ForAllSuchThatDeciderAddress,
       inputs: [
-        Bytes.fromHexString(
-          '0x5b22307830323530303335303030333031303130303032303030393030333830303035373030303630303031222c5b22307833313330225d5d'
+        Coder.encode(
+          new Property(LessThanDeciderAddress, [
+            Bytes.fromHexString('0x3130')
+          ]).toStruct()
         ),
-        Bytes.fromHexString(
-          '0x5b22307830323530303335303030333031303130303032303030393030333830303035373030303630303031222c5b223078356635663536343135323439343134323463343535663566353436353733373434363431222c2230783566356635363431353234393431343234633435356635663632225d5d'
+        Coder.encode(
+          new Property(TestPredicateAddress, [
+            Bytes.fromHexString('0x546573744641'),
+            Bytes.fromHexString('0x5f5f5641524941424c455f5f62')
+          ]).toStruct()
         )
       ]
     })
