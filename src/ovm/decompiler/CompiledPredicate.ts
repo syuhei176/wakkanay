@@ -33,7 +33,9 @@ export class CompiledPredicate {
     return new Property(
       predicateAddress,
       c.definition.inputs.map(i => {
-        if (i.predicate.type == 'AtomicPredicate') {
+        if (typeof i == 'string') {
+          return Bytes.fromString(i)
+        } else if (i.predicate.type == 'AtomicPredicate') {
           let atomicPredicateAddress: Address
           const atomicPredicate = convertStringToAtomicPredicate(
             i.predicate.source
@@ -53,7 +55,7 @@ export class CompiledPredicate {
             ).toStruct()
           )
         } else {
-          throw new Error('predicate must be atomic')
+          throw new Error('predicate must be atomic or string')
         }
       })
     )

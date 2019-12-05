@@ -58,6 +58,7 @@ describe('CompiledPredicate', () => {
               predicate: { type: 'AtomicPredicate', source: 'IsLessThan' },
               inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
             },
+            'b',
             {
               type: 'AtomicProposition',
               predicate: { type: 'AtomicPredicate', source: 'TestFA' },
@@ -94,6 +95,7 @@ describe('CompiledPredicate', () => {
             Bytes.fromHexString('0x3130')
           ]).toStruct()
         ),
+        Bytes.fromString('b'),
         Coder.encode(
           new Property(TestPredicateAddress, [
             Bytes.fromHexString('0x546573744641'),
