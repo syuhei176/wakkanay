@@ -35,7 +35,6 @@ export class CompiledPredicate {
       c.definition.inputs.map(i => {
         if (i.predicate.type == 'AtomicPredicate') {
           let atomicPredicateAddress: Address
-          let isCompiledPredicate: boolean = false
           const atomicPredicate = convertStringToAtomicPredicate(
             i.predicate.source
           )
@@ -45,26 +44,43 @@ export class CompiledPredicate {
             )
           } else {
             atomicPredicateAddress = originalAddress
-            isCompiledPredicate = true
           }
           return Coder.encode(
-            new Property(
+            this.createChildProperty(
               atomicPredicateAddress,
-              i.inputs.map((i, index) => {
-                if (i.type == 'NormalInput') {
-                  return inputs[i.inputIndex]
-                } else {
-                  if (isCompiledPredicate && index == 0) {
-                    return Bytes.fromString(i.placeholder)
-                  } else {
-                    return FreeVariable.from(i.placeholder)
-                  }
-                }
-              })
+              i,
+              inputs
             ).toStruct()
           )
         } else {
           throw new Error('predicate must be atomic')
+        }
+      })
+    )
+  }
+
+  /**
+   * createProperty
+   * @param atomicPredicateAddress
+   * @param proposition
+   * @param inputs
+   */
+  private createChildProperty(
+    atomicPredicateAddress: Address,
+    proposition: transpiler.AtomicProposition,
+    inputs: Bytes[]
+  ): Property {
+    return new Property(
+      atomicPredicateAddress,
+      proposition.inputs.map(i => {
+        if (i.type == 'NormalInput') {
+          return inputs[i.inputIndex]
+        } else if (i.type == 'VariableInput') {
+          return FreeVariable.from(i.placeholder)
+        } else if (i.type == 'LabelInput') {
+          return Bytes.fromString(i.label)
+        } else {
+          throw new Error(`${i} has unknow type`)
         }
       })
     )
