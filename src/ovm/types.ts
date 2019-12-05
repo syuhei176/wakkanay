@@ -64,11 +64,61 @@ export class FreeVariable {
   }
 }
 
-// Logocal Connectives
 export enum LogicalConnective {
   And,
   ForAllSuchThat,
   Not,
   Or,
   ThereExistsSuchThat
+}
+
+export enum AtomicPredicate {
+  IsValidPreimage,
+  IsValidSignature,
+  VerifyInclusion,
+  IsLessThan,
+  Equal,
+  Within,
+  Bool
+}
+
+export function convertStringToLogicalConnective(
+  name: string
+): LogicalConnective {
+  if (name == 'And') {
+    return LogicalConnective.And
+  } else if (name == 'Or') {
+    return LogicalConnective.Or
+  } else if (name == 'ForAllSuchThat') {
+    return LogicalConnective.ForAllSuchThat
+  } else if (name == 'ThereExistsSuchThat') {
+    return LogicalConnective.ThereExistsSuchThat
+  } else if (name == 'Not') {
+    return LogicalConnective.Not
+  } else {
+    throw new Error('invalid logical connective name')
+  }
+}
+
+export function convertStringToAtomicPredicate(
+  name: string
+): AtomicPredicate | null {
+  if (name == 'IsLessThan') {
+    return AtomicPredicate.IsLessThan
+  } else if (name == 'IsValidPreimage') {
+    return AtomicPredicate.IsValidPreimage
+  } else if (name == 'IsValidSignature') {
+    return AtomicPredicate.IsValidSignature
+  } else if (name == 'VerifyInclusion') {
+    return AtomicPredicate.VerifyInclusion
+  } else if (name == 'Equal') {
+    return AtomicPredicate.Equal
+  } else if (name == 'Within') {
+    return AtomicPredicate.Within
+  } else if (name == 'Bool') {
+    return AtomicPredicate.Bool
+  } else {
+    return null
+    // throw new Error('invalid atomic predicate name')
+  }
 }
