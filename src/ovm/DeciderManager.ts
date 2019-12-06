@@ -70,8 +70,15 @@ export class DeciderManager {
    * @param address
    * @param quantifier
    */
-  public setQuantifier(address: Address, quantifier: Quantifier) {
+  public setQuantifier(
+    address: Address,
+    quantifier: Quantifier,
+    operator?: AtomicPredicate
+  ) {
     this.quantifiers.set(address.data, quantifier)
+    if (operator !== undefined) {
+      this.operators.set(operator, address)
+    }
   }
   /**
    * Gets quantifier with address

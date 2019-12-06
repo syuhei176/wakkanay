@@ -1,86 +1,24 @@
 import { Property } from '../../../src/ovm/types'
 import { Address, Bytes, Integer } from '../../../src/types/Codables'
-import DefaultCoder from '../../../src/coder'
 import {
   initializeDeciderManager,
   ForAllSuchThatDeciderAddress,
-  LessThanDeciderAddress
+  LessThanQuantifierAddress
 } from '../helpers/initiateDeciderManager'
 import { CompiledPredicate } from '../../../src/ovm/decompiler/CompiledPredicate'
-import { transpiler } from 'ovm-compiler'
-import * as ethers from 'ethers'
 import Coder from '../../../src/coder'
+import { testSource } from './TestSource'
 
 describe('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(
     '0x0250035000301010002000900380005700060001'
   )
-  const compiledPredicateSource: transpiler.CompiledPredicate = {
-    type: 'CompiledPredicate',
-    name: 'Test',
-    inputDefs: ['a'],
-    contracts: [
-      {
-        type: 'IntermediateCompiledPredicate',
-        isCompiled: true,
-        originalPredicateName: 'Test',
-        definition: {
-          type: 'IntermediateCompiledPredicateDef',
-          name: 'TestFA',
-          predicate: 'And',
-          inputDefs: ['TestFA', 'b'],
-          inputs: [
-            {
-              type: 'AtomicProposition',
-              predicate: { type: 'AtomicPredicate', source: 'Bool' },
-              inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
-            },
-            {
-              type: 'AtomicProposition',
-              predicate: { type: 'AtomicPredicate', source: 'Bool' },
-              inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
-            }
-          ]
-        }
-      },
-      {
-        type: 'IntermediateCompiledPredicate',
-        isCompiled: true,
-        originalPredicateName: 'Test',
-        definition: {
-          type: 'IntermediateCompiledPredicateDef',
-          name: 'TestF',
-          predicate: 'ForAllSuchThat',
-          inputDefs: ['TestF', 'a'],
-          inputs: [
-            {
-              type: 'AtomicProposition',
-              predicate: { type: 'AtomicPredicate', source: 'IsLessThan' },
-              inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
-            },
-            'b',
-            {
-              type: 'AtomicProposition',
-              predicate: { type: 'AtomicPredicate', source: 'TestFA' },
-              inputs: [
-                { type: 'LabelInput', label: 'TestFA' },
-                { type: 'VariableInput', placeholder: 'b', children: [] }
-              ]
-            }
-          ]
-        }
-      }
-    ]
-  }
 
   const deciderManager = initializeDeciderManager()
 
   it('return Property', async () => {
-    const compiledPredicate = new CompiledPredicate(
-      compiledPredicateSource,
-      deciderManager
-    )
-    // Create a instance of compiled predicate "TestF(TestF, 10)".
+    const compiledPredicate = new CompiledPredicate(testSource, deciderManager)
+    // Create an instance of compiled predicate "TestF(TestF, 10)".
     const property = compiledPredicate.instantiate(
       'TestF',
       TestPredicateAddress,
@@ -91,7 +29,7 @@ describe('CompiledPredicate', () => {
       deciderAddress: ForAllSuchThatDeciderAddress,
       inputs: [
         Coder.encode(
-          new Property(LessThanDeciderAddress, [
+          new Property(LessThanQuantifierAddress, [
             Bytes.fromHexString('0x3130')
           ]).toStruct()
         ),

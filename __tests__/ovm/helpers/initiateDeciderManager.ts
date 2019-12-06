@@ -53,7 +53,11 @@ export const IsValidSignatureDeciderAddress = Address.from(
 export function initializeDeciderManager() {
   const witnessDb = new InMemoryKeyValueStore(Bytes.fromString('test'))
   const deciderManager = new DeciderManager(witnessDb)
-  deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
+  deciderManager.setDecider(
+    SampleDeciderAddress,
+    new SampleDecider(),
+    AtomicPredicate.Bool
+  )
   deciderManager.setDecider(
     NotDeciderAddress,
     new NotDecider(),
@@ -81,7 +85,8 @@ export function initializeDeciderManager() {
   )
   deciderManager.setQuantifier(
     LessThanQuantifierAddress,
-    new LessThanQuantifier()
+    new LessThanQuantifier(),
+    AtomicPredicate.LessThanQuantifier
   )
   deciderManager.setDecider(GreaterThanDeciderAddress, new GreaterThanDecider())
   deciderManager.setDecider(

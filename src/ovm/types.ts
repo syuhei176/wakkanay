@@ -79,7 +79,8 @@ export enum AtomicPredicate {
   IsLessThan,
   Equal,
   Within,
-  Bool
+  Bool,
+  LessThanQuantifier
 }
 
 export function convertStringToLogicalConnective(
@@ -105,6 +106,8 @@ export function convertStringToAtomicPredicate(
 ): AtomicPredicate | null {
   if (name == 'IsLessThan') {
     return AtomicPredicate.IsLessThan
+  } else if (name == 'LessThan') {
+    return AtomicPredicate.LessThanQuantifier
   } else if (name == 'IsValidPreimage') {
     return AtomicPredicate.IsValidPreimage
   } else if (name == 'IsValidSignature') {
