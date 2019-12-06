@@ -1,10 +1,6 @@
 import { Property } from '../../../src/ovm/types'
-import { Address, Bytes } from '../../../src/types/Codables'
-import {
-  initializeDeciderManager,
-  ForAllSuchThatDeciderAddress,
-  LessThanQuantifierAddress
-} from '../helpers/initiateDeciderManager'
+import { Address, Bytes, Integer } from '../../../src/types/Codables'
+import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
 import { CompiledDecider, CompiledPredicate } from '../../../src/ovm/decompiler'
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
@@ -18,32 +14,24 @@ describe('CompiledDecider', () => {
 
   test('decide a property using compiled predicate', async () => {
     // An instance of compiled predicate "TestF(TestF, 10)".
-    const property = new Property(ForAllSuchThatDeciderAddress, [
-      Coder.encode(
-        new Property(LessThanQuantifierAddress, [
-          Bytes.fromHexString('0x3130')
-        ]).toStruct()
-      ),
-      Bytes.fromString('b'),
-      Coder.encode(
-        new Property(TestPredicateAddress, [
-          Bytes.fromHexString('0x546573744641'),
-          Bytes.fromHexString('0x5f5f5641524941424c455f5f62')
-        ]).toStruct()
-      )
+    const property = new Property(TestPredicateAddress, [
+      Bytes.fromString('TestF'),
+      Coder.encode(Integer.from(10))
     ])
 
     // Sets instance of CompiledDecider TestF
-    deciderManager.setDecider(
+    const compiledDecider = new CompiledDecider(
       TestPredicateAddress,
-      new CompiledDecider(
-        TestPredicateAddress,
-        new CompiledPredicate(testSource, deciderManager)
-      )
+      new CompiledPredicate(testSource, deciderManager)
     )
+    deciderManager.setDecider(TestPredicateAddress, compiledDecider)
 
     // TestF calls TestFA during deciding
-    const decision = await deciderManager.decide(property, {})
+    const decision = await compiledDecider.decide(
+      deciderManager,
+      property.inputs,
+      {}
+    )
 
     expect(decision).toEqual({
       challenges: [],
