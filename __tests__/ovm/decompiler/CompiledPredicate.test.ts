@@ -43,4 +43,14 @@ describe('CompiledPredicate', () => {
       ]
     })
   })
+
+  it('throw exception because the name is not found', async () => {
+    const compiledPredicate = new CompiledPredicate(testSource, deciderManager)
+    expect(() => {
+      compiledPredicate.instantiate('NotFound', TestPredicateAddress, [
+        Bytes.fromString('TestF'),
+        Coder.encode(Integer.from(10))
+      ])
+    }).toThrowError('cannot find NotFound in contracts')
+  })
 })

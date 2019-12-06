@@ -39,7 +39,7 @@ export class CompiledPredicate {
   ): Property {
     const c = this.compiled.contracts.find(c => c.definition.name == name)
     if (!c) {
-      throw new Error('cannot find contract')
+      throw new Error(`cannot find ${name} in contracts`)
     }
 
     const predicateAddress = this.manager.getDeciderAddress(
