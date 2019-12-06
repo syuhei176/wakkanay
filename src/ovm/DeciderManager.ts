@@ -2,6 +2,7 @@ import { Address, Bytes } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
 import { Property, Decision, FreeVariable, LogicalConnective } from './types'
 import { Quantifier } from './interfaces/Quantifier'
+import { KeyValueStore } from '../db'
 
 /**
  * DeciderManager manages deciders and its address
@@ -10,7 +11,9 @@ export class DeciderManager {
   private deciders: Map<string, Decider>
   private operators: Map<LogicalConnective, Address>
   private quantifiers: Map<string, Quantifier>
-  constructor() {
+  public witnessDb: KeyValueStore
+  constructor(witnessDb: KeyValueStore) {
+    this.witnessDb = witnessDb
     this.deciders = new Map<string, Decider>()
     this.operators = new Map<LogicalConnective, Address>()
     this.quantifiers = new Map<string, Quantifier>()

@@ -4,6 +4,7 @@ import { Property } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import * as ethers from 'ethers'
 import { SigningKey, arrayify, joinSignature } from 'ethers/utils'
+import { InMemoryKeyValueStore } from '../../../src/db'
 
 function sign(message: Bytes, key: SigningKey): Bytes {
   return Bytes.fromHexString(
@@ -13,7 +14,8 @@ function sign(message: Bytes, key: SigningKey): Bytes {
 
 describe('IsValidSignatureDecider', () => {
   const addr = Address.from('0x0000000000000000000000000000000000000001')
-  const deciderManager = new DeciderManager()
+  const db = new InMemoryKeyValueStore(Bytes.fromString('test'))
+  const deciderManager = new DeciderManager(db)
   deciderManager.setDecider(addr, new IsValidSignatureDecider())
   const wallet = ethers.Wallet.createRandom()
   let publicKey: string,

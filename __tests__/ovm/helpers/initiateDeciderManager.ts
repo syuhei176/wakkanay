@@ -11,7 +11,8 @@ import {
   OrDecider
 } from '../../../src/ovm/deciders'
 import { LogicalConnective } from '../../../src/ovm/types'
-import { Address } from '../../../src/types/Codables'
+import { Address, Bytes } from '../../../src/types/Codables'
+import { InMemoryKeyValueStore } from '../../../src/db'
 
 export const SampleDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'
@@ -42,7 +43,8 @@ export const OrDeciderAddress = Address.from(
 )
 
 export function initializeDeciderManager() {
-  const deciderManager = new DeciderManager()
+  const witnessDb = new InMemoryKeyValueStore(Bytes.fromString('test'))
+  const deciderManager = new DeciderManager(witnessDb)
   deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
   deciderManager.setDecider(
     NotDeciderAddress,
