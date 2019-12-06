@@ -9,6 +9,22 @@ import { transpiler } from 'ovm-compiler'
 import { DeciderManager } from '../DeciderManager'
 import Coder from '../../coder'
 
+/**
+ * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
+ * `Test(a) = For all b such that Q(b): Bool(a) and Bool(b)`
+ * CompiledPredicate.instantiate(address, name, inputs) creates a property from output of ovm-compiler.
+ * We can get an instance of CompiledPredicate with source like
+ * ```
+ * const compiledPredicate = new CompiledPredicate(source)
+ * ```
+ * And it can instantiate property using Test.
+ * ```
+ * // For all b such that Q(b): Bool(10) and Bool(b)
+ * compiledPredicate.instantiate('TestF', [10])
+ * // Bool(10) and Bool(5)
+ * compiledPredicate.instantiate('TestFA', [10, 5])
+ * ```
+ */
 export class CompiledPredicate {
   compiled: transpiler.CompiledPredicate
   manager: DeciderManager
