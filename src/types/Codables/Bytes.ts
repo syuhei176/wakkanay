@@ -88,4 +88,16 @@ export default class Bytes implements Codable {
       )
     }
   }
+
+  public increment(): Bytes {
+    const arr = this.raw.slice()
+    for (let i = arr.length - 1; i >= 0; i--) {
+      arr[i] += 1
+      if (arr[i] !== 0) {
+        return Bytes.from(arr)
+      }
+    }
+
+    throw new Error('cannot incremented.')
+  }
 }

@@ -49,6 +49,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
       this.db = db
     } else {
       this.dbName = prefix
+      this.prefix = prefix
       this.db = levelup(memdown())
     }
   }
@@ -120,6 +121,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     return new MemoryIterator(
       this.db.iterator({
         gte: this.convertKeyIntoBuffer(bound),
+        lt: Buffer.from(this.prefix.increment().data),
         reverse: false,
         keys: true,
         values: true,
@@ -132,7 +134,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
 
   public bucket(key: Bytes): Promise<KeyValueStore> {
     return Promise.resolve(
-      new InMemoryKeyValueStore(this.concatKeyWithPrefix(key))
+      new InMemoryKeyValueStore(this.concatKeyWithPrefix(key), this.db)
     )
   }
 

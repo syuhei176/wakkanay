@@ -8,7 +8,9 @@ import {
   LessThanQuantifier,
   ThereExistsSuchThatDecider,
   GreaterThanDecider,
-  OrDecider
+  OrDecider,
+  IsHashPreimageDecider,
+  IsValidSignatureDecider
 } from '../../../src/ovm/deciders'
 import { LogicalConnective } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
@@ -40,6 +42,12 @@ export const ThereExistsSuchThatDeciderAddress = Address.from(
 )
 export const OrDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000009'
+)
+export const IsHashPreimageDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000019'
+)
+export const IsValidSignatureDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000020'
 )
 
 export function initializeDeciderManager() {
@@ -77,5 +85,18 @@ export function initializeDeciderManager() {
     new ThereExistsSuchThatDecider(),
     LogicalConnective.ThereExistsSuchThat
   )
+  deciderManager.setDecider(
+    IsHashPreimageDeciderAddress,
+    new IsHashPreimageDecider()
+  )
+  deciderManager.setDecider(
+    IsHashPreimageDeciderAddress,
+    new IsHashPreimageDecider()
+  )
+  deciderManager.setDecider(
+    IsValidSignatureDeciderAddress,
+    new IsValidSignatureDecider()
+  )
+
   return deciderManager
 }
