@@ -10,6 +10,7 @@ import {
 } from '../helpers/initiateDeciderManager'
 import { Property, FreeVariable } from '../../../src/ovm/types'
 import { DeciderManager } from '../../../src/ovm/DeciderManager'
+import { secp256k1Verifier } from '../../../src/verifiers'
 
 describe('ThereExistsSuchThatDecider', () => {
   const upperBound = Coder.encode(Integer.from(2))
@@ -67,12 +68,13 @@ describe('ThereExistsSuchThatDecider', () => {
       Bytes.fromString('sig')
     )
     const publicKey = Bytes.fromHexString(
-      '0x6564706b7575474a34737348334e356b376f76776b42653136703872565831584c454e695a344641617972637755663973434b586e47'
+      '0x307836323733303630393061626142334136653134303065393334356243363063373861384245663537'
     )
     const message = Bytes.fromString('message')
     const signature = Bytes.fromHexString(
-      '0x677292276737c789d826e6e46fbcca4c768da3992074a68ab13d9e25e112c2075685c7a974fe0ab875bc8ac98f1cb3f2b0e053785f07ba608298b9e3389cf404'
+      '0x38e654295143721adf1e23753c82899022ad3742e33e2472068f1612736b537576f1406b3fc372ff081d5a5785bdc453afbdc5ac07eff710796a06c69a786f9b1c'
     )
+
     await sigBucket.put(message, signature)
     const hint = `sig,KEY,${message.intoString()}`
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
