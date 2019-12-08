@@ -40,6 +40,7 @@ describe('AddressTree', () => {
       const inclusionProof0 = tree.getInclusionProof(0)
       const inclusionProof1 = tree.getInclusionProof(1)
       expect(inclusionProof0).toStrictEqual({
+        leafIndex: Address.from('0x0000000000000000000000000000000000000000'),
         leafPosition: 0,
         siblings: [
           new AddressTreeNode(
@@ -57,6 +58,7 @@ describe('AddressTree', () => {
         ]
       })
       expect(inclusionProof1).toStrictEqual({
+        leafIndex: Address.from('0x0000000000000000000000000000000000000001'),
         leafPosition: 1,
         siblings: [
           new AddressTreeNode(
@@ -82,6 +84,7 @@ describe('AddressTree', () => {
         '0x30acf9f99796b1b310d05d35854812ff91f43cb3f35c932c0d8053bbae3a661e'
       )
       const inclusionProof = {
+        leafIndex: Address.from('0x0000000000000000000000000000000000000000'),
         leafPosition: 0,
         siblings: [
           new AddressTreeNode(
@@ -98,7 +101,12 @@ describe('AddressTree', () => {
           )
         ]
       }
-      const result = tree.verifyInclusion(leaf0, root, inclusionProof)
+      const result = tree.verifyInclusion(
+        leaf0,
+        leaf1.address,
+        root,
+        inclusionProof
+      )
       expect(result).toBeTruthy()
     })
   })

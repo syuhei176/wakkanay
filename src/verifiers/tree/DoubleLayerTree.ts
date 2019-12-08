@@ -3,7 +3,8 @@ import {
   MerkleTreeInterface,
   MerkleTreeGenerator,
   MerkleTreeNode,
-  MerkleTreeVerifier
+  MerkleTreeVerifier,
+  InclusionProof
 } from './MerkleTreeInterface'
 import {
   AddressTree,
@@ -14,16 +15,21 @@ import {
 import {
   IntervalTree,
   IntervalTreeNode,
-  IntervalTreeVerifier,
-  IntervalTreeInclusionProof
+  IntervalTreeVerifier
 } from './IntervalTree'
 
 export interface DoubleLayerInclusionProof {
-  intervalInclusionProof: IntervalTreeInclusionProof
+  intervalInclusionProof: InclusionProof<BigNumber, IntervalTreeNode>
   addressInclusionProof: AddressTreeInclusionProof
 }
 
-export class DoubleLayerTreeLeaf implements MerkleTreeNode {
+export interface DoubleLayerInterval {
+  address: Address
+  start: BigNumber
+}
+
+export class DoubleLayerTreeLeaf
+  implements MerkleTreeNode<DoubleLayerInterval> {
   constructor(
     public address: Address,
     public start: BigNumber,
@@ -35,13 +41,23 @@ export class DoubleLayerTreeLeaf implements MerkleTreeNode {
   getData(): Bytes {
     return this.data
   }
+  getInterval() {
+    return {
+      address: this.address,
+      start: this.start
+    }
+  }
+  compare(a: DoubleLayerInterval, b: DoubleLayerInterval): boolean {
+    if (a.address.data == b.address.data) {
+      return a.start.data < b.start.data
+    }
+    return a.address.data < b.address.data
+  }
 }
 
 export class DoubleLayerTreeGenerator
-  implements MerkleTreeGenerator<DoubleLayerTreeLeaf> {
-  generate(
-    leaves: DoubleLayerTreeLeaf[]
-  ): MerkleTreeInterface<DoubleLayerTreeLeaf> {
+  implements MerkleTreeGenerator<DoubleLayerInterval, DoubleLayerTreeLeaf> {
+  generate(leaves: DoubleLayerTreeLeaf[]): DoubleLayerTree {
     if (leaves.length == 0) {
       throw new Error('leaves must not be empty.')
     }
@@ -56,7 +72,7 @@ export class DoubleLayerTreeGenerator
  *     Please see https://docs.plasma.group/projects/spec/en/latest/src/01-core/double-layer-tree.html
  */
 export class DoubleLayerTree
-  implements MerkleTreeInterface<DoubleLayerTreeLeaf> {
+  implements MerkleTreeInterface<DoubleLayerInterval, DoubleLayerTreeLeaf> {
   addressTree: AddressTree
   intervalTreeMap: Map<string, IntervalTree> = new Map<string, IntervalTree>()
   constructor(private leaves: DoubleLayerTreeLeaf[]) {
@@ -156,7 +172,7 @@ export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
     const merklePath = intervalTreeVerifier.calculateMerklePath(
       inclusionProof.intervalInclusionProof
     )
-    const computeIntervalRootAndEnd = intervalTreeVerifier.computeRootAndImplicitEnd(
+    const computeIntervalRootAndEnd = intervalTreeVerifier.computeRootFromInclusionProof(
       intervalNode,
       merklePath,
       inclusionProof.intervalInclusionProof.siblings
@@ -169,6 +185,7 @@ export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
     }
     return addressTreeVerifier.verifyInclusion(
       new AddressTreeNode(leaf.address, computeIntervalRootAndEnd.root),
+      leaf.address,
       root,
       inclusionProof.addressInclusionProof
     )
