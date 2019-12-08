@@ -94,6 +94,14 @@ export abstract class AbstractMerkleTree<B, T extends MerkleTreeNode<B>>
 
 export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
   constructor(protected hashAlgorythm: Hash = Keccak256) {}
+  /**
+   * verify inclusion of the leaf in certain range
+   * @param leaf The leaf which is included in tree
+   * @param intervalStart The start of range where the leaf is included in
+   * @param intervalEnd The end of range where the leaf is included in
+   * @param root Root hash of tree
+   * @param inclusionProof Proof data to verify inclusion of the leaf
+   */
   verifyInclusion(
     leaf: T,
     intervalStart: B,
