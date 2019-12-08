@@ -47,12 +47,6 @@ export class DoubleLayerTreeLeaf
       start: this.start
     }
   }
-  compare(a: DoubleLayerInterval, b: DoubleLayerInterval): boolean {
-    if (a.address.data == b.address.data) {
-      return a.start.data < b.start.data
-    }
-    return a.address.data < b.address.data
-  }
 }
 
 export class DoubleLayerTreeGenerator
@@ -185,6 +179,7 @@ export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
     }
     return addressTreeVerifier.verifyInclusion(
       new AddressTreeNode(leaf.address, computeIntervalRootAndEnd.root),
+      leaf.address,
       leaf.address,
       root,
       inclusionProof.addressInclusionProof

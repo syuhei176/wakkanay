@@ -15,9 +15,6 @@ export class AddressTreeNode implements MerkleTreeNode<Address> {
   getInterval(): Address {
     return this.address
   }
-  compare(a: Address, b: Address): boolean {
-    return a.data < b.data
-  }
 }
 
 export type AddressTreeInclusionProof = InclusionProof<Address, AddressTreeNode>
@@ -45,5 +42,11 @@ export class AddressTreeVerifier extends AbstractMerkleVerifier<
   createEmptyNode(): AddressTreeNode {
     // TODO: empty node shouldn't be zero address?
     return new AddressTreeNode(Address.default(), Bytes.default())
+  }
+  /**
+   * compare Address
+   */
+  compare(a: Address, b: Address): boolean {
+    return a.data < b.data
   }
 }

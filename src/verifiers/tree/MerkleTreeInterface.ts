@@ -4,7 +4,6 @@ export interface MerkleTreeNode<T> {
   readonly data: Bytes
   getInterval(): T
   encode(): Bytes
-  compare(a: T, b: T): boolean
 }
 
 export interface MerkleTreeGenerator<I, T extends MerkleTreeNode<I>> {

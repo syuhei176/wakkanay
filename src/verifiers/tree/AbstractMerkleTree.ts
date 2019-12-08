@@ -96,6 +96,7 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
   constructor(protected hashAlgorythm: Hash = Keccak256) {}
   verifyInclusion(
     leaf: T,
+    intervalStart: B,
     intervalEnd: B,
     root: Bytes,
     inclusionProof: InclusionProof<B, T>
@@ -107,10 +108,12 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
       inclusionProof.siblings
     )
     // computeIntervalRootAndEnd.implicitEnd < intervalEnd
-    if (leaf.compare(computeIntervalRootAndEnd.implicitEnd, intervalEnd)) {
+    if (
+      this.compare(computeIntervalRootAndEnd.implicitEnd, intervalEnd) ||
+      this.compare(intervalStart, leaf.getInterval())
+    ) {
       throw new Error('required range must not exceed the implicit range')
     }
-
     return computeIntervalRootAndEnd.root.equals(root)
   }
 
@@ -140,7 +143,7 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
 
         if (
           firstRightSibling &&
-          right.compare(right.getInterval(), firstRightSibling.getInterval())
+          this.compare(right.getInterval(), firstRightSibling.getInterval())
         ) {
           throw new Error('Invalid InclusionProof, intersection detected.')
         }
@@ -164,4 +167,5 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
   }
   abstract computeParent(a: T, b: T): T
   abstract createEmptyNode(): T
+  abstract compare(a: B, b: B): boolean
 }

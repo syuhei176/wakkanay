@@ -181,6 +181,7 @@ describe('IntervalTree', () => {
       const inclusionProof = tree.getInclusionProof(0)
       const result = verifier.verifyInclusion(
         leaf0,
+        leaf0.start,
         leaf1.start,
         root,
         inclusionProof
@@ -196,6 +197,7 @@ describe('IntervalTree', () => {
       const inclusionProof3 = tree.getInclusionProof(3)
       const result0 = verifier.verifyInclusion(
         leaf0,
+        leaf0.start,
         leaf1.start,
         root,
         inclusionProof0
@@ -203,6 +205,7 @@ describe('IntervalTree', () => {
       expect(result0).toBeTruthy()
       const result1 = verifier.verifyInclusion(
         leaf1,
+        leaf1.start,
         leaf2.start,
         root,
         inclusionProof1
@@ -210,6 +213,7 @@ describe('IntervalTree', () => {
       expect(result1).toBeTruthy()
       const result2 = verifier.verifyInclusion(
         leaf2,
+        leaf2.start,
         leaf3.start,
         root,
         inclusionProof2
@@ -217,6 +221,7 @@ describe('IntervalTree', () => {
       expect(result2).toBeTruthy()
       const result3 = verifier.verifyInclusion(
         leafBigNumber,
+        leafBigNumber.start,
         BigNumber.from(leafBigNumber.start.data + 1n),
         root,
         inclusionProof3
@@ -229,6 +234,7 @@ describe('IntervalTree', () => {
       const inclusionProof0 = tree.getInclusionProof(0)
       const result0 = verifier.verifyInclusion(
         leaf1,
+        leaf1.start,
         leaf1.start,
         root,
         inclusionProof0
@@ -260,6 +266,7 @@ describe('IntervalTree', () => {
       expect(() => {
         verifier.verifyInclusion(
           leaf0,
+          leaf0.start,
           leaf1.start,
           root,
           invalidInclusionProof
@@ -291,6 +298,7 @@ describe('IntervalTree', () => {
       expect(() => {
         verifier.verifyInclusion(
           leaf1,
+          leaf1.start,
           leaf2.start,
           root,
           invalidInclusionProof

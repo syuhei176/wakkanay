@@ -104,6 +104,7 @@ describe('AddressTree', () => {
       const result = tree.verifyInclusion(
         leaf0,
         leaf1.address,
+        leaf1.address,
         root,
         inclusionProof
       )

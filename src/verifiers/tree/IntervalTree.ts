@@ -24,9 +24,6 @@ export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
       Bytes.fromHexString(this.start.data.toString(16)).padZero(32)
     ])
   }
-  compare(a: BigNumber, b: BigNumber): boolean {
-    return a.data < b.data
-  }
 }
 
 export class IntervalTree extends AbstractMerkleTree<
@@ -73,5 +70,11 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
       BigNumber.MAX_NUMBER,
       this.hashAlgorythm.hash(Bytes.default())
     )
+  }
+  /**
+   * compare BigNumber
+   */
+  compare(a: BigNumber, b: BigNumber): boolean {
+    return a.data < b.data
   }
 }
