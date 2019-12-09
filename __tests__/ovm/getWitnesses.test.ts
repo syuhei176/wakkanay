@@ -3,7 +3,10 @@ import { InMemoryKeyValueStore, RangeDb } from '../../src/db'
 import getWitnesses, { isHint } from '../../src/ovm/deciders/getWitnesses'
 
 describe('get witnesses', () => {
-  const db = new InMemoryKeyValueStore(Bytes.fromString('test'))
+  let db: InMemoryKeyValueStore
+  beforeEach(async () => {
+    db = new InMemoryKeyValueStore(Bytes.fromString('test'))
+  })
 
   test('isHint', () => {
     expect(isHint(Bytes.fromString('b,KEY,v'))).toBeTruthy()
@@ -59,5 +62,19 @@ describe('get witnesses', () => {
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(1)
     expect(result[0]).toStrictEqual(Bytes.fromString('v'))
+  })
+
+  test('getWitness iter', async () => {
+    const bucket = await db.bucket(Bytes.fromString('bucket'))
+    for (let i = 0; i < 3; i++) {
+      const k = Bytes.fromString(`k${i}`)
+      const v = Bytes.fromString(`v${i}`)
+      await bucket.put(k, v)
+    }
+
+    const hint = 'bucket,ITER,k'
+    const result = await getWitnesses(db, hint)
+    expect(result.length).toBe(3)
+    expect(result[0]).toStrictEqual(Bytes.fromString('v0'))
   })
 })

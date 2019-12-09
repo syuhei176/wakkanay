@@ -10,6 +10,9 @@ import { KeyValueStore, RangeDb } from '../../db'
  * 'bucket,KEY,key'
  * when using range, hint must be in following format
  * 'bucket,RANGE,(start,end)'
+ * when quantify by iterator, hint must be in following format
+ * 'bucket,KEY.ITER,lower_bound'
+ * 'bucket,RANGE.ITER,(start end)'
  * @param witnessDb key value store
  * @param hint hint string
  */
@@ -39,6 +42,19 @@ export default async function getWitnesses(
       .map(BigInt)
     const result = await db.get(start, end)
     return result.map(r => r.value)
+  } else if (type === 'ITER') {
+    db = witnessDb
+    for (const b of bucketNames) {
+      db = await db.bucket(Bytes.fromString(b))
+    }
+    const iter = db.iter(Bytes.fromString(param))
+    const result = []
+    let next = await iter.next()
+    while (next) {
+      result.push(next.value)
+      next = await iter.next()
+    }
+    return result
   } else {
     return []
   }
