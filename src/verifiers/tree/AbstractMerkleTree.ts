@@ -117,8 +117,8 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
     )
     // computeIntervalRootAndEnd.implicitEnd < intervalEnd
     if (
-      this.compare(computeIntervalRootAndEnd.implicitEnd, intervalEnd) ||
-      this.compare(intervalStart, leaf.getInterval())
+      this.compare(computeIntervalRootAndEnd.implicitEnd, intervalEnd) == -1 ||
+      this.compare(intervalStart, leaf.getInterval()) == -1
     ) {
       throw new Error('required range must not exceed the implicit range')
     }
@@ -151,7 +151,8 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
 
         if (
           firstRightSibling &&
-          this.compare(right.getInterval(), firstRightSibling.getInterval())
+          this.compare(right.getInterval(), firstRightSibling.getInterval()) ==
+            -1
         ) {
           throw new Error('Invalid InclusionProof, intersection detected.')
         }
@@ -175,5 +176,11 @@ export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
   }
   abstract computeParent(a: T, b: T): T
   abstract createEmptyNode(): T
-  abstract compare(a: B, b: B): boolean
+  /**
+   *
+   * @param a
+   * @param b
+   * @returns 0 if they are equal, 1 if a is higher than b, -1 if a is lower than b
+   */
+  abstract compare(a: B, b: B): number
 }

@@ -46,7 +46,9 @@ export class AddressTreeVerifier extends AbstractMerkleVerifier<
   /**
    * compare Address
    */
-  compare(a: Address, b: Address): boolean {
-    return a.data < b.data
+  compare(a: Address, b: Address): number {
+    if (a.data > b.data) return 1
+    else if (a.data == b.data) return 0
+    else return -1
   }
 }

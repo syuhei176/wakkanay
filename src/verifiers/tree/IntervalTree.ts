@@ -74,7 +74,9 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
   /**
    * compare BigNumber
    */
-  compare(a: BigNumber, b: BigNumber): boolean {
-    return a.data < b.data
+  compare(a: BigNumber, b: BigNumber): number {
+    if (a.data > b.data) return 1
+    else if (a.data == b.data) return 0
+    else return -1
   }
 }
