@@ -31,7 +31,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       await clearDb()
     })
 
-    it('suceed to get', async () => {
+    it('succeed to get', async () => {
       const kvs = new KVS(testDbName)
       kvs.put(testDbKey, testDbValue)
       const result = await kvs.get(testDbKey)
@@ -50,7 +50,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       await clearDb()
     })
 
-    it('suceed to del', async () => {
+    it('succeed to del', async () => {
       const kvs = new KVS(testDbName)
       await kvs.put(testDbKey, testDbValue)
       await kvs.del(testDbKey)
@@ -81,7 +81,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       await clearDb()
     })
 
-    it('suceed to next', async () => {
+    it('succeed to next', async () => {
       await kvs.put(testDbKey, testDbValue)
       const iter = kvs.iter(testDbKey)
       const result = await iter.next()
@@ -130,14 +130,22 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       await clearDb()
     })
 
-    it('suceed to get bucket', async () => {
+    it('succeed to get bucket', async () => {
       const bucket = await kvs.bucket(testEmptyBucketName)
       await bucket.put(testDbKey, testDbValue)
       const value = await bucket.get(testDbKey)
       expect(value).toEqual(testDbValue)
     })
 
-    it('suceed to get values from iterator of bucket', async () => {
+    it('succeed to get bucket with same key', async () => {
+      const bucket = await kvs.bucket(testEmptyBucketName)
+      await bucket.put(testDbKey, testDbValue)
+      const bucket2 = await kvs.bucket(testEmptyBucketName)
+      const value = await bucket2.get(testDbKey)
+      expect(value).toEqual(testDbValue)
+    })
+
+    it('succeed to get values from iterator of bucket', async () => {
       const iter = testNotEmptyBucket.iter(testDbKey0)
       const result0 = await iter.next()
       const result1 = await iter.next()

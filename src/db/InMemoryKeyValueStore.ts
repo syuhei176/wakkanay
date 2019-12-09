@@ -20,7 +20,8 @@ export class MemoryIterator implements Iterator {
         if (err) {
           reject(err)
         } else {
-          if (key) {
+          const prefix = this.parentKvs.prefix
+          if (key && Bytes.fromBuffer(key).startsWith(prefix)) {
             resolve({
               key: this.parentKvs.getKeyFromBuffer(key),
               value: InMemoryKeyValueStore.getValueFromBuffer(value)
@@ -34,6 +35,11 @@ export class MemoryIterator implements Iterator {
   }
 }
 
+/**
+ * InMemoryKeyValueStore
+ * prefix is used to represent separated bucket. bucket name must be suffixed
+ * with dot in inner representation so as not to continue iterating on next bucket.
+ */
 export class InMemoryKeyValueStore implements KeyValueStore {
   /*
    * `dbName` is optional to distinguish root kvs which has db connection and bucket.
@@ -44,11 +50,11 @@ export class InMemoryKeyValueStore implements KeyValueStore {
   public db: LevelUp
 
   constructor(prefix: Bytes, db?: LevelUp) {
+    this.prefix = prefix.suffix('.')
     if (db) {
-      this.prefix = prefix
       this.db = db
     } else {
-      this.dbName = prefix
+      this.dbName = prefix.suffix('.')
       this.db = levelup(memdown())
     }
   }
@@ -120,6 +126,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
     return new MemoryIterator(
       this.db.iterator({
         gte: this.convertKeyIntoBuffer(bound),
+        lt: Buffer.from(this.prefix.increment().data),
         reverse: false,
         keys: true,
         values: true,
@@ -132,7 +139,7 @@ export class InMemoryKeyValueStore implements KeyValueStore {
 
   public bucket(key: Bytes): Promise<KeyValueStore> {
     return Promise.resolve(
-      new InMemoryKeyValueStore(this.concatKeyWithPrefix(key))
+      new InMemoryKeyValueStore(this.concatKeyWithPrefix(key), this.db)
     )
   }
 
