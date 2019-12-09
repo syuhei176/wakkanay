@@ -12,7 +12,7 @@ import {
   IsHashPreimageDecider,
   IsValidSignatureDecider
 } from '../../../src/ovm/deciders'
-import { LogicalConnective } from '../../../src/ovm/types'
+import { LogicalConnective, AtomicPredicate } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import { InMemoryKeyValueStore } from '../../../src/db'
 
@@ -53,7 +53,11 @@ export const IsValidSignatureDeciderAddress = Address.from(
 export function initializeDeciderManager() {
   const witnessDb = new InMemoryKeyValueStore(Bytes.fromString('test'))
   const deciderManager = new DeciderManager(witnessDb)
-  deciderManager.setDecider(SampleDeciderAddress, new SampleDecider())
+  deciderManager.setDecider(
+    SampleDeciderAddress,
+    new SampleDecider(),
+    AtomicPredicate.Bool
+  )
   deciderManager.setDecider(
     NotDeciderAddress,
     new NotDecider(),
@@ -69,7 +73,11 @@ export function initializeDeciderManager() {
     new OrDecider(),
     LogicalConnective.Or
   )
-  deciderManager.setDecider(LessThanDeciderAddress, new LessThanDecider())
+  deciderManager.setDecider(
+    LessThanDeciderAddress,
+    new LessThanDecider(),
+    AtomicPredicate.IsLessThan
+  )
   deciderManager.setDecider(
     ForAllSuchThatDeciderAddress,
     new ForAllSuchThatDecider(),
@@ -77,7 +85,8 @@ export function initializeDeciderManager() {
   )
   deciderManager.setQuantifier(
     LessThanQuantifierAddress,
-    new LessThanQuantifier()
+    new LessThanQuantifier(),
+    AtomicPredicate.LessThanQuantifier
   )
   deciderManager.setDecider(GreaterThanDeciderAddress, new GreaterThanDecider())
   deciderManager.setDecider(

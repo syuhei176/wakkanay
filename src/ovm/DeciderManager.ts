@@ -1,6 +1,12 @@
 import { Address, Bytes } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
-import { Property, Decision, FreeVariable, LogicalConnective } from './types'
+import {
+  Property,
+  Decision,
+  FreeVariable,
+  LogicalConnective,
+  AtomicPredicate
+} from './types'
 import { Quantifier } from './interfaces/Quantifier'
 import { KeyValueStore } from '../db'
 
@@ -9,7 +15,7 @@ import { KeyValueStore } from '../db'
  */
 export class DeciderManager {
   private deciders: Map<string, Decider>
-  private operators: Map<LogicalConnective, Address>
+  private operators: Map<LogicalConnective | AtomicPredicate, Address>
   private quantifiers: Map<string, Quantifier>
   public witnessDb: KeyValueStore
   constructor(witnessDb: KeyValueStore) {
@@ -26,7 +32,7 @@ export class DeciderManager {
   public setDecider(
     address: Address,
     decier: Decider,
-    operator?: LogicalConnective
+    operator?: LogicalConnective | AtomicPredicate
   ) {
     this.deciders.set(address.raw, decier)
     if (operator !== undefined) {
@@ -49,7 +55,9 @@ export class DeciderManager {
    * Gets address of a decider with operator name
    * @param operator
    */
-  public getDeciderAddress(operator: LogicalConnective): Address {
+  public getDeciderAddress(
+    operator: LogicalConnective | AtomicPredicate
+  ): Address {
     const address = this.operators.get(operator)
     if (address) {
       return address
@@ -62,8 +70,15 @@ export class DeciderManager {
    * @param address
    * @param quantifier
    */
-  public setQuantifier(address: Address, quantifier: Quantifier) {
+  public setQuantifier(
+    address: Address,
+    quantifier: Quantifier,
+    operator?: AtomicPredicate
+  ) {
     this.quantifiers.set(address.data, quantifier)
+    if (operator !== undefined) {
+      this.operators.set(operator, address)
+    }
   }
   /**
    * Gets quantifier with address
