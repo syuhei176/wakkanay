@@ -100,4 +100,12 @@ export default class Bytes implements Codable {
 
     throw new Error('cannot incremented.')
   }
+
+  public startsWith(b: Bytes): boolean {
+    return this.intoString().startsWith(b.intoString())
+  }
+
+  public suffix(str: string): Bytes {
+    return Bytes.concat(this, Bytes.fromString(str))
+  }
 }

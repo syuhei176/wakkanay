@@ -50,7 +50,7 @@ describe('get witnesses', () => {
     expect(result[0]).toStrictEqual(Bytes.fromString('v'))
   })
 
-  test.skip('getWitness range', async () => {
+  test('getWitness range', async () => {
     const rangeDb = new RangeDb(db)
     const bukcet = await rangeDb.bucket(Bytes.fromString('bucket'))
     await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
