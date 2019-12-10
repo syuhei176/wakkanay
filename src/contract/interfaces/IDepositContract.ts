@@ -1,4 +1,4 @@
-import { Integer, Address, Bytes } from '../../../src/types/Codables'
+import { Integer, Bytes } from '../../../src/types/Codables'
 import { Property } from '../../ovm/types'
 
 export interface IDepositContract {
@@ -21,16 +21,11 @@ export interface IDepositContract {
   finalizeExit(exit: Property, depositedRangeId: Integer): Promise<void>
 
   /**
-   * subscribe to deposit events
-   */
-  subscribeDeposit(
-    handler: (amount: Integer, initialState: [Address, Bytes[]]) => void
-  ): void
-
-  /**
    * subscribe to checkpoint finalized event
    */
-  subscribeCheckpointFinalized(handler: (checkpointId: Bytes) => void): void
+  subscribeCheckpointFinalized(
+    handler: (checkpointId: Bytes, checkpoint: Property) => void
+  ): void
 
   /**
    * subscribe to exit finalized event
