@@ -26,7 +26,7 @@ export interface IDepositContract {
   subscribeCheckpointFinalized(
     handler: (
       checkpointId: Bytes,
-      checkpoint: [[number, number], Property]
+      checkpoint: [[bigint, bigint], Property]
     ) => void
   ): void
 
