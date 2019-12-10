@@ -2,7 +2,7 @@ import { Bytes } from '../../../types/Codables'
 import Coder from '../../../coder'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
-import { DeciderManager } from '../../DeciderManager'
+import { DeciderManagerInterface } from '../../DeciderManager'
 
 /**
  * NotDecider recieves one input and returns logical negation of its decision.
@@ -10,7 +10,7 @@ import { DeciderManager } from '../../DeciderManager'
  */
 export class NotDecider implements Decider {
   public async decide(
-    manager: DeciderManager,
+    manager: DeciderManagerInterface,
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {

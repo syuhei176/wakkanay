@@ -1,12 +1,12 @@
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, LogicalConnective } from '../../types'
-import { DeciderManager } from '../../DeciderManager'
+import { DeciderManagerInterface } from '../../DeciderManager'
 import { encodeProperty, decodeProperty } from '../../helpers'
 
 export class OrDecider implements Decider {
   public async decide(
-    manager: DeciderManager,
+    manager: DeciderManagerInterface,
     inputs: Bytes[]
   ): Promise<Decision> {
     let properties: Array<Property>

@@ -1,10 +1,10 @@
 import { Bytes } from '../../types/Codables'
 import { Decision } from '../types'
-import { DeciderManager } from '../DeciderManager'
+import { DeciderManagerInterface } from '../DeciderManager'
 
 export interface Decider {
   decide(
-    manager: DeciderManager,
+    manager: DeciderManagerInterface,
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes }
   ): Promise<Decision>

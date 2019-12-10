@@ -10,10 +10,18 @@ import {
 import { Quantifier } from './interfaces/Quantifier'
 import { KeyValueStore } from '../db'
 
+export interface DeciderManagerInterface {
+  decide(
+    property: Property,
+    substitutions?: { [key: string]: Bytes }
+  ): Promise<Decision>
+  getDeciderAddress(operator: LogicalConnective | AtomicPredicate): Address
+}
+
 /**
  * DeciderManager manages deciders and its address
  */
-export class DeciderManager {
+export class DeciderManager implements DeciderManagerInterface {
   private deciders: Map<string, Decider>
   private operators: Map<LogicalConnective | AtomicPredicate, Address>
   private quantifiers: Map<string, Quantifier>
