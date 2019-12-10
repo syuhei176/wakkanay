@@ -2,7 +2,7 @@ import Coder from '../../../coder'
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
-import { DeciderManager } from '../../DeciderManager'
+import { DeciderManagerInterface } from '../../DeciderManager'
 import { decodeProperty } from '../../helpers'
 
 /**
@@ -11,7 +11,7 @@ import { decodeProperty } from '../../helpers'
  */
 export class AndDecider implements Decider {
   public async decide(
-    manager: DeciderManager,
+    manager: DeciderManagerInterface,
     inputs: Bytes[]
   ): Promise<Decision> {
     let properties

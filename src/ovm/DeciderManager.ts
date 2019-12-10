@@ -15,6 +15,7 @@ export interface DeciderManagerInterface {
     property: Property,
     substitutions?: { [key: string]: Bytes }
   ): Promise<Decision>
+  getDeciderAddress(operator: LogicalConnective | AtomicPredicate): Address
 }
 
 /**

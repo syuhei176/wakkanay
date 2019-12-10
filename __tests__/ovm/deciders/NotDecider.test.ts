@@ -1,19 +1,19 @@
-import { Property } from '../../../src/ovm/types'
+import { Property, AtomicPredicate } from '../../../src/ovm/types'
 import { Bytes, Address } from '../../../src/types/Codables'
 import Coder from '../../../src/coder'
-import { NotDecider } from '../../../src/ovm/deciders/operators/NotDecider'
+import { NotDecider } from '../../../src/ovm/deciders'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
 
 describe('NotDecider', () => {
-  const trueProperty = new Property(Address.default(), [
+  const deciderManager = new MockDeciderManager()
+  const BoolDeciderAddress = deciderManager.getDeciderAddress(
+    AtomicPredicate.Bool
+  )
+  const trueProperty = new Property(BoolDeciderAddress, [
     Bytes.fromString('true')
   ])
-  const falseProperty = new Property(Address.default(), [])
+  const falseProperty = new Property(BoolDeciderAddress, [])
   it('decide not(false)', async () => {
-    const deciderManager = new MockDeciderManager({
-      outcome: false,
-      challenges: []
-    })
     const nodeDecider = new NotDecider()
     const decision = await nodeDecider.decide(deciderManager, [
       Coder.encode(falseProperty.toStruct())
@@ -21,10 +21,6 @@ describe('NotDecider', () => {
     expect(decision.outcome).toEqual(true)
   })
   it('decide not(true)', async () => {
-    const deciderManager = new MockDeciderManager({
-      outcome: true,
-      challenges: []
-    })
     const nodeDecider = new NotDecider()
     const decision = await nodeDecider.decide(deciderManager, [
       Coder.encode(trueProperty.toStruct())
