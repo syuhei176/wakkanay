@@ -3,10 +3,11 @@ import { Property, Decision } from '../../../src/ovm/types'
 import {
   AtomicPredicate,
   DeciderManagerInterface,
-  LogicalConnective
+  LogicalConnective,
+  OrDecider
 } from '../../../src/ovm'
 
-export const BoolDeciderAddress = Address.from(
+const BoolDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'
 )
 const NotDeciderAddress = Address.from(
@@ -17,6 +18,9 @@ const AndDeciderAddress = Address.from(
 )
 const ForAllSuchThatDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000004'
+)
+const OrDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000009'
 )
 
 export class MockDeciderManager implements DeciderManagerInterface {
@@ -39,6 +43,8 @@ export class MockDeciderManager implements DeciderManagerInterface {
       return AndDeciderAddress
     } else if (operator == LogicalConnective.ForAllSuchThat) {
       return ForAllSuchThatDeciderAddress
+    } else if (operator == LogicalConnective.Or) {
+      return OrDeciderAddress
     } else if (operator == AtomicPredicate.Bool) {
       return BoolDeciderAddress
     } else {
