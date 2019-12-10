@@ -1,4 +1,4 @@
-import { Integer } from '../../../src/types/Codables'
+import { Integer, Bytes } from '../../../src/types/Codables'
 import { Property } from '../../ovm/types'
 
 export interface IDepositContract {
@@ -19,4 +19,19 @@ export interface IDepositContract {
    * @param depositedRangeId The id of range. We can know depositedRangeId from deposited event and finalizeExited event.
    */
   finalizeExit(exit: Property, depositedRangeId: Integer): Promise<void>
+
+  /**
+   * subscribe to checkpoint finalized event
+   */
+  subscribeCheckpointFinalized(
+    handler: (
+      checkpointId: Bytes,
+      checkpoint: [[bigint, bigint], Property]
+    ) => void
+  ): void
+
+  /**
+   * subscribe to exit finalized event
+   */
+  subscribeExitFinalized(handler: (exitId: Bytes) => void): void
 }

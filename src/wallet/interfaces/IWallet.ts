@@ -25,5 +25,5 @@ export interface IWallet {
    * Gets deposit contract interface for certain L1 platform
    * @param address
    */
-  getDepositContract(address: Address): IDepositContract
+  getDepositContract(address: Address): Promise<IDepositContract>
 }
