@@ -57,7 +57,7 @@ describe('IntervalTree', () => {
       const inclusionProof0 = tree.getInclusionProof(0)
       const inclusionProof1 = tree.getInclusionProof(1)
       expect(inclusionProof0).toEqual({
-        leafStart: BigNumber.from(0n),
+        leafIndex: BigNumber.from(0n),
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
@@ -75,7 +75,7 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof1).toEqual({
-        leafStart: BigNumber.from(7n),
+        leafIndex: BigNumber.from(7n),
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
@@ -100,7 +100,7 @@ describe('IntervalTree', () => {
       const inclusionProof2 = tree.getInclusionProof(2)
       const inclusionProof3 = tree.getInclusionProof(3)
       expect(inclusionProof0).toEqual({
-        leafStart: BigNumber.from(0n),
+        leafIndex: BigNumber.from(0n),
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
@@ -118,7 +118,7 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof1).toEqual({
-        leafStart: BigNumber.from(7n),
+        leafIndex: BigNumber.from(7n),
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
@@ -136,7 +136,7 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof2).toEqual({
-        leafStart: BigNumber.from(15n),
+        leafIndex: BigNumber.from(15n),
         leafPosition: 2,
         siblings: [
           new IntervalTreeNode(
@@ -154,7 +154,7 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof3).toEqual({
-        leafStart: BigNumber.from(300n),
+        leafIndex: BigNumber.from(300n),
         leafPosition: 3,
         siblings: [
           new IntervalTreeNode(
@@ -179,7 +179,13 @@ describe('IntervalTree', () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
       const root = tree.getRoot()
       const inclusionProof = tree.getInclusionProof(0)
-      const result = verifier.verifyInclusion(leaf0, root, inclusionProof)
+      const result = verifier.verifyInclusion(
+        leaf0,
+        leaf0.start,
+        leaf1.start,
+        root,
+        inclusionProof
+      )
       expect(result).toBeTruthy()
     })
     it('return true with even number of leaves', async () => {
@@ -189,14 +195,34 @@ describe('IntervalTree', () => {
       const inclusionProof1 = tree.getInclusionProof(1)
       const inclusionProof2 = tree.getInclusionProof(2)
       const inclusionProof3 = tree.getInclusionProof(3)
-      const result0 = verifier.verifyInclusion(leaf0, root, inclusionProof0)
+      const result0 = verifier.verifyInclusion(
+        leaf0,
+        leaf0.start,
+        leaf1.start,
+        root,
+        inclusionProof0
+      )
       expect(result0).toBeTruthy()
-      const result1 = verifier.verifyInclusion(leaf1, root, inclusionProof1)
+      const result1 = verifier.verifyInclusion(
+        leaf1,
+        leaf1.start,
+        leaf2.start,
+        root,
+        inclusionProof1
+      )
       expect(result1).toBeTruthy()
-      const result2 = verifier.verifyInclusion(leaf2, root, inclusionProof2)
+      const result2 = verifier.verifyInclusion(
+        leaf2,
+        leaf2.start,
+        leaf3.start,
+        root,
+        inclusionProof2
+      )
       expect(result2).toBeTruthy()
       const result3 = verifier.verifyInclusion(
         leafBigNumber,
+        leafBigNumber.start,
+        BigNumber.from(leafBigNumber.start.data + 1n),
         root,
         inclusionProof3
       )
@@ -206,7 +232,13 @@ describe('IntervalTree', () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leafBigNumber])
       const root = tree.getRoot()
       const inclusionProof0 = tree.getInclusionProof(0)
-      const result0 = verifier.verifyInclusion(leaf1, root, inclusionProof0)
+      const result0 = verifier.verifyInclusion(
+        leaf1,
+        leaf1.start,
+        leaf1.start,
+        root,
+        inclusionProof0
+      )
       expect(result0).toBeFalsy()
     })
     it('throw exception detecting intersection', () => {
@@ -214,7 +246,7 @@ describe('IntervalTree', () => {
         '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
       const invalidInclusionProof = {
-        leafStart: BigNumber.from(0n),
+        leafIndex: BigNumber.from(0n),
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
@@ -232,7 +264,13 @@ describe('IntervalTree', () => {
         ]
       }
       expect(() => {
-        verifier.verifyInclusion(leaf0, root, invalidInclusionProof)
+        verifier.verifyInclusion(
+          leaf0,
+          leaf0.start,
+          leaf1.start,
+          root,
+          invalidInclusionProof
+        )
       }).toThrow(new Error('Invalid InclusionProof, intersection detected.'))
     })
     it('throw exception left.start is not less than right.start', () => {
@@ -240,7 +278,7 @@ describe('IntervalTree', () => {
         '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
       const invalidInclusionProof = {
-        leafStart: BigNumber.from(7n),
+        leafIndex: BigNumber.from(7n),
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
@@ -258,7 +296,13 @@ describe('IntervalTree', () => {
         ]
       }
       expect(() => {
-        verifier.verifyInclusion(leaf1, root, invalidInclusionProof)
+        verifier.verifyInclusion(
+          leaf1,
+          leaf1.start,
+          leaf2.start,
+          root,
+          invalidInclusionProof
+        )
       }).toThrow(new Error('left.start is not less than right.start.'))
     })
   })
