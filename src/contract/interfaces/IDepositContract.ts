@@ -1,7 +1,8 @@
-import { Integer, Bytes } from '../../../src/types/Codables'
+import { Integer, Bytes, Address } from '../../../src/types/Codables'
 import { Property } from '../../ovm/types'
 
 export interface IDepositContract {
+  address: Address
   /**
    * Deposits amount of ETH with initial state
    * @param amount Amount of ETH. Unit is GWEI
