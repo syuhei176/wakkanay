@@ -1,4 +1,4 @@
-import { Integer, Struct, BigNumber } from './Codables'
+import { Struct, BigNumber } from './Codables'
 
 export type ParamType = {
   name?: string
@@ -20,5 +20,11 @@ export class Range {
       _struct.data['start'] as BigNumber,
       _struct.data['end'] as BigNumber
     )
+  }
+  public static getParamType(): Struct {
+    return Struct.from({
+      start: BigNumber.default(),
+      end: BigNumber.default()
+    })
   }
 }
