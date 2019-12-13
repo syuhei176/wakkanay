@@ -1,9 +1,9 @@
-import { Bytes, Integer } from '../../types/Codables'
+import { Bytes, BigNumber } from '../../types/Codables'
 
 export interface ICommitmentContract {
-  submit(blockNumber: number, root: Bytes): Promise<void>
+  submit(blockNumber: BigNumber, root: Bytes): Promise<void>
 
   subscribeBlockSubmitted(
-    handler: (blockNumber: Integer, root: Bytes) => void
+    handler: (blockNumber: BigNumber, root: Bytes) => void
   ): void
 }
