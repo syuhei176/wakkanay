@@ -1,6 +1,7 @@
 export * from './atomic/SampleDecider'
 export * from './atomic/IsHashPreimageDecider'
 export * from './atomic/IsValidSignatureDecider'
+export * from './atomic/EqualDecider'
 export * from './operators/AndDecider'
 export * from './operators/OrDecider'
 export * from './operators/ForAllSuchThatDecider'
