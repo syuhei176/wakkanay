@@ -12,12 +12,13 @@ import {
   IsHashPreimageDecider,
   IsValidSignatureDecider,
   EqualDecider,
-  IsLessThanDecider
+  IsLessThanDecider,
+  IsSameAmountDecider,
+  IsContainedDecider
 } from '../../../src/ovm/deciders'
 import { LogicalConnective, AtomicPredicate } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import { InMemoryKeyValueStore } from '../../../src/db'
-import { IsSameAmountDecider } from '../../../src/ovm/deciders/atomic/IsSameAmount'
 
 export const SampleDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'
@@ -60,6 +61,9 @@ export const IsLessThanDeciderAddress = Address.from(
 )
 export const IsSameAmountDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000023'
+)
+export const IsContainedDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000024'
 )
 
 export function initializeDeciderManager() {
@@ -132,6 +136,11 @@ export function initializeDeciderManager() {
     IsSameAmountDeciderAddress,
     new IsSameAmountDecider(),
     AtomicPredicate.IsSameAmount
+  )
+  deciderManager.setDecider(
+    IsContainedDeciderAddress,
+    new IsContainedDecider(),
+    AtomicPredicate.IsContained
   )
 
   return deciderManager

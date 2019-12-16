@@ -1,0 +1,35 @@
+import Coder from '../../../coder'
+import { Bytes } from '../../../types/Codables'
+import { Decider } from '../../interfaces/Decider'
+import { Decision } from '../../types'
+import { DeciderManager } from '../../DeciderManager'
+import { Range } from '../../../types'
+import { DecoderUtil } from '../../../utils'
+
+/**
+ * IsContainedDecider decides to true if for given two ranges,
+ * first range is contained by second range: first.start >= second.start && first.end <= second.end
+ */
+export class IsContainedDecider implements Decider {
+  public async decide(
+    manager: DeciderManager,
+    inputs: Bytes[]
+  ): Promise<Decision> {
+    if (inputs.length !== 2) {
+      return {
+        outcome: false,
+        challenges: []
+      }
+    }
+
+    const first = DecoderUtil.decodeStructable(Range, Coder, inputs[0])
+    const second = DecoderUtil.decodeStructable(Range, Coder, inputs[1])
+
+    return {
+      outcome:
+        first.start.raw >= second.start.raw &&
+        first.end.raw <= second.start.raw,
+      challenges: []
+    }
+  }
+}

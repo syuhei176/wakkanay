@@ -81,7 +81,8 @@ export enum AtomicPredicate {
   Within,
   Bool,
   LessThanQuantifier,
-  IsSameAmount
+  IsSameAmount,
+  IsContained
 }
 
 export function convertStringToLogicalConnective(
@@ -121,6 +122,10 @@ export function convertStringToAtomicPredicate(
     return AtomicPredicate.Within
   } else if (name == 'Bool') {
     return AtomicPredicate.Bool
+  } else if (name == 'IsSameAmount') {
+    return AtomicPredicate.IsSameAmount
+  } else if (name == 'IsContained') {
+    return AtomicPredicate.IsContained
   } else {
     return null
     // throw new Error('invalid atomic predicate name')
