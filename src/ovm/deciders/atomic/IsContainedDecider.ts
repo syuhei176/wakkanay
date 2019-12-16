@@ -2,7 +2,7 @@ import Coder from '../../../coder'
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
-import { DeciderManager } from '../../DeciderManager'
+import { DeciderManagerInterface } from '../../DeciderManager'
 import { Range } from '../../../types'
 import { DecoderUtil } from '../../../utils'
 
@@ -12,7 +12,7 @@ import { DecoderUtil } from '../../../utils'
  */
 export class IsContainedDecider implements Decider {
   public async decide(
-    manager: DeciderManager,
+    manager: DeciderManagerInterface,
     inputs: Bytes[]
   ): Promise<Decision> {
     if (inputs.length !== 2) {

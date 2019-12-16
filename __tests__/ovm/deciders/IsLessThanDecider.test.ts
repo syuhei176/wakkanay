@@ -1,31 +1,27 @@
-import { Property, AtomicPredicate } from '../../../src/ovm/types'
 import { BigNumber } from '../../../src/types'
 import Coder from '../../../src/coder'
-import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
+import { IsLessThanDecider } from '../../../src/ovm'
+import { MockDeciderManager } from '../mocks/MockDeciderManager'
 
 describe('IsLessThanDecider', () => {
-  const deciderManager = initializeDeciderManager()
-  const IsLessThanDeciderAddress = deciderManager.getDeciderAddress(
-    AtomicPredicate.IsLessThan
-  )
+  const decider = new IsLessThanDecider()
+  const deciderManager = new MockDeciderManager()
 
   test('decide true', async () => {
-    const property = new Property(IsLessThanDeciderAddress, [
+    const decision = await decider.decide(deciderManager, [
       Coder.encode(BigNumber.from(1)),
       Coder.encode(BigNumber.from(10))
     ])
 
-    const decision = await deciderManager.decide(property)
     expect(decision.outcome).toBeTruthy()
   })
 
   test('decide false', async () => {
-    const property = new Property(IsLessThanDeciderAddress, [
+    const decision = await decider.decide(deciderManager, [
       Coder.encode(BigNumber.from(10)),
       Coder.encode(BigNumber.from(5))
     ])
 
-    const decision = await deciderManager.decide(property)
     expect(decision.outcome).toBeFalsy()
   })
 })

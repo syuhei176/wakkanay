@@ -1,31 +1,27 @@
-import { Property, AtomicPredicate } from '../../../src/ovm/types'
 import { BigNumber } from '../../../src/types'
 import Coder from '../../../src/coder'
-import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
+import { EqualDecider } from '../../../src/ovm'
+import { MockDeciderManager } from '../mocks/MockDeciderManager'
 
 describe('EqualDecider', () => {
-  const deciderManager = initializeDeciderManager()
-  const EqualDeciderAddress = deciderManager.getDeciderAddress(
-    AtomicPredicate.Equal
-  )
+  const decider = new EqualDecider()
+  const deciderManager = new MockDeciderManager()
 
   test('decide true', async () => {
-    const property = new Property(EqualDeciderAddress, [
+    const decision = await decider.decide(deciderManager, [
       Coder.encode(BigNumber.from(10)),
       Coder.encode(BigNumber.from(10))
     ])
 
-    const decision = await deciderManager.decide(property)
     expect(decision.outcome).toBeTruthy()
   })
 
   test('decide false', async () => {
-    const property = new Property(EqualDeciderAddress, [
+    const decision = await decider.decide(deciderManager, [
       Coder.encode(BigNumber.from(1)),
       Coder.encode(BigNumber.from(10))
     ])
 
-    const decision = await deciderManager.decide(property)
     expect(decision.outcome).toBeFalsy()
   })
 })
