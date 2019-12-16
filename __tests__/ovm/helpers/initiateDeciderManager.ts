@@ -17,6 +17,7 @@ import {
 import { LogicalConnective, AtomicPredicate } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import { InMemoryKeyValueStore } from '../../../src/db'
+import { IsSameAmountDecider } from '../../../src/ovm/deciders/atomic/IsSameAmount'
 
 export const SampleDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'
@@ -56,6 +57,9 @@ export const EqualDeciderAddress = Address.from(
 )
 export const IsLessThanDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000022'
+)
+export const IsSameAmountDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000023'
 )
 
 export function initializeDeciderManager() {
@@ -123,6 +127,11 @@ export function initializeDeciderManager() {
     IsLessThanDeciderAddress,
     new IsLessThanDecider(),
     AtomicPredicate.IsLessThan
+  )
+  deciderManager.setDecider(
+    IsSameAmountDeciderAddress,
+    new IsSameAmountDecider(),
+    AtomicPredicate.IsSameAmount
   )
 
   return deciderManager

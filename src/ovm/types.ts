@@ -80,7 +80,8 @@ export enum AtomicPredicate {
   Equal,
   Within,
   Bool,
-  LessThanQuantifier
+  LessThanQuantifier,
+  IsSameAmount
 }
 
 export function convertStringToLogicalConnective(
