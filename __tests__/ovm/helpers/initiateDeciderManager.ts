@@ -11,7 +11,8 @@ import {
   OrDecider,
   IsHashPreimageDecider,
   IsValidSignatureDecider,
-  EqualDecider
+  EqualDecider,
+  IsLessThanDecider
 } from '../../../src/ovm/deciders'
 import { LogicalConnective, AtomicPredicate } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
@@ -52,6 +53,9 @@ export const IsValidSignatureDeciderAddress = Address.from(
 )
 export const EqualDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000021'
+)
+export const IsLessThanDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000022'
 )
 
 export function initializeDeciderManager() {
@@ -115,5 +119,11 @@ export function initializeDeciderManager() {
     new EqualDecider(),
     AtomicPredicate.Equal
   )
+  deciderManager.setDecider(
+    IsLessThanDeciderAddress,
+    new IsLessThanDecider(),
+    AtomicPredicate.IsLessThan
+  )
+
   return deciderManager
 }
