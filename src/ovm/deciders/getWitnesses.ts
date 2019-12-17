@@ -64,3 +64,8 @@ export default async function getWitnesses(
 export function isHint(b: Bytes): boolean {
   return b.intoString().split(',').length === 3
 }
+
+export function replaceHint(hint: string, substitutions: { [key: string]: Bytes }): string {
+  // TODO:
+  return hint
+}
