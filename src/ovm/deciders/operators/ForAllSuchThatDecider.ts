@@ -16,7 +16,10 @@ export class ForAllSuchThatDecider implements Decider {
   ): Promise<Decision> {
     let witnesses
     if (isHint(inputs[0])) {
-      witnesses = await getWitnesses(manager.witnessDb, replaceHint(inputs[0].intoString(), substitutions))
+      witnesses = await getWitnesses(
+        manager.witnessDb,
+        replaceHint(inputs[0].intoString(), substitutions)
+      )
     } else {
       const quantifierProperty = Property.fromStruct(
         Coder.decode(Property.getParamType(), inputs[0])

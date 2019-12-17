@@ -51,8 +51,15 @@ export class CompiledPredicate {
       predicateAddress,
       c.definition.inputs.map((i, index) => {
         if (typeof i == 'string') {
-          if((c.definition.predicate == 'ForAllSuchThat' || c.definition.predicate == 'ThereExistsSuchThat') && index == 0) {
-            i = replaceHint(i, this.createSubstitutions(c.definition.inputDefs, inputs))
+          if (
+            (c.definition.predicate == 'ForAllSuchThat' ||
+              c.definition.predicate == 'ThereExistsSuchThat') &&
+            index == 0
+          ) {
+            i = replaceHint(
+              i,
+              this.createSubstitutions(c.definition.inputDefs, inputs)
+            )
           }
           return Bytes.fromString(i)
         } else if (i.predicate.type == 'AtomicPredicate') {
@@ -108,9 +115,12 @@ export class CompiledPredicate {
     )
   }
 
-  private createSubstitutions(inputDefs: string[], inputs: Bytes[]): { [key: string]: Bytes } {
-    let result: { [key: string]: Bytes } = {}
-    if(inputDefs.length != inputs.length) {
+  private createSubstitutions(
+    inputDefs: string[],
+    inputs: Bytes[]
+  ): { [key: string]: Bytes } {
+    const result: { [key: string]: Bytes } = {}
+    if (inputDefs.length != inputs.length) {
       throw new Error('The length of inputDefs and inputs must be same.')
     }
     inputDefs.forEach((def, index) => {
