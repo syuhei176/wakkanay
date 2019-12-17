@@ -48,7 +48,7 @@ export class MockDeciderManager implements DeciderManagerInterface {
     } else if (operator == AtomicPredicate.Bool) {
       return BoolDeciderAddress
     } else {
-      throw new Error(`perator ${operator} is not registered.`)
+      throw new Error(`operator ${operator} is not registered.`)
     }
   }
 }
