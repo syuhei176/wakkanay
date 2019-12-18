@@ -64,3 +64,26 @@ export default async function getWitnesses(
 export function isHint(b: Bytes): boolean {
   return b.intoString().split(',').length === 3
 }
+
+/**
+ *
+ * @param hint is template string like "aaa,${b},ccc"
+ * @param substitutions is object which has variables to replace template string, e.g. {b: "bar"}
+ */
+export function replaceHint(
+  hint: string,
+  substitutions: { [key: string]: Bytes }
+): string {
+  const fillTemplate = function(
+    templateString: string,
+    templateVars: string[]
+  ) {
+    return new Function(
+      ...Object.keys(substitutions).concat(['return `' + templateString + '`'])
+    ).call(null, ...templateVars)
+  }
+  return fillTemplate(
+    hint,
+    Object.keys(substitutions).map(k => substitutions[k].toHexString())
+  )
+}
