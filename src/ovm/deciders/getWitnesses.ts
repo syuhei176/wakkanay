@@ -1,8 +1,9 @@
-import { Bytes } from '../../types/Codables'
+import { Bytes, Integer } from '../../types/Codables'
 import { KeyValueStore, RangeDb } from '../../db'
 import { decodeStructable } from '../../utils/DecoderUtil'
 import { Range } from '../../types'
 import Coder from '../../coder'
+import { makeRange } from '../../utils/ArrayUtils'
 
 /**
  * get witnesses from witness db using hint.
@@ -54,8 +55,21 @@ export default async function getWitnesses(
       next = await iter.next()
     }
     return result
+  } else if (type === 'NUMBER') {
+    let start = 0,
+      end = 0
+    if (bucket == 'lessthan') {
+      end = Number.parseInt(param)
+    } else if (bucket == 'range') {
+      ;[start, end] = param.split('-').map(n => Number.parseInt(n))
+    } else {
+      throw new Error(`${bucket} is unknown bucket of NUMBER type.`)
+    }
+    return makeRange(start, end - 1)
+      .map(Integer.from)
+      .map(Coder.encode)
   } else {
-    return []
+    throw new Error(`${type} is unknown type of hint.`)
   }
 }
 

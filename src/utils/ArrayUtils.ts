@@ -9,3 +9,6 @@ export function chunk<T extends any[]>(arr: T, size: number): T[] {
     [] as T[][]
   )
 }
+
+export const makeRange = (start: number, end: number) =>
+  Array.from({ length: end - start + 1 }, (v, k) => k + start)
