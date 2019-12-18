@@ -21,9 +21,10 @@ export class IsLessThanDecider implements Decider {
 
     const first = Coder.decode(BigNumber.default(), inputs[0])
     const second = Coder.decode(BigNumber.default(), inputs[1])
+    console.log(first, second)
 
     return {
-      outcome: first.raw < second.raw,
+      outcome: first.data < second.data,
       challenges: []
     }
   }
