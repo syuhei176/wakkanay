@@ -19,8 +19,8 @@ export default class BigNumber implements Codable {
 
   constructor(public data: bigint) {}
 
-  public get raw(): bigint {
-    return this.data
+  public get raw() {
+    return this.data.toString()
   }
 
   public setData(num: bigint) {
