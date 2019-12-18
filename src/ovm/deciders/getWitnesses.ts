@@ -1,9 +1,9 @@
-import { Bytes, Integer } from '../../types/Codables'
+import { Bytes, Integer, BigNumber } from '../../types/Codables'
 import { KeyValueStore, RangeDb } from '../../db'
 import { decodeStructable } from '../../utils/DecoderUtil'
 import { Range } from '../../types'
 import Coder from '../../coder'
-import { makeRange } from '../../utils/ArrayUtils'
+import { makeRange } from '../../utils/BigIntMath'
 
 /**
  * get witnesses from witness db using hint.
@@ -56,16 +56,16 @@ export default async function getWitnesses(
     }
     return result
   } else if (type === 'NUMBER') {
-    let start = 0,
-      end = 0
+    let start = BigNumber.from(0),
+      end = BigNumber.from(0)
     if (bucket == 'lessthan') {
-      end = Number.parseInt(param)
+      end = BigNumber.fromHexString(param)
     } else if (bucket == 'range') {
-      ;[start, end] = param.split('-').map(n => Number.parseInt(n))
+      ;[start, end] = param.split('-').map(n => BigNumber.fromHexString(n))
     } else {
       throw new Error(`${bucket} is unknown bucket of NUMBER type.`)
     }
-    return makeRange(start, end - 1)
+    return makeRange(start.data, end.data - 1n)
       .map(Integer.from)
       .map(Coder.encode)
   } else {
