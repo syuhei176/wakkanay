@@ -8,7 +8,12 @@ export default class BigNumber implements Codable {
   }
 
   static fromHexString(hex: string): BigNumber {
-    return new BigNumber(BigInt(hex))
+    const match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
+    if (match) {
+      return new BigNumber(BigInt(hex))
+    } else {
+      throw new Error('invalid hex string')
+    }
   }
 
   static from(data: number | bigint | BigNumber): BigNumber {
