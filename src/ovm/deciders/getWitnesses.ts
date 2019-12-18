@@ -18,7 +18,6 @@ import { makeRange } from '../../utils/BigIntMath'
  * 'bucket,KEY.ITER,${hex string of lower_bound}'
  * 'bucket,RANGE.ITER,(start end)'
  * when quantify numbers, hint must be in following format
- * 'lessthan,NUMBER,${hex string of upper_bound}'
  * 'range,NUMBER,${hex string of start}-${hex string of end}'
  * @param witnessDb key value store
  * @param hint hint string
@@ -59,17 +58,9 @@ export default async function getWitnesses(
     }
     return result
   } else if (type === 'NUMBER') {
-    let start = BigNumber.from(0),
-      end = BigNumber.from(0)
-    if (bucket == 'lessthan') {
-      end = BigNumber.fromHexString(param)
-    } else if (bucket == 'range') {
-      ;[start, end] = param.split('-').map(n => BigNumber.fromHexString(n))
-    } else {
-      throw new Error(`${bucket} is unknown bucket of NUMBER type.`)
-    }
+    const [start, end] = param.split('-').map(n => BigNumber.fromHexString(n))
     return makeRange(start.data, end.data - 1n)
-      .map(Integer.from)
+      .map(BigNumber.from)
       .map(Coder.encode)
   } else {
     throw new Error(`${type} is unknown type of hint.`)

@@ -83,20 +83,16 @@ describe('get witnesses', () => {
     expect(result[0]).toStrictEqual(Bytes.fromString('v0'))
   })
 
-  test('getWitness number lessthan', async () => {
-    const hint = 'lessthan,NUMBER,0x10'
-    const result = await getWitnesses(db, hint)
-    expect(result.length).toBe(16)
-    expect(result[0]).toStrictEqual(Bytes.fromString(JSON.stringify(0)))
-    expect(result[15]).toStrictEqual(Bytes.fromString(JSON.stringify(15)))
-  })
-
   test('getWitness number range', async () => {
-    const hint = 'range,NUMBER,0x10-0x20'
+    const hint = 'range,NUMBER,0x1000000-0x1000010'
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(16)
-    expect(result[0]).toStrictEqual(Bytes.fromString(JSON.stringify(16)))
-    expect(result[15]).toStrictEqual(Bytes.fromString(JSON.stringify(31)))
+    expect(result[0]).toStrictEqual(
+      Bytes.fromString(JSON.stringify('16777216'))
+    )
+    expect(result[15]).toStrictEqual(
+      Bytes.fromString(JSON.stringify('16777231'))
+    )
   })
 
   test('throw exception unknown type', async () => {
