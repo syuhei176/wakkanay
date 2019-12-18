@@ -3,8 +3,8 @@ import Codable from './Codable'
 export default class BigNumber implements Codable {
   static MAX_NUMBER: BigNumber = new BigNumber(2n ** 256n - 1n)
 
-  static from(data: number | bigint | BigNumber): BigNumber {
-    if (typeof data == 'number') {
+  static from(data: number | string | bigint | BigNumber): BigNumber {
+    if (typeof data == 'number' || typeof data == 'string') {
       return new BigNumber(BigInt(data))
     } else if (typeof data == 'bigint') {
       return new BigNumber(data)
