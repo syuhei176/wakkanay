@@ -11,12 +11,15 @@ import { makeRange } from '../../utils/BigIntMath'
  * bucket must be specified by bucket name. when bucket must be chained,
  * connect bucket name with dot s.t. bucket1.bucket2.bucket3
  * when using key, hint must be in following format
- * 'bucket,KEY,key'
+ * 'bucket,KEY,${hex string of key}'
  * when using range, hint must be in following format
- * 'bucket,RANGE,(start,end)'
+ * 'bucket,RANGE,${hex string of encoded range}'
  * when quantify by iterator, hint must be in following format
- * 'bucket,KEY.ITER,lower_bound'
+ * 'bucket,KEY.ITER,${hex string of lower_bound}'
  * 'bucket,RANGE.ITER,(start end)'
+ * when quantify numbers, hint must be in following format
+ * 'lessthan,NUMBER,${hex string of upper_bound}'
+ * 'range,NUMBER,${hex string of start}-${hex string of end}'
  * @param witnessDb key value store
  * @param hint hint string
  */
