@@ -7,6 +7,10 @@ export default class BigNumber implements Codable {
     return new BigNumber(BigInt(str))
   }
 
+  static fromHexString(hex: string): BigNumber {
+    return new BigNumber(BigInt(hex))
+  }
+
   static from(data: number | bigint | BigNumber): BigNumber {
     if (typeof data == 'number') {
       return new BigNumber(BigInt(data))
