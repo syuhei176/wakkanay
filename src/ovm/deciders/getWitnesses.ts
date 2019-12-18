@@ -1,5 +1,8 @@
 import { Bytes } from '../../types/Codables'
 import { KeyValueStore, RangeDb } from '../../db'
+import { decodeStructable } from '../../utils/DecoderUtil'
+import { Range } from '../../types'
+import Coder from '../../coder'
 
 /**
  * get witnesses from witness db using hint.
@@ -28,26 +31,22 @@ export default async function getWitnesses(
     for (const b of bucketNames) {
       db = await db.bucket(Bytes.fromString(b))
     }
-    const result = await db.get(Bytes.fromString(param))
+    const result = await db.get(Bytes.fromHexString(param))
     return result === null ? [] : [result]
   } else if (type === 'RANGE') {
     db = new RangeDb(witnessDb)
     for await (const b of bucketNames) {
       db = await db.bucket(Bytes.fromString(b))
     }
-    const [start, end] = param
-      .substring(1, param.length - 1)
-      .split(' ')
-      .map(Number)
-      .map(BigInt)
-    const result = await db.get(start, end)
+    const range = decodeStructable(Range, Coder, Bytes.fromHexString(param))
+    const result = await db.get(range.start.data, range.end.data)
     return result.map(r => r.value)
   } else if (type === 'ITER') {
     db = witnessDb
     for (const b of bucketNames) {
       db = await db.bucket(Bytes.fromString(b))
     }
-    const iter = db.iter(Bytes.fromString(param))
+    const iter = db.iter(Bytes.fromHexString(param))
     const result = []
     let next = await iter.next()
     while (next) {
