@@ -76,7 +76,7 @@ describe('ThereExistsSuchThatDecider', () => {
     )
 
     await sigBucket.put(message, signature)
-    const hint = `sig,KEY,${message.intoString()}`
+    const hint = `sig,KEY,${message.toHexString()}`
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
       Bytes.fromString(hint),
       Bytes.fromString('sig'),
