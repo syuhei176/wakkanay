@@ -4,7 +4,7 @@ export default class Address implements Codable {
   public data: string
 
   static from(data: string): Address {
-    const re = /0x[0-9A-Fa-f]{40}$/g
+    const re = /^0x[0-9A-Fa-f]{40}$/g
     if (re.test(data)) {
       return new Address(data)
     }
@@ -17,7 +17,7 @@ export default class Address implements Codable {
   }
 
   constructor(data: string) {
-    const re = /0x[0-9A-Fa-f]{40}$/g
+    const re = /^0x[0-9A-Fa-f]{40}$/g
     if (!re.test(data)) {
       throw new Error('Invalid input string')
     }
