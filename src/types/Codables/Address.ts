@@ -4,7 +4,12 @@ export default class Address implements Codable {
   public data: string
 
   static from(data: string): Address {
-    return new Address(data)
+    const re = /0x[0-9A-Fa-f]{40}$/g
+    if (re.test(data)) {
+      return new Address(data)
+    }
+
+    throw new Error('Invalid input string')
   }
 
   static default(): Address {
@@ -12,6 +17,10 @@ export default class Address implements Codable {
   }
 
   constructor(data: string) {
+    const re = /0x[0-9A-Fa-f]{40}$/g
+    if (!re.test(data)) {
+      throw new Error('Invalid input string')
+    }
     this.data = data.toLowerCase()
   }
 
