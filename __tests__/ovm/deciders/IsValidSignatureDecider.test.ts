@@ -3,16 +3,8 @@ import { IsValidSignatureDecider } from '../../../src/ovm/deciders'
 import { Property } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import * as ethers from 'ethers'
-import { SigningKey, arrayify, joinSignature, keccak256 } from 'ethers/utils'
+import { secp256k1Signer } from '../../../src/signers/Secp256k1'
 import { InMemoryKeyValueStore } from '../../../src/db'
-
-function sign(message: Bytes, key: SigningKey): Bytes {
-  return Bytes.fromHexString(
-    joinSignature(
-      key.signDigest(arrayify(keccak256(arrayify(message.toHexString()))))
-    )
-  )
-}
 
 describe('IsValidSignatureDecider', () => {
   const addr = Address.from('0x0000000000000000000000000000000000000001')
@@ -20,16 +12,13 @@ describe('IsValidSignatureDecider', () => {
   const deciderManager = new DeciderManager(db)
   deciderManager.setDecider(addr, new IsValidSignatureDecider())
   const wallet = ethers.Wallet.createRandom()
-  let publicKey: string,
-    signingKey: SigningKey,
-    message: Bytes,
-    signature: Bytes
+  let publicKey: string, privateKey: Bytes, message: Bytes, signature: Bytes
 
   beforeAll(async () => {
     publicKey = await wallet.getAddress()
-    signingKey = new ethers.utils.SigningKey(wallet.privateKey)
+    privateKey = Bytes.fromHexString(wallet.privateKey)
     message = Bytes.fromString('hello world')
-    signature = sign(message, signingKey)
+    signature = await secp256k1Signer.sign(message, privateKey)
   })
 
   test('valid secp2561k signature', async () => {
@@ -57,7 +46,10 @@ describe('IsValidSignatureDecider', () => {
   })
 
   test('invalid signature', async () => {
-    const invalidSig = sign(Bytes.fromString('invalid sig'), signingKey)
+    const invalidSig = await secp256k1Signer.sign(
+      Bytes.fromString('invalid sig'),
+      privateKey
+    )
     const property = new Property(addr, [
       message,
       invalidSig,
