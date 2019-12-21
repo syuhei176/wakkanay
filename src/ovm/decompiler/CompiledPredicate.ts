@@ -9,6 +9,7 @@ import { transpiler } from 'ovm-compiler'
 import { DeciderManager } from '../DeciderManager'
 import Coder from '../../coder'
 import { replaceHint } from '../deciders/getWitnesses'
+import { decodeStructable } from '../../utils/DecoderUtil'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -127,5 +128,24 @@ export class CompiledPredicate {
       result[def] = inputs[index]
     })
     return result
+  }
+}
+
+/**
+ * constructInput return child property bytes of anInput.
+ * This method is used for constructing new inputs of decompiled property.
+ * @param anInput if children has items, anInput must be Property
+ * @param children children are array of input indexed to return child
+ */
+export const constructInput = (anInput: Bytes, children: number[]): Bytes => {
+  if (children.length == 0) {
+    return anInput
+  }
+  const property = decodeStructable(Property, Coder, anInput)
+  if (children[0] == -1) {
+    // -1 means `.address`
+    return Bytes.fromHexString(property.deciderAddress.data)
+  } else {
+    return constructInput(property.inputs[children[0]], children.slice(1))
   }
 }

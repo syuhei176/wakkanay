@@ -5,7 +5,10 @@ import {
   ForAllSuchThatDeciderAddress,
   LessThanQuantifierAddress
 } from '../helpers/initiateDeciderManager'
-import { CompiledPredicate } from '../../../src/ovm/decompiler/CompiledPredicate'
+import {
+  CompiledPredicate,
+  constructInput
+} from '../../../src/ovm/decompiler/CompiledPredicate'
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
 
@@ -52,5 +55,54 @@ describe('CompiledPredicate', () => {
         Coder.encode(Integer.from(10))
       ])
     }).toThrowError('cannot find NotFound in contracts')
+  })
+
+  describe('constructInput', () => {
+    const childAddress = Address.from(
+      '0x0250035000301010002000900380005700060002'
+    )
+    const childPropertyBytes = Coder.encode(
+      new Property(childAddress, [
+        Bytes.fromString('0'),
+        Bytes.fromString('1'),
+        Bytes.fromString('2')
+      ]).toStruct()
+    )
+    const propertyBytes = Coder.encode(
+      new Property(TestPredicateAddress, [
+        childPropertyBytes,
+        Bytes.fromString('3')
+      ]).toStruct()
+    )
+    it('return anInput bytes as it is', async () => {
+      expect(constructInput(propertyBytes, [])).toEqual(propertyBytes)
+    })
+
+    it('return child input of property bytes', async () => {
+      expect(constructInput(propertyBytes, [1])).toEqual(Bytes.fromString('3'))
+      expect(constructInput(propertyBytes, [0, 0])).toEqual(
+        Bytes.fromString('0')
+      )
+      expect(constructInput(propertyBytes, [0, 2])).toEqual(
+        Bytes.fromString('2')
+      )
+    })
+
+    it('return child address of property bytes', async () => {
+      expect(constructInput(propertyBytes, [-1])).toEqual(
+        Bytes.fromHexString(TestPredicateAddress.data)
+      )
+      expect(constructInput(propertyBytes, [0, -1])).toEqual(
+        Bytes.fromHexString(childAddress.data)
+      )
+    })
+
+    it('throw exception', async () => {
+      expect(() => {
+        expect(constructInput(Bytes.fromString('invalid'), [1])).toEqual(
+          Bytes.fromString('3')
+        )
+      }).toThrowError('Unexpected token i in JSON at position 0')
+    })
   })
 })
