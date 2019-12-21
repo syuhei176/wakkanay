@@ -58,7 +58,6 @@ describe('CompiledPredicate', () => {
         ]),
         deciderManager.shortnameMap
       )
-
       expect(property).toEqual(testOriginalProperty)
     })
 
@@ -68,30 +67,7 @@ describe('CompiledPredicate', () => {
         new Property(TestPredicateAddress, [Coder.encode(Integer.from(10))]),
         deciderManager.shortnameMap
       )
-
       expect(property).toEqual(testOriginalProperty)
-    })
-  })
-
-  describe('constructInput', () => {
-    const childPropertyBytes = Coder.encode(
-      new Property(TestPredicateAddress, [
-        Bytes.fromString('0'),
-        Bytes.fromString('1'),
-        Bytes.fromString('2')
-      ]).toStruct()
-    )
-    const propertyBytes = Coder.encode(
-      new Property(TestPredicateAddress, [
-        childPropertyBytes,
-        Bytes.fromString('3')
-      ]).toStruct()
-    )
-    it('return child input of property bytes', async () => {
-      expect(constructInput(propertyBytes, [0, 0])).toEqual(
-        Bytes.fromString('0')
-      )
-      expect(constructInput(propertyBytes, [1])).toEqual(Bytes.fromString('3'))
     })
   })
 

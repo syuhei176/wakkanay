@@ -1,12 +1,5 @@
 import { Bytes, Address } from '../../types'
-import {
-  Property,
-  convertStringToLogicalConnective,
-  convertStringToAtomicPredicate,
-  FreeVariable,
-  AtomicPredicateStrings,
-  LogicalConnectiveStrings
-} from '../types'
+import { Property, FreeVariable } from '../types'
 import { parser, transpiler } from 'ovm-compiler'
 import Coder from '../../coder'
 import { replaceHint } from '../deciders/getWitnesses'
@@ -205,18 +198,6 @@ export const createChildProperty = (
       }
     })
   )
-}
-
-export const constructInput = (anInput: Bytes, children: number[]): Bytes => {
-  if (children.length == 0) {
-    return anInput
-  }
-  const property = decodeStructable(Property, Coder, anInput)
-  if (children[0] == -1) {
-    return Bytes.fromHexString(property.deciderAddress.data)
-  } else {
-    return constructInput(property.inputs[children[0]], children.slice(1))
-  }
 }
 
 /**
