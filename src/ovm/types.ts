@@ -65,69 +65,36 @@ export class FreeVariable {
 }
 
 export enum LogicalConnective {
-  And,
-  ForAllSuchThat,
-  Not,
-  Or,
-  ThereExistsSuchThat
+  And = 'And',
+  ForAllSuchThat = 'ForAllSuchThat',
+  Not = 'Not',
+  Or = 'Or',
+  ThereExistsSuchThat = 'ThereExistsSuchThat'
 }
 
 export enum AtomicPredicate {
-  IsValidPreimage,
-  IsValidSignature,
-  VerifyInclusion,
-  IsLessThan,
-  Equal,
-  Within,
-  Bool,
-  LessThanQuantifier,
-  IsSameAmount,
-  IsContained
+  IsValidPreimage = 'IsValidPreimage',
+  IsValidSignature = 'IsValidSignature',
+  VerifyInclusion = 'VerifyInclusion',
+  IsLessThan = 'IsLessThan',
+  Equal = 'Equal',
+  Bool = 'Bool',
+  LessThan = 'LessThan',
+  IsSameAmount = 'IsSameAmount',
+  IsContained = 'IsContained'
 }
 
+export type LogicalConnectiveStrings = keyof typeof LogicalConnective
+export type AtomicPredicateStrings = keyof typeof AtomicPredicate
+
 export function convertStringToLogicalConnective(
-  name: string
+  name: LogicalConnectiveStrings
 ): LogicalConnective {
-  if (name == 'And') {
-    return LogicalConnective.And
-  } else if (name == 'Or') {
-    return LogicalConnective.Or
-  } else if (name == 'ForAllSuchThat') {
-    return LogicalConnective.ForAllSuchThat
-  } else if (name == 'ThereExistsSuchThat') {
-    return LogicalConnective.ThereExistsSuchThat
-  } else if (name == 'Not') {
-    return LogicalConnective.Not
-  } else {
-    throw new Error('invalid logical connective name')
-  }
+  return LogicalConnective[name]
 }
 
 export function convertStringToAtomicPredicate(
-  name: string
-): AtomicPredicate | null {
-  if (name == 'IsLessThan') {
-    return AtomicPredicate.IsLessThan
-  } else if (name == 'LessThan') {
-    return AtomicPredicate.LessThanQuantifier
-  } else if (name == 'IsValidPreimage') {
-    return AtomicPredicate.IsValidPreimage
-  } else if (name == 'IsValidSignature') {
-    return AtomicPredicate.IsValidSignature
-  } else if (name == 'VerifyInclusion') {
-    return AtomicPredicate.VerifyInclusion
-  } else if (name == 'Equal') {
-    return AtomicPredicate.Equal
-  } else if (name == 'Within') {
-    return AtomicPredicate.Within
-  } else if (name == 'Bool') {
-    return AtomicPredicate.Bool
-  } else if (name == 'IsSameAmount') {
-    return AtomicPredicate.IsSameAmount
-  } else if (name == 'IsContained') {
-    return AtomicPredicate.IsContained
-  } else {
-    return null
-    // throw new Error('invalid atomic predicate name')
-  }
+  name: AtomicPredicateStrings
+): AtomicPredicate {
+  return AtomicPredicate[name]
 }

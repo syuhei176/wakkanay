@@ -102,7 +102,7 @@ export function initializeDeciderManager() {
   deciderManager.setQuantifier(
     LessThanQuantifierAddress,
     new LessThanQuantifier(),
-    AtomicPredicate.LessThanQuantifier
+    AtomicPredicate.LessThan
   )
   deciderManager.setDecider(GreaterThanDeciderAddress, new GreaterThanDecider())
   deciderManager.setDecider(
