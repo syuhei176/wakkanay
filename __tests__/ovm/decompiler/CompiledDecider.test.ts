@@ -20,10 +20,11 @@ describe('CompiledDecider', () => {
     ])
 
     // Sets instance of CompiledDecider TestF
-    const compiledDecider = new CompiledDecider(
+    const compiledPredicate = CompiledPredicate.fromSource(
       TestPredicateAddress,
-      new CompiledPredicate(testSource)
+      testSource
     )
+    const compiledDecider = new CompiledDecider(compiledPredicate)
     deciderManager.setDecider(TestPredicateAddress, compiledDecider)
 
     // TestF calls TestFA during deciding

@@ -1,9 +1,8 @@
-import { Property } from '../../../src/ovm/types'
+import { Property, FreeVariable } from '../../../src/ovm/types'
 import { Address, Bytes, Integer } from '../../../src/types/Codables'
 import {
   initializeDeciderManager,
-  ForAllSuchThatDeciderAddress,
-  LessThanQuantifierAddress
+  ForAllSuchThatDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import {
   CompiledPredicate,
@@ -13,6 +12,7 @@ import {
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
 import { arrayify } from 'ethers/utils'
+import { CompiledDecider } from '../../../src/ovm/decompiler'
 
 describe('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(
@@ -21,47 +21,78 @@ describe('CompiledPredicate', () => {
 
   const deciderManager = initializeDeciderManager()
 
-  it('return Property', async () => {
-    const compiledPredicate = new CompiledPredicate(testSource)
-    // Create an instance of compiled predicate "TestF(TestF, 10)".
-    const property = compiledPredicate.decompileProperty(
-      new Property(TestPredicateAddress, [
-        Bytes.fromString('TestF'),
-        Coder.encode(Integer.from(10))
-      ]),
-      deciderManager.shortnameMap
-    )
-
-    expect(property).toEqual({
+  describe('decompileProperty', () => {
+    const testOriginalProperty = {
       deciderAddress: ForAllSuchThatDeciderAddress,
       inputs: [
-        Coder.encode(
-          new Property(LessThanQuantifierAddress, [
-            Bytes.fromHexString('0x3130')
-          ]).toStruct()
-        ),
+        Bytes.fromString('range,NUMBER,0x00-0x3130'),
         Bytes.fromString('b'),
         Coder.encode(
           new Property(TestPredicateAddress, [
-            Bytes.fromHexString('0x546573744641'),
-            Bytes.fromHexString('0x5f5f5641524941424c455f5f62')
+            Bytes.fromString('TestFO'),
+            FreeVariable.from('b'),
+            Coder.encode(Integer.from(10))
           ]).toStruct()
         )
       ]
+    }
+    let compiledPredicate: CompiledPredicate
+    beforeEach(() => {
+      compiledPredicate = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        testSource
+      )
+      deciderManager.setDecider(
+        TestPredicateAddress,
+        new CompiledDecider(compiledPredicate),
+        'Test'
+      )
     })
-  })
 
-  it('throw exception because the name is not found', async () => {
-    const compiledPredicate = new CompiledPredicate(testSource)
-    expect(() => {
-      compiledPredicate.decompileProperty(
+    it('return Property', async () => {
+      // Create an instance of compiled predicate "TestF(TestF, 10)".
+      const property = compiledPredicate.decompileProperty(
         new Property(TestPredicateAddress, [
-          Bytes.fromString('NotFound'),
+          Bytes.fromString('TestF'),
           Coder.encode(Integer.from(10))
         ]),
         deciderManager.shortnameMap
       )
-    }).toThrowError('cannot find NotFound in contracts')
+
+      expect(property).toEqual(testOriginalProperty)
+    })
+
+    it('use default contract if label is not provided', async () => {
+      // Create an instance of compiled predicate "Test(10)".
+      const property = compiledPredicate.decompileProperty(
+        new Property(TestPredicateAddress, [Coder.encode(Integer.from(10))]),
+        deciderManager.shortnameMap
+      )
+
+      expect(property).toEqual(testOriginalProperty)
+    })
+  })
+
+  describe('constructInput', () => {
+    const childPropertyBytes = Coder.encode(
+      new Property(TestPredicateAddress, [
+        Bytes.fromString('0'),
+        Bytes.fromString('1'),
+        Bytes.fromString('2')
+      ]).toStruct()
+    )
+    const propertyBytes = Coder.encode(
+      new Property(TestPredicateAddress, [
+        childPropertyBytes,
+        Bytes.fromString('3')
+      ]).toStruct()
+    )
+    it('return child input of property bytes', async () => {
+      expect(constructInput(propertyBytes, [0, 0])).toEqual(
+        Bytes.fromString('0')
+      )
+      expect(constructInput(propertyBytes, [1])).toEqual(Bytes.fromString('3'))
+    })
   })
 
   describe('constructInput', () => {
