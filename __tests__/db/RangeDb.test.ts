@@ -24,6 +24,13 @@ describe('RangeDb', () => {
     const ranges = await rangeDb.get(0n, 300n)
     expect(ranges.length).toEqual(3)
   })
+  it('get mid range', async () => {
+    await rangeDb.put(0n, 10n, alice)
+    await rangeDb.put(10n, 20n, bob)
+    await rangeDb.put(20n, 30n, carol)
+    const ranges = await rangeDb.get(10n, 15n)
+    expect(ranges.length).toEqual(1)
+  })
   it('get small range', async () => {
     await rangeDb.put(120n, 150n, alice)
     await rangeDb.put(0n, 20n, bob)

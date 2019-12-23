@@ -3,10 +3,11 @@ import {
   Property,
   convertStringToLogicalConnective,
   convertStringToAtomicPredicate,
-  FreeVariable
+  FreeVariable,
+  AtomicPredicateStrings,
+  LogicalConnectiveStrings
 } from '../types'
 import { transpiler } from 'ovm-compiler'
-import { DeciderManager } from '../DeciderManager'
 import Coder from '../../coder'
 import { replaceHint } from '../deciders/getWitnesses'
 import { decodeStructable } from '../../utils/DecoderUtil'
@@ -29,24 +30,34 @@ import { decodeStructable } from '../../utils/DecoderUtil'
  */
 export class CompiledPredicate {
   compiled: transpiler.CompiledPredicate
-  manager: DeciderManager
-  constructor(compiled: transpiler.CompiledPredicate, manager: DeciderManager) {
+  constructor(compiled: transpiler.CompiledPredicate) {
     this.compiled = compiled
-    this.manager = manager
   }
-  instantiate(
-    name: string,
-    originalAddress: Address,
-    inputs: Bytes[]
+
+  /**
+   * decompileProperty expands a compiled property to original property
+   * @param compiledProperty source compiled property
+   * @param predicateTable The mapping between shortname of predicates and its address
+   * @returns original property
+   */
+  decompileProperty(
+    compiledProperty: Property,
+    predicateTable: ReadonlyMap<string, Address>
   ): Property {
+    const name: string = compiledProperty.inputs[0].intoString()
     const c = this.compiled.contracts.find(c => c.definition.name == name)
     if (!c) {
       throw new Error(`cannot find ${name} in contracts`)
     }
 
-    const predicateAddress = this.manager.getDeciderAddress(
-      convertStringToLogicalConnective(c.definition.predicate)
+    const predicateAddress = predicateTable.get(
+      convertStringToLogicalConnective(c.definition
+        .predicate as LogicalConnectiveStrings)
     )
+
+    if (predicateAddress === undefined) {
+      throw new Error(`predicateAddress ${c.definition.predicate} not found`)
+    }
 
     return new Property(
       predicateAddress,
@@ -59,27 +70,30 @@ export class CompiledPredicate {
           ) {
             i = replaceHint(
               i,
-              this.createSubstitutions(c.definition.inputDefs, inputs)
+              createSubstitutions(
+                c.definition.inputDefs,
+                compiledProperty.inputs
+              )
             )
           }
           return Bytes.fromString(i)
         } else if (i.predicate.type == 'AtomicPredicate') {
-          let atomicPredicateAddress: Address
-          const atomicPredicate = convertStringToAtomicPredicate(
-            i.predicate.source
-          )
+          let atomicPredicateAddress: Address | undefined
+          const atomicPredicate = convertStringToAtomicPredicate(i.predicate
+            .source as AtomicPredicateStrings)
           if (atomicPredicate) {
-            atomicPredicateAddress = this.manager.getDeciderAddress(
-              atomicPredicate
-            )
+            atomicPredicateAddress = predicateTable.get(atomicPredicate)
           } else {
-            atomicPredicateAddress = originalAddress
+            atomicPredicateAddress = compiledProperty.deciderAddress
+          }
+          if (atomicPredicateAddress === undefined) {
+            throw new Error(`The address of ${i.predicate.source} not found.`)
           }
           return Coder.encode(
             this.createChildProperty(
               atomicPredicateAddress,
               i,
-              inputs
+              compiledProperty.inputs
             ).toStruct()
           )
         } else {
@@ -115,20 +129,25 @@ export class CompiledPredicate {
       })
     )
   }
+}
 
-  private createSubstitutions(
-    inputDefs: string[],
-    inputs: Bytes[]
-  ): { [key: string]: Bytes } {
-    const result: { [key: string]: Bytes } = {}
-    if (inputDefs.length != inputs.length) {
-      throw new Error('The length of inputDefs and inputs must be same.')
-    }
-    inputDefs.forEach((def, index) => {
-      result[def] = inputs[index]
-    })
-    return result
+/**
+ * create substitution map from key list and value list
+ * @param inputDefs
+ * @param inputs
+ */
+export const createSubstitutions = (
+  inputDefs: string[],
+  inputs: Bytes[]
+): { [key: string]: Bytes } => {
+  const result: { [key: string]: Bytes } = {}
+  if (inputDefs.length != inputs.length) {
+    throw new Error('The length of inputDefs and inputs must be same.')
   }
+  inputDefs.forEach((def, index) => {
+    result[def] = inputs[index]
+  })
+  return result
 }
 
 /**

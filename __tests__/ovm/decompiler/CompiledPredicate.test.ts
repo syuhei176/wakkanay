@@ -7,10 +7,12 @@ import {
 } from '../helpers/initiateDeciderManager'
 import {
   CompiledPredicate,
-  constructInput
+  constructInput,
+  createSubstitutions
 } from '../../../src/ovm/decompiler/CompiledPredicate'
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
+import { arrayify } from 'ethers/utils'
 
 describe('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(
@@ -20,12 +22,14 @@ describe('CompiledPredicate', () => {
   const deciderManager = initializeDeciderManager()
 
   it('return Property', async () => {
-    const compiledPredicate = new CompiledPredicate(testSource, deciderManager)
+    const compiledPredicate = new CompiledPredicate(testSource)
     // Create an instance of compiled predicate "TestF(TestF, 10)".
-    const property = compiledPredicate.instantiate(
-      'TestF',
-      TestPredicateAddress,
-      [Bytes.fromString('TestF'), Coder.encode(Integer.from(10))]
+    const property = compiledPredicate.decompileProperty(
+      new Property(TestPredicateAddress, [
+        Bytes.fromString('TestF'),
+        Coder.encode(Integer.from(10))
+      ]),
+      deciderManager.shortnameMap
     )
 
     expect(property).toEqual({
@@ -48,12 +52,15 @@ describe('CompiledPredicate', () => {
   })
 
   it('throw exception because the name is not found', async () => {
-    const compiledPredicate = new CompiledPredicate(testSource, deciderManager)
+    const compiledPredicate = new CompiledPredicate(testSource)
     expect(() => {
-      compiledPredicate.instantiate('NotFound', TestPredicateAddress, [
-        Bytes.fromString('TestF'),
-        Coder.encode(Integer.from(10))
-      ])
+      compiledPredicate.decompileProperty(
+        new Property(TestPredicateAddress, [
+          Bytes.fromString('NotFound'),
+          Coder.encode(Integer.from(10))
+        ]),
+        deciderManager.shortnameMap
+      )
     }).toThrowError('cannot find NotFound in contracts')
   })
 
@@ -99,10 +106,24 @@ describe('CompiledPredicate', () => {
 
     it('throw exception', async () => {
       expect(() => {
-        expect(constructInput(Bytes.fromString('invalid'), [1])).toEqual(
-          Bytes.fromString('3')
-        )
+        constructInput(Bytes.fromString('invalid'), [1])
       }).toThrowError('Unexpected token i in JSON at position 0')
+    })
+  })
+
+  describe('createSubstitutions', () => {
+    const a = Bytes.fromString('a')
+    const b = Bytes.fromString('b')
+    it('return key Bytes map object', async () => {
+      expect(createSubstitutions(['a', 'b'], [a, b])).toEqual({
+        a,
+        b
+      })
+    })
+    it('throw exception because input length are different', async () => {
+      expect(() => {
+        createSubstitutions(['a', 'b'], [a])
+      }).toThrowError('The length of inputDefs and inputs must be same.')
     })
   })
 })

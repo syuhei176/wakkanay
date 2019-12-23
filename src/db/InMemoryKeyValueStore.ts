@@ -122,19 +122,22 @@ export class InMemoryKeyValueStore implements KeyValueStore {
    * @param bound We can get values greater than `bound` in dictionary order.
    * Please see the document for AbstractIterator's options. https://github.com/snowyu/abstract-iterator#abstractiterator----
    */
-  public iter(bound: Bytes): MemoryIterator {
-    return new MemoryIterator(
-      this.db.iterator({
-        gte: this.convertKeyIntoBuffer(bound),
-        lt: Buffer.from(this.prefix.increment().data),
-        reverse: false,
-        keys: true,
-        values: true,
-        keyAsBuffer: true,
-        valueAsBuffer: true
-      }),
-      this
-    )
+  public iter(bound: Bytes, lowerBoundExclusive?: boolean): MemoryIterator {
+    const option: any = {
+      gte: this.convertKeyIntoBuffer(bound),
+      lt: Buffer.from(this.prefix.increment().data),
+      reverse: false,
+      keys: true,
+      values: true,
+      keyAsBuffer: true,
+      valueAsBuffer: true
+    }
+    if (lowerBoundExclusive) {
+      option.gt = option.gte
+      delete option.gte
+    }
+
+    return new MemoryIterator(this.db.iterator(option), this)
   }
 
   public bucket(key: Bytes): Promise<KeyValueStore> {
