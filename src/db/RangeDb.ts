@@ -9,7 +9,7 @@ export class RangeDb implements RangeStore {
   }
 
   public async get(start: bigint, end: bigint): Promise<Range[]> {
-    const iter = await this.kvs.iter(Bytes.fromString(start.toString()))
+    const iter = await this.kvs.iter(Bytes.fromString(start.toString()), true)
     const keyValue = await iter.next()
     if (keyValue === null) {
       return []
@@ -61,7 +61,7 @@ export class RangeDb implements RangeStore {
     const ops: BatchOperation[] = ranges.map(r => {
       return {
         type: 'Del',
-        key: Bytes.fromString(r.end.toString())
+        key: Bytes.fromString(r.end.data.toString())
       }
     })
     await this.kvs.batch(ops)
@@ -72,7 +72,7 @@ export class RangeDb implements RangeStore {
     const ops: BatchOperation[] = ranges.map(r => {
       return {
         type: 'Put',
-        key: Bytes.fromString(r.end.toString()),
+        key: Bytes.fromString(r.end.data.toString()),
         value: r.encode()
       }
     })

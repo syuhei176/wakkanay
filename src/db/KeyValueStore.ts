@@ -26,7 +26,7 @@ export interface KeyValueStore {
    * `iter` returns `Iterator` which is for seeking values sorted by their keys.
    * @param bound We can get `Iterator` which seek values greater than `lowerBound` in dictionary order.
    */
-  iter(lowerBound: Bytes): Iterator
+  iter(lowerBound: Bytes, range?: boolean): Iterator
   bucket(key: Bytes): Promise<KeyValueStore>
   close(): Promise<void>
   open(): Promise<void>
