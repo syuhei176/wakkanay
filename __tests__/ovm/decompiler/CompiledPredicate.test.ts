@@ -16,7 +16,6 @@ import {
 } from '../../../src/ovm/decompiler/CompiledPredicate'
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
-import { CompiledDecider } from '../../../src/ovm/decompiler'
 import { ethers } from 'ethers'
 import { Range } from '../../../src/types'
 import { AtomicProposition } from 'ovm-compiler/dist/transpiler'
@@ -47,18 +46,10 @@ describe('CompiledPredicate', () => {
         )
       ]
     }
-    let compiledPredicate: CompiledPredicate
-    beforeEach(() => {
-      compiledPredicate = CompiledPredicate.fromSource(
-        TestPredicateAddress,
-        testSource
-      )
-      deciderManager.setDecider(
-        TestPredicateAddress,
-        new CompiledDecider(compiledPredicate),
-        'Test'
-      )
-    })
+    const compiledPredicate: CompiledPredicate = CompiledPredicate.fromSource(
+      TestPredicateAddress,
+      testSource
+    )
 
     it('compiled predicate using quantifier', async () => {
       // Create an instance of compiled predicate "TestF(TestF, 10)".
