@@ -10,6 +10,7 @@ import {
 } from '../helpers/initiateDeciderManager'
 import {
   CompiledPredicate,
+  createAtomicPropositionCall,
   constructInput,
   createSubstitutions
 } from '../../../src/ovm/decompiler/CompiledPredicate'
@@ -18,6 +19,7 @@ import { testSource } from './TestSource'
 import { CompiledDecider } from '../../../src/ovm/decompiler'
 import { ethers } from 'ethers'
 import { Range } from '../../../src/types'
+import { AtomicProposition } from 'ovm-compiler/dist/transpiler'
 
 describe('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(
@@ -25,6 +27,10 @@ describe('CompiledPredicate', () => {
   )
 
   const deciderManager = initializeDeciderManager()
+  const encodeProperty = (property: Property) =>
+    Coder.encode(property.toStruct())
+  const encodeBoolDecider = (input: Bytes) =>
+    encodeProperty(new Property(BoolDeciderAddress, [input]))
 
   describe('decompileProperty', () => {
     const testOriginalProperty = {
@@ -41,10 +47,6 @@ describe('CompiledPredicate', () => {
         )
       ]
     }
-    const encodeProperty = (property: Property) =>
-      Coder.encode(property.toStruct())
-    const encodeBoolDecider = (input: Bytes) =>
-      encodeProperty(new Property(BoolDeciderAddress, [input]))
     let compiledPredicate: CompiledPredicate
     beforeEach(() => {
       compiledPredicate = CompiledPredicate.fromSource(
@@ -163,6 +165,79 @@ describe('CompiledPredicate', () => {
         { TransactionAddress: txAddressBytes }
       )
       expect(property).toEqual(testOriginalProperty)
+    })
+  })
+
+  describe('createAtomicPropositionCall', () => {
+    const compiledPredicateAnd = CompiledPredicate.fromSource(
+      TestPredicateAddress,
+      'def test(a) := Bool(a) and Bool($b) and Bool(self.address)'
+    )
+    const definition = compiledPredicateAnd.compiled.contracts[0]
+    const compiledProperty = new Property(TestPredicateAddress, [
+      Bytes.fromString('TestA'),
+      Coder.encode(Integer.from(301))
+    ])
+
+    it('create atomic proposition call with normal input', async () => {
+      expect(
+        createAtomicPropositionCall(
+          definition.inputs[0] as AtomicProposition,
+          definition,
+          {
+            compiledProperty,
+            predicateTable: deciderManager.shortnameMap,
+            constantTable: {}
+          }
+        )
+      ).toEqual(encodeBoolDecider(Coder.encode(Integer.from(301))))
+    })
+
+    it('throw exception because not enough inputs', async () => {
+      const invalidCompiledProperty = new Property(TestPredicateAddress, [])
+      expect(() => {
+        createAtomicPropositionCall(
+          definition.inputs[0] as AtomicProposition,
+          definition,
+          {
+            compiledProperty: invalidCompiledProperty,
+            predicateTable: deciderManager.shortnameMap,
+            constantTable: {}
+          }
+        )
+      }).toThrowError(
+        new Error(`Property(${TestPredicateAddress}) don't have enough inputs.`)
+      )
+    })
+
+    it('create atomic proposition call with constant input', async () => {
+      expect(
+        createAtomicPropositionCall(
+          definition.inputs[1] as AtomicProposition,
+          definition,
+          {
+            compiledProperty,
+            predicateTable: deciderManager.shortnameMap,
+            constantTable: { b: Coder.encode(Integer.from(302)) }
+          }
+        )
+      ).toEqual(encodeBoolDecider(Coder.encode(Integer.from(302))))
+    })
+
+    it('create atomic proposition call with self input', async () => {
+      expect(
+        createAtomicPropositionCall(
+          definition.inputs[2] as AtomicProposition,
+          definition,
+          {
+            compiledProperty,
+            predicateTable: deciderManager.shortnameMap,
+            constantTable: {}
+          }
+        )
+      ).toEqual(
+        encodeBoolDecider(Bytes.fromHexString(TestPredicateAddress.data))
+      )
     })
   })
 

@@ -7,6 +7,7 @@ import { decodeStructable } from '../../utils/DecoderUtil'
 import NormalInput = transpiler.NormalInput
 import AtomicProposition = transpiler.AtomicProposition
 import LogicalConnective = transpiler.LogicalConnective
+import { IntermediateCompiledPredicate } from 'ovm-compiler/dist/transpiler'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -74,7 +75,6 @@ export class CompiledPredicate {
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const originalAddress: Address = compiledProperty.deciderAddress
     const findContract = (name: string) => {
       return this.compiled.contracts.find(c => c.name == name)
     }
@@ -91,52 +91,15 @@ export class CompiledPredicate {
       throw new Error(`cannot find ${name} in contracts`)
     }
     const def = c
-    const originalPredicateName = c.originalPredicateName
+    const context = {
+      compiledProperty,
+      predicateTable,
+      constantTable
+    }
     const predicateAddress = predicateTable.get(c.connective)
 
     if (predicateAddress === undefined) {
       throw new Error(`predicateAddress ${def.connective} not found`)
-    }
-
-    const createInput = (input: AtomicProposition) => {
-      if (input.predicate.type == 'AtomicPredicateCall') {
-        // If the predicate name is not listed in AtomicPredicate enum, it's compiled predicate.
-        let atomicPredicateAddress: Address | undefined
-        if (input.predicate.source.indexOf(originalPredicateName) == 0) {
-          // If input.predicate.source is "${originalPredicateName}TA2O"
-          atomicPredicateAddress = originalAddress
-        } else {
-          atomicPredicateAddress = predicateTable.get(input.predicate.source)
-        }
-        if (atomicPredicateAddress === undefined) {
-          throw new Error(`The address of ${input.predicate.source} not found.`)
-        }
-        return Coder.encode(
-          createChildProperty(
-            atomicPredicateAddress,
-            input,
-            compiledProperty.inputs,
-            originalAddress,
-            constantTable
-          ).toStruct()
-        )
-      } else if (input.predicate.type == 'InputPredicateCall') {
-        const property = decodeStructable(
-          Property,
-          Coder,
-          compiledProperty.inputs[input.predicate.source.inputIndex]
-        )
-        const extraInputBytes = input.inputs.map(
-          i => compiledProperty.inputs[(i as NormalInput).inputIndex]
-        )
-        property.inputs = property.inputs.concat(extraInputBytes)
-        return Coder.encode(property.toStruct())
-      } else if (input.predicate.type == 'VariablePredicateCall') {
-        // When predicateDef has VariablePredicate, inputs[1] must be variable name
-        return FreeVariable.from(def.inputs[1] as string)
-      } else {
-        throw new Error('predicate must be atomic, input or variable.')
-      }
     }
 
     if (
@@ -151,15 +114,72 @@ export class CompiledPredicate {
           )
         ),
         Bytes.fromString(def.inputs[1] as string),
-        createInput(def.inputs[2] as AtomicProposition)
+        createAtomicPropositionCall(
+          def.inputs[2] as AtomicProposition,
+          def,
+          context
+        )
       ])
     } else {
       // In case of And, Or, Not and other predicates
       return new Property(
         predicateAddress,
-        def.inputs.map(i => createInput(i as AtomicProposition))
+        def.inputs.map(i =>
+          createAtomicPropositionCall(i as AtomicProposition, def, context)
+        )
       )
     }
+  }
+}
+
+export const createAtomicPropositionCall = (
+  input: AtomicProposition,
+  def: IntermediateCompiledPredicate,
+  context: {
+    compiledProperty: Property
+    predicateTable: ReadonlyMap<string, Address>
+    constantTable: { [key: string]: Bytes }
+  }
+): Bytes => {
+  if (input.predicate.type == 'AtomicPredicateCall') {
+    const originalAddress: Address = context.compiledProperty.deciderAddress
+    // If the predicate name is not listed in AtomicPredicate enum, it's compiled predicate.
+    let atomicPredicateAddress: Address | undefined
+    if (input.predicate.source.indexOf(def.originalPredicateName) == 0) {
+      // If input.predicate.source is "${originalPredicateName}TA2O"
+      atomicPredicateAddress = originalAddress
+    } else {
+      atomicPredicateAddress = context.predicateTable.get(
+        input.predicate.source
+      )
+    }
+    if (atomicPredicateAddress === undefined) {
+      throw new Error(`The address of ${input.predicate.source} not found.`)
+    }
+    return Coder.encode(
+      createChildProperty(
+        atomicPredicateAddress,
+        input,
+        context.compiledProperty,
+        context.constantTable
+      ).toStruct()
+    )
+  } else if (input.predicate.type == 'InputPredicateCall') {
+    const property = decodeStructable(
+      Property,
+      Coder,
+      context.compiledProperty.inputs[input.predicate.source.inputIndex]
+    )
+    const extraInputBytes = input.inputs.map(
+      i => context.compiledProperty.inputs[(i as NormalInput).inputIndex]
+    )
+    property.inputs = property.inputs.concat(extraInputBytes)
+    return Coder.encode(property.toStruct())
+  } else if (input.predicate.type == 'VariablePredicateCall') {
+    // When predicateDef has VariablePredicate, inputs[1] must be variable name
+    return FreeVariable.from(def.inputs[1] as string)
+  } else {
+    throw new Error('predicate must be atomic, input or variable.')
   }
 }
 
@@ -172,15 +192,19 @@ export class CompiledPredicate {
 const createChildProperty = (
   atomicPredicateAddress: Address,
   proposition: transpiler.AtomicProposition,
-  inputs: Bytes[],
-  selfAddress: Address,
+  compiledProperty: Property,
   constantsTable: { [key: string]: Bytes }
 ): Property => {
   return new Property(
     atomicPredicateAddress,
     proposition.inputs.map(i => {
       if (i.type == 'NormalInput') {
-        return constructInput(inputs[i.inputIndex], i.children)
+        if (compiledProperty.inputs.length <= i.inputIndex) {
+          throw new Error(
+            `Property(${compiledProperty.deciderAddress}) don't have enough inputs.`
+          )
+        }
+        return constructInput(compiledProperty.inputs[i.inputIndex], i.children)
       } else if (i.type == 'VariableInput') {
         return FreeVariable.from(i.placeholder)
       } else if (i.type == 'LabelInput') {
@@ -192,7 +216,7 @@ const createChildProperty = (
         }
         return constantsTable[i.name]
       } else if (i.type == 'SelfInput') {
-        return Bytes.fromHexString(selfAddress.data)
+        return Bytes.fromHexString(compiledProperty.deciderAddress.data)
       } else {
         throw new Error(`${i} has unknow type`)
       }
