@@ -73,6 +73,16 @@ describe('RangeDb', () => {
           '0x0000000000000000000000000000000000000000000000000000000000001234'
         )
       )
+      expect(RangeDb.createKey(0x1200n)).toEqual(
+        Bytes.fromHexString(
+          '0x0000000000000000000000000000000000000000000000000000000000001200'
+        )
+      )
+      expect(RangeDb.createKey(0x120n)).toEqual(
+        Bytes.fromHexString(
+          '0x0000000000000000000000000000000000000000000000000000000000000120'
+        )
+      )
     })
   })
   describe('get', () => {
