@@ -5,7 +5,6 @@ import {
   ForAllSuchThatDeciderAddress,
   AndDeciderAddress,
   SampleDeciderAddress as BoolDeciderAddress,
-  ThereExistsSuchThatDeciderAddress,
   EqualDeciderAddress,
   IsContainedDeciderAddress
 } from '../helpers/initiateDeciderManager'
@@ -17,7 +16,6 @@ import {
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
 import { CompiledDecider } from '../../../src/ovm/decompiler'
-import { EqualDecider } from '../../../src/ovm/deciders'
 import { ethers } from 'ethers'
 import { Range } from '../../../src/types'
 
@@ -60,7 +58,7 @@ describe('CompiledPredicate', () => {
       )
     })
 
-    it('return Property', async () => {
+    it('compiled predicate using quantifier', async () => {
       // Create an instance of compiled predicate "TestF(TestF, 10)".
       const property = compiledPredicate.decompileProperty(
         new Property(TestPredicateAddress, [
@@ -81,7 +79,7 @@ describe('CompiledPredicate', () => {
       expect(property).toEqual(testOriginalProperty)
     })
 
-    it('compiled predicate using AND logical connective', async () => {
+    it('compiled predicate using logical connective', async () => {
       const compiledPredicateAnd = CompiledPredicate.fromSource(
         TestPredicateAddress,
         'def test(a, b) := Bool(a) and Bool(b)'
