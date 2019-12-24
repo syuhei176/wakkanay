@@ -7,6 +7,11 @@ describe('Bytes', () => {
       const h = Bytes.fromHexString(hex)
       expect(h.data).toEqual(Uint8Array.from([0, 18, 52, 86, 120]))
     })
+    test('create Bytes from hex string with odd length', () => {
+      const hex = '0x012345678'
+      const h = Bytes.fromHexString(hex)
+      expect(h.data).toEqual(Uint8Array.from([0, 18, 52, 86, 120]))
+    })
     test('fail to create Bytes from invalid hex string', () => {
       const hex = '0x00G12345678'
       expect(() => {

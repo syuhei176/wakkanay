@@ -66,6 +66,25 @@ describe('RangeDb', () => {
       new RangeRecord(200n, 300n, alice)
     ])
   })
+  describe('createKey', () => {
+    it('return key', async () => {
+      expect(RangeDb.createKey(0x1234n)).toEqual(
+        Bytes.fromHexString(
+          '0x0000000000000000000000000000000000000000000000000000000000001234'
+        )
+      )
+      expect(RangeDb.createKey(0x1200n)).toEqual(
+        Bytes.fromHexString(
+          '0x0000000000000000000000000000000000000000000000000000000000001200'
+        )
+      )
+      expect(RangeDb.createKey(0x120n)).toEqual(
+        Bytes.fromHexString(
+          '0x0000000000000000000000000000000000000000000000000000000000000120'
+        )
+      )
+    })
+  })
   describe('get', () => {
     const bigNumberStart = 2n ** 34n
     const bigNumberEnd = 2n ** 34n + 500n
@@ -81,6 +100,17 @@ describe('RangeDb', () => {
     it('get no ranges', async () => {
       const ranges = await rangeDb.get(2n ** 32n, 2n ** 32n + 1000n)
       expect(ranges.length).toEqual(0)
+    })
+    it('get ranges correctly', async () => {
+      await rangeDb.put(0x100n, 0x120n, alice)
+      await rangeDb.put(0x120n, 0x200n, bob)
+      await rangeDb.put(0x1000n, 0x1200n, carol)
+      const ranges = await rangeDb.get(0n, 0x2000n)
+      expect(ranges).toEqual([
+        new RangeRecord(0x100n, 0x120n, alice),
+        new RangeRecord(0x120n, 0x200n, bob),
+        new RangeRecord(0x1000n, 0x1200n, carol)
+      ])
     })
   })
   describe('put', () => {

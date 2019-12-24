@@ -40,14 +40,14 @@ describe('IntervalTree', () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
+        '0x95703b48a33f3750929082600d9bdd890ffef2b8434c19607a741f0dcc8a70c8'
       )
     })
     it('return Merkle Root with leaf which has big number as start', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2, leaf3, leafBigNumber])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0xc6cc7cbcdbb1c6eeb1d42e4866dc8319645bb1081a6c93ceb54eb11eb4be3f1c'
+        '0x714ab06047e0791228efb82d081deb2a011079b58db69c409771499c59292798'
       )
     })
   })
@@ -112,7 +112,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(300n),
             Bytes.fromHexString(
-              '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
+              '0x3b93a2a95fbcfbefdd3b6604f965379833a263fb74913f970b201fb7e1d5949e'
             )
           )
         ]
@@ -130,7 +130,7 @@ describe('IntervalTree', () => {
           new IntervalTreeNode(
             BigNumber.from(300n),
             Bytes.fromHexString(
-              '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
+              '0x3b93a2a95fbcfbefdd3b6604f965379833a263fb74913f970b201fb7e1d5949e'
             )
           )
         ]
