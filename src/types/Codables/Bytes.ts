@@ -18,7 +18,10 @@ export default class Bytes implements Codable {
   static fromHexString(hex: string): Bytes {
     const match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
     if (match) {
-      const value = match[2]
+      let value = match[2]
+      if (value.length % 2 == 1) {
+        value = '0' + value
+      }
       const result = []
       for (let i = 0; i < value.length; i += 2) {
         result.push(parseInt(value.substr(i, 2), 16))
