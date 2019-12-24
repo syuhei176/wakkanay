@@ -1,16 +1,13 @@
 import { Bytes, Address } from '../../types'
-import {
-  Property,
-  convertStringToLogicalConnective,
-  convertStringToAtomicPredicate,
-  FreeVariable,
-  AtomicPredicateStrings,
-  LogicalConnectiveStrings
-} from '../types'
-import { transpiler } from 'ovm-compiler'
+import { Property, FreeVariable } from '../types'
+import { parser, transpiler } from 'ovm-compiler'
 import Coder from '../../coder'
 import { replaceHint } from '../deciders/getWitnesses'
 import { decodeStructable } from '../../utils/DecoderUtil'
+import NormalInput = transpiler.NormalInput
+import AtomicProposition = transpiler.AtomicProposition
+import LogicalConnective = transpiler.LogicalConnective
+import { IntermediateCompiledPredicate } from 'ovm-compiler/dist/transpiler'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -23,15 +20,47 @@ import { decodeStructable } from '../../utils/DecoderUtil'
  * And it can instantiate property using Test.
  * ```
  * // For all b such that Q(b): Bool(10) and Bool(b)
- * compiledPredicate.instantiate('TestF', [10])
+ * const propertyTestF = new Property(TestPredicateAddress, ['TestF', 10])
+ * compiledPredicate.instantiate(propertyTestF)
  * // Bool(10) and Bool(5)
- * compiledPredicate.instantiate('TestFA', [10, 5])
+ * const propertyTestFA = new Property(TestPredicateAddress, ['TestFA', 10, 5])
+ * compiledPredicate.instantiate(propertyTestFA)
  * ```
  */
 export class CompiledPredicate {
+  // compiled property
   compiled: transpiler.CompiledPredicate
-  constructor(compiled: transpiler.CompiledPredicate) {
+  // original source code of property
+  source: string | null = null
+
+  constructor(
+    readonly deployedAddress: Address,
+    compiled: transpiler.CompiledPredicate,
+    source?: string
+  ) {
     this.compiled = compiled
+    this.deployedAddress = deployedAddress
+    if (source) {
+      this.source = source
+    }
+  }
+
+  static fromSource(
+    deployedAddress: Address,
+    source: string
+  ): CompiledPredicate {
+    const propertyParser = new parser.Parser()
+    return new CompiledPredicate(
+      deployedAddress,
+      transpiler.transpilePropertyDefsToCompiledPredicate(
+        propertyParser.parse(source)
+      )[0],
+      source
+    )
+  }
+
+  makeProperty(inputs: Bytes[]): Property {
+    return new Property(this.deployedAddress, inputs)
   }
 
   /**
@@ -42,99 +71,163 @@ export class CompiledPredicate {
    */
   decompileProperty(
     compiledProperty: Property,
-    predicateTable: ReadonlyMap<string, Address>
+    predicateTable: ReadonlyMap<string, Address>,
+    constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const c = this.compiled.contracts.find(c => c.definition.name == name)
+    const findContract = (name: string) => {
+      return this.compiled.contracts.find(c => c.name == name)
+    }
+
+    let c = findContract(name)
     if (!c) {
+      // If contract is not found, use entry point.
+      c = findContract(this.compiled.entryPoint)
+      compiledProperty.inputs.unshift(
+        Bytes.fromString(this.compiled.entryPoint)
+      )
+    }
+    if (c === undefined) {
       throw new Error(`cannot find ${name} in contracts`)
     }
-
-    const predicateAddress = predicateTable.get(
-      convertStringToLogicalConnective(c.definition
-        .predicate as LogicalConnectiveStrings)
-    )
+    const def = c
+    const context = {
+      compiledProperty,
+      predicateTable,
+      constantTable
+    }
+    const predicateAddress = predicateTable.get(c.connective)
 
     if (predicateAddress === undefined) {
-      throw new Error(`predicateAddress ${c.definition.predicate} not found`)
+      throw new Error(`predicateAddress ${def.connective} not found`)
     }
 
-    return new Property(
-      predicateAddress,
-      c.definition.inputs.map((i, index) => {
-        if (typeof i == 'string') {
-          if (
-            (c.definition.predicate == 'ForAllSuchThat' ||
-              c.definition.predicate == 'ThereExistsSuchThat') &&
-            index == 0
-          ) {
-            i = replaceHint(
-              i,
-              createSubstitutions(
-                c.definition.inputDefs,
-                compiledProperty.inputs
-              )
-            )
-          }
-          return Bytes.fromString(i)
-        } else if (i.predicate.type == 'AtomicPredicate') {
-          let atomicPredicateAddress: Address | undefined
-          const atomicPredicate = convertStringToAtomicPredicate(i.predicate
-            .source as AtomicPredicateStrings)
-          if (atomicPredicate) {
-            atomicPredicateAddress = predicateTable.get(atomicPredicate)
-          } else {
-            atomicPredicateAddress = compiledProperty.deciderAddress
-          }
-          if (atomicPredicateAddress === undefined) {
-            throw new Error(`The address of ${i.predicate.source} not found.`)
-          }
-          return Coder.encode(
-            this.createChildProperty(
-              atomicPredicateAddress,
-              i,
-              compiledProperty.inputs
-            ).toStruct()
+    if (
+      def.connective == LogicalConnective.ForAllSuchThat ||
+      def.connective == LogicalConnective.ThereExistsSuchThat
+    ) {
+      return new Property(predicateAddress, [
+        Bytes.fromString(
+          replaceHint(
+            def.inputs[0] as string,
+            createSubstitutions(def.inputDefs, compiledProperty.inputs)
           )
-        } else {
-          throw new Error('predicate must be atomic or string')
-        }
-      })
-    )
+        ),
+        Bytes.fromString(def.inputs[1] as string),
+        createAtomicPropositionCall(
+          def.inputs[2] as AtomicProposition,
+          def,
+          context
+        )
+      ])
+    } else {
+      // In case of And, Or, Not and other predicates
+      return new Property(
+        predicateAddress,
+        def.inputs.map(i =>
+          createAtomicPropositionCall(i as AtomicProposition, def, context)
+        )
+      )
+    }
   }
+}
 
-  /**
-   * createProperty
-   * @param atomicPredicateAddress
-   * @param proposition
-   * @param inputs
-   */
-  private createChildProperty(
-    atomicPredicateAddress: Address,
-    proposition: transpiler.AtomicProposition,
-    inputs: Bytes[]
-  ): Property {
-    return new Property(
-      atomicPredicateAddress,
-      proposition.inputs.map(i => {
-        if (i.type == 'NormalInput') {
-          return inputs[i.inputIndex]
-        } else if (i.type == 'VariableInput') {
-          return FreeVariable.from(i.placeholder)
-        } else if (i.type == 'LabelInput') {
-          return Bytes.fromString(i.label)
-        } else {
-          throw new Error(`${i} has unknow type`)
-        }
-      })
+export const createAtomicPropositionCall = (
+  input: AtomicProposition,
+  def: IntermediateCompiledPredicate,
+  context: {
+    compiledProperty: Property
+    predicateTable: ReadonlyMap<string, Address>
+    constantTable: { [key: string]: Bytes }
+  }
+): Bytes => {
+  if (input.predicate.type == 'AtomicPredicateCall') {
+    const originalAddress: Address = context.compiledProperty.deciderAddress
+    // If the predicate name is not listed in AtomicPredicate enum, it's compiled predicate.
+    let atomicPredicateAddress: Address | undefined
+    if (input.predicate.source.indexOf(def.originalPredicateName) == 0) {
+      // If input.predicate.source is "${originalPredicateName}TA2O"
+      atomicPredicateAddress = originalAddress
+    } else {
+      atomicPredicateAddress = context.predicateTable.get(
+        input.predicate.source
+      )
+    }
+    if (atomicPredicateAddress === undefined) {
+      throw new Error(`The address of ${input.predicate.source} not found.`)
+    }
+    return Coder.encode(
+      createChildProperty(
+        atomicPredicateAddress,
+        input,
+        context.compiledProperty,
+        context.constantTable
+      ).toStruct()
     )
+  } else if (input.predicate.type == 'InputPredicateCall') {
+    const property = decodeStructable(
+      Property,
+      Coder,
+      context.compiledProperty.inputs[input.predicate.source.inputIndex]
+    )
+    const extraInputBytes = input.inputs.map(
+      i => context.compiledProperty.inputs[(i as NormalInput).inputIndex]
+    )
+    property.inputs = property.inputs.concat(extraInputBytes)
+    return Coder.encode(property.toStruct())
+  } else if (input.predicate.type == 'VariablePredicateCall') {
+    // When predicateDef has VariablePredicate, inputs[1] must be variable name
+    return FreeVariable.from(def.inputs[1] as string)
+  } else {
+    throw new Error('predicate must be atomic, input or variable.')
   }
 }
 
 /**
- * create substitution map from key list and value list
- * @param inputDefs
+ * createChildProperty
+ * @param atomicPredicateAddress
+ * @param proposition
  * @param inputs
+ */
+const createChildProperty = (
+  atomicPredicateAddress: Address,
+  proposition: transpiler.AtomicProposition,
+  compiledProperty: Property,
+  constantsTable: { [key: string]: Bytes }
+): Property => {
+  return new Property(
+    atomicPredicateAddress,
+    proposition.inputs.map(i => {
+      if (i.type == 'NormalInput') {
+        if (compiledProperty.inputs.length <= i.inputIndex) {
+          throw new Error(
+            `Property(${compiledProperty.deciderAddress}) don't have enough inputs.`
+          )
+        }
+        return constructInput(compiledProperty.inputs[i.inputIndex], i.children)
+      } else if (i.type == 'VariableInput') {
+        return FreeVariable.from(i.placeholder)
+      } else if (i.type == 'LabelInput') {
+        return Bytes.fromString(i.label)
+      } else if (i.type == 'ConstantInput') {
+        const constVar = constantsTable[i.name]
+        if (constVar === undefined) {
+          throw new Error(`constant value ${i.name} not found.`)
+        }
+        return constantsTable[i.name]
+      } else if (i.type == 'SelfInput') {
+        return Bytes.fromHexString(compiledProperty.deciderAddress.data)
+      } else {
+        throw new Error(`${i} has unknow type`)
+      }
+    })
+  )
+}
+
+/**
+ * create substitution map from key list and value list
+ * @param inputDefs key list
+ * @param inputs value list
  */
 export const createSubstitutions = (
   inputDefs: string[],
