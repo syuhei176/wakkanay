@@ -169,7 +169,7 @@ export class CompiledPredicate {
  * @param proposition
  * @param inputs
  */
-export const createChildProperty = (
+const createChildProperty = (
   atomicPredicateAddress: Address,
   proposition: transpiler.AtomicProposition,
   inputs: Bytes[],

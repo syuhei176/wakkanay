@@ -1,8 +1,13 @@
 import { Property, FreeVariable } from '../../../src/ovm/types'
-import { Address, Bytes, Integer } from '../../../src/types/Codables'
+import { Address, Bytes, Integer, BigNumber } from '../../../src/types/Codables'
 import {
   initializeDeciderManager,
-  ForAllSuchThatDeciderAddress
+  ForAllSuchThatDeciderAddress,
+  AndDeciderAddress,
+  SampleDeciderAddress as BoolDeciderAddress,
+  ThereExistsSuchThatDeciderAddress,
+  EqualDeciderAddress,
+  IsContainedDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import {
   CompiledPredicate,
@@ -11,8 +16,10 @@ import {
 } from '../../../src/ovm/decompiler/CompiledPredicate'
 import Coder from '../../../src/coder'
 import { testSource } from './TestSource'
-import { arrayify } from 'ethers/utils'
 import { CompiledDecider } from '../../../src/ovm/decompiler'
+import { EqualDecider } from '../../../src/ovm/deciders'
+import { ethers } from 'ethers'
+import { Range } from '../../../src/types'
 
 describe('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(
@@ -36,6 +43,10 @@ describe('CompiledPredicate', () => {
         )
       ]
     }
+    const encodeProperty = (property: Property) =>
+      Coder.encode(property.toStruct())
+    const encodeBoolDecider = (input: Bytes) =>
+      encodeProperty(new Property(BoolDeciderAddress, [input]))
     let compiledPredicate: CompiledPredicate
     beforeEach(() => {
       compiledPredicate = CompiledPredicate.fromSource(
@@ -66,6 +77,92 @@ describe('CompiledPredicate', () => {
       const property = compiledPredicate.decompileProperty(
         new Property(TestPredicateAddress, [Coder.encode(Integer.from(10))]),
         deciderManager.shortnameMap
+      )
+      expect(property).toEqual(testOriginalProperty)
+    })
+
+    it('compiled predicate using AND logical connective', async () => {
+      const compiledPredicateAnd = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        'def test(a, b) := Bool(a) and Bool(b)'
+      )
+      const testOriginalProperty = {
+        deciderAddress: AndDeciderAddress,
+        inputs: [
+          encodeBoolDecider(Coder.encode(Integer.from(301))),
+          encodeBoolDecider(Coder.encode(Integer.from(302)))
+        ]
+      }
+      const property = compiledPredicateAnd.decompileProperty(
+        new Property(TestPredicateAddress, [
+          Coder.encode(Integer.from(301)),
+          Coder.encode(Integer.from(302))
+        ]),
+        deciderManager.shortnameMap
+      )
+      expect(property).toEqual(testOriginalProperty)
+    })
+
+    it('compiled predicate using input predicate call', async () => {
+      const compiledPredicateAnd = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        'def test(a, b) := a() and b()'
+      )
+      const testOriginalProperty = {
+        deciderAddress: AndDeciderAddress,
+        inputs: [
+          encodeBoolDecider(Coder.encode(Integer.from(301))),
+          encodeBoolDecider(Coder.encode(Integer.from(302)))
+        ]
+      }
+      const property = compiledPredicateAnd.decompileProperty(
+        new Property(TestPredicateAddress, [
+          encodeBoolDecider(Coder.encode(Integer.from(301))),
+          encodeBoolDecider(Coder.encode(Integer.from(302)))
+        ]),
+        deciderManager.shortnameMap
+      )
+      expect(property).toEqual(testOriginalProperty)
+    })
+
+    it('compiled predicate using variable predicate call', async () => {
+      const txAddress = Address.from(ethers.constants.AddressZero)
+      const txAddressBytes = Bytes.fromHexString(txAddress.data)
+      const token = Bytes.fromHexString(ethers.constants.AddressZero)
+      const range = Coder.encode(
+        new Range(BigNumber.from(0), BigNumber.from(100)).toStruct()
+      )
+      const block = Coder.encode(Integer.from(50))
+      const so = Bytes.fromHexString('0x00')
+      const tx = new Property(txAddress, [token, range, block, so])
+      const compiledPredicateAnd = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        'def test(token, range, block) := with Tx(token, range, block) as tx { tx() }'
+      )
+      const encodeEqDecider = (a: Bytes, b: Bytes) =>
+        encodeProperty(new Property(EqualDeciderAddress, [a, b]))
+      const encodeIsContainedDecider = (a: Bytes, b: Bytes) =>
+        encodeProperty(new Property(IsContainedDeciderAddress, [a, b]))
+      const testOriginalProperty = {
+        deciderAddress: AndDeciderAddress,
+        inputs: [
+          encodeEqDecider(txAddressBytes, txAddressBytes),
+          encodeEqDecider(token, token),
+          encodeIsContainedDecider(range, range),
+          encodeEqDecider(block, block),
+          encodeProperty(tx)
+        ]
+      }
+      const property = compiledPredicateAnd.decompileProperty(
+        new Property(TestPredicateAddress, [
+          Bytes.fromString('TestTA'),
+          encodeProperty(tx),
+          token,
+          range,
+          block
+        ]),
+        deciderManager.shortnameMap,
+        { TransactionAddress: txAddressBytes }
       )
       expect(property).toEqual(testOriginalProperty)
     })
