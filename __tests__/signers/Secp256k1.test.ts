@@ -1,4 +1,4 @@
-import { secp256k1Signer } from '../../src/signers'
+import { Secp256k1Signer, Signer } from '../../src/signers'
 import { Bytes } from '../../src/types/Codables'
 
 describe('secp256k1Signer', () => {
@@ -10,20 +10,26 @@ describe('secp256k1Signer', () => {
   const testSignature = Bytes.fromHexString(
     '0x682f001aa66b904779bbcd846e52a62f4cf7d643b91826fdec04441ab604a6d66330609ad20a1a14fb52e3967bd2086c131e634ee4823b8a7ce3be8d91038daa1b'
   )
+  let signer: Signer
+
+  beforeEach(() => {
+    signer = new Secp256k1Signer(privateKey)
+  })
 
   it('return signature', async () => {
-    const signature = await secp256k1Signer.sign(message, privateKey)
+    const signature = await signer.sign(message)
     expect(signature).toEqual(testSignature)
   })
 
   it('return another signature from another message', async () => {
-    const signature = await secp256k1Signer.sign(anotherMessage, privateKey)
+    const signature = await signer.sign(anotherMessage)
     expect(signature).not.toEqual(testSignature)
   })
 
   it('throw exception with empty message', async () => {
-    expect(
-      secp256k1Signer.sign(Bytes.default(), Bytes.default())
-    ).rejects.toEqual(new Error('invalid length of privateKey'))
+    const signer = new Secp256k1Signer(Bytes.default())
+    expect(signer.sign(Bytes.default())).rejects.toEqual(
+      new Error('invalid length of privateKey')
+    )
   })
 })

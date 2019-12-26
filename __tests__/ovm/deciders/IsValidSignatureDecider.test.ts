@@ -3,7 +3,7 @@ import { IsValidSignatureDecider } from '../../../src/ovm/deciders'
 import { Property } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import * as ethers from 'ethers'
-import { secp256k1Signer } from '../../../src/signers/Secp256k1'
+import { Secp256k1Signer } from '../../../src/signers/Secp256k1'
 import { InMemoryKeyValueStore } from '../../../src/db'
 
 describe('IsValidSignatureDecider', () => {
@@ -18,7 +18,7 @@ describe('IsValidSignatureDecider', () => {
     publicKey = await wallet.getAddress()
     privateKey = Bytes.fromHexString(wallet.privateKey)
     message = Bytes.fromString('hello world')
-    signature = await secp256k1Signer.sign(message, privateKey)
+    signature = await new Secp256k1Signer(privateKey).sign(message)
   })
 
   test('valid secp2561k signature', async () => {
@@ -46,9 +46,8 @@ describe('IsValidSignatureDecider', () => {
   })
 
   test('invalid signature', async () => {
-    const invalidSig = await secp256k1Signer.sign(
-      Bytes.fromString('invalid sig'),
-      privateKey
+    const invalidSig = await new Secp256k1Signer(privateKey).sign(
+      Bytes.fromString('invalid sig')
     )
     const property = new Property(addr, [
       message,
