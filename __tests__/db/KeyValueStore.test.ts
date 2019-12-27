@@ -69,13 +69,14 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
 
     it('succeed to del', async () => {
       await kvs.put(testDbKey, testDbValue)
+      expect(await kvs.get(testDbKey)).toEqual(testDbValue)
       await kvs.del(testDbKey)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
 
     it('delete key which does not exist', async () => {
-      const kvs = new KVS(testDbName)
+      expect(await kvs.get(testDbKey)).toBeNull()
       await kvs.del(testDbKey)
     })
   })
