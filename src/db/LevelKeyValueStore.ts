@@ -3,6 +3,7 @@ import { Bytes } from '../types/Codables'
 import levelup, { LevelUp } from 'levelup'
 import { AbstractLevelDOWN, AbstractIterator } from 'abstract-leveldown'
 import memdown from 'memdown'
+import util from 'util'
 
 export class LevelKeyValueStoreIterator implements Iterator {
   public iter: AbstractIterator<Buffer, Buffer>
@@ -48,6 +49,8 @@ export class LevelKeyValueStore implements KeyValueStore {
   public dbName?: Bytes
   public prefix: Bytes = Bytes.default()
   public db: LevelUp
+  private _put: (key: Buffer, value: Buffer) => Promise<void>
+  private _del: (key: Buffer) => Promise<void>
 
   constructor(
     prefix: Bytes,
@@ -61,6 +64,8 @@ export class LevelKeyValueStore implements KeyValueStore {
       this.dbName = prefix.suffix('.')
       this.db = levelup(leveldown)
     }
+    this._put = util.promisify(this.db.put.bind(this.db))
+    this._del = util.promisify(this.db.del.bind(this.db))
   }
 
   public async get(key: Bytes): Promise<Bytes | null> {
@@ -76,30 +81,14 @@ export class LevelKeyValueStore implements KeyValueStore {
   }
 
   public async put(key: Bytes, value: Bytes): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.put(
-        this.convertKeyIntoBuffer(key),
-        LevelKeyValueStore.convertValueIntoBuffer(value),
-        err => {
-          if (err) {
-            return reject(err)
-          } else {
-            return resolve()
-          }
-        }
-      )
-    })
+    await this._put(
+      this.convertKeyIntoBuffer(key),
+      LevelKeyValueStore.convertValueIntoBuffer(value)
+    )
   }
 
   public async del(key: Bytes): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.del(this.convertKeyIntoBuffer(key), err => {
-        if (err) {
-          return reject(err)
-        }
-        resolve()
-      })
-    })
+    await this._del(this.convertKeyIntoBuffer(key))
   }
 
   public async batch(operations: BatchOperation[]): Promise<void> {

@@ -55,7 +55,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     })
 
     it('succeed to get', async () => {
-      kvs.put(testDbKey, testDbValue)
+      await kvs.put(testDbKey, testDbValue)
       const result = await kvs.get(testDbKey)
       expect(result).toEqual(testDbValue)
     })
