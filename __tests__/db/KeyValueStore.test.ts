@@ -6,6 +6,8 @@ import {
 } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 import 'fake-indexeddb/auto'
+import leveldown from 'leveldown'
+import util from 'util'
 
 const KVSs = [
   InMemoryKeyValueStore,
@@ -17,7 +19,7 @@ const testDbKey = Bytes.fromString('aaa')
 const testDbValue = Bytes.fromString('value')
 
 describe.each(KVSs)('KeyValueStore: %p', KVS => {
-  async function clearDb() {
+  async function clearDb(kvs: KeyValueStore) {
     if (KVS.name === 'IndexedDbKeyValueStore') {
       await new Promise(resolve => {
         const req = indexedDB.deleteDatabase(testDbName.intoString())
@@ -28,6 +30,15 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
           resolve()
         }
       })
+    } else if (KVS.name === 'LevelDownKeyValueStore') {
+      const leveldownKvs: LevelDownKeyValueStore = kvs as LevelDownKeyValueStore
+      const db = leveldown(leveldownKvs.location)
+      const open = util.promisify(db.open.bind(db))
+      const clear = util.promisify(db.clear.bind(db))
+      const close = util.promisify(db.close.bind(db))
+      await open()
+      await clear()
+      await close()
     }
   }
 
@@ -39,8 +50,8 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     })
 
     afterEach(async () => {
-      await clearDb()
       await kvs.close()
+      await clearDb(kvs)
     })
 
     it('succeed to get', async () => {
@@ -63,8 +74,8 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     })
 
     afterEach(async () => {
-      await clearDb()
       await kvs.close()
+      await clearDb(kvs)
     })
 
     it('succeed to del', async () => {
@@ -95,8 +106,8 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     })
 
     afterEach(async () => {
-      await clearDb()
       await kvs.close()
+      await clearDb(kvs)
     })
 
     it('succeed to next', async () => {
@@ -146,7 +157,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     afterEach(async () => {
       await kvs.close()
       await testNotEmptyBucket.close()
-      await clearDb()
+      await clearDb(kvs)
     })
 
     it('succeed to get bucket', async () => {
