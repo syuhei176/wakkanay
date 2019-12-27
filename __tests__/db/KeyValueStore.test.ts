@@ -1,12 +1,12 @@
 import {
-  InMemoryKeyValueStore,
+  LevelKeyValueStore,
   IndexedDbKeyValueStore,
   KeyValueStore
 } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 import 'fake-indexeddb/auto'
 
-const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
+const KVSs = [LevelKeyValueStore, IndexedDbKeyValueStore]
 const testDbName = Bytes.fromString('root')
 const testDbKey = Bytes.fromString('aaa')
 const testDbValue = Bytes.fromString('value')
