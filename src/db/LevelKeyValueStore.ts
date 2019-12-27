@@ -51,7 +51,7 @@ export class LevelKeyValueStore implements KeyValueStore {
 
   constructor(
     prefix: Bytes,
-    readonly leveldown: AbstractLevelDOWN = memdown(),
+    public readonly leveldown: AbstractLevelDOWN = memdown(),
     db?: LevelUp
   ) {
     this.prefix = prefix.suffix('.')
@@ -186,12 +186,10 @@ export class LevelKeyValueStore implements KeyValueStore {
   }
 
   public async close(): Promise<void> {
-    // do nothing
-    return
+    await this.db.close()
   }
 
   public async open(): Promise<void> {
-    // do nothing
-    return
+    await this.db.open()
   }
 }

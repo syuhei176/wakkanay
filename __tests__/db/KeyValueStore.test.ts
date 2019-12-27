@@ -1,12 +1,17 @@
 import {
-  LevelKeyValueStore,
+  InMemoryKeyValueStore,
+  LevelDownKeyValueStore,
   IndexedDbKeyValueStore,
   KeyValueStore
 } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 import 'fake-indexeddb/auto'
 
-const KVSs = [LevelKeyValueStore, IndexedDbKeyValueStore]
+const KVSs = [
+  InMemoryKeyValueStore,
+  LevelDownKeyValueStore,
+  IndexedDbKeyValueStore
+]
 const testDbName = Bytes.fromString('root')
 const testDbKey = Bytes.fromString('aaa')
 const testDbValue = Bytes.fromString('value')
@@ -27,31 +32,42 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
   }
 
   describe('get', () => {
+    let kvs: KeyValueStore
+    beforeEach(async () => {
+      kvs = new KVS(testDbName)
+      await kvs.open()
+    })
+
     afterEach(async () => {
       await clearDb()
+      await kvs.close()
     })
 
     it('succeed to get', async () => {
-      const kvs = new KVS(testDbName)
       kvs.put(testDbKey, testDbValue)
       const result = await kvs.get(testDbKey)
       expect(result).toEqual(testDbValue)
     })
 
     it('fail to get', async () => {
-      const kvs = new KVS(testDbName)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
   })
 
   describe('del', () => {
+    let kvs: KeyValueStore
+    beforeEach(async () => {
+      kvs = new KVS(testDbName)
+      await kvs.open()
+    })
+
     afterEach(async () => {
       await clearDb()
+      await kvs.close()
     })
 
     it('succeed to del', async () => {
-      const kvs = new KVS(testDbName)
       await kvs.put(testDbKey, testDbValue)
       await kvs.del(testDbKey)
       const result = await kvs.get(testDbKey)
@@ -69,9 +85,9 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     const testDbKey1 = Bytes.fromString('1')
     const testDbKey2 = Bytes.fromString('2')
     let kvs: KeyValueStore
-
     beforeEach(async () => {
       kvs = new KVS(testDbName)
+      await kvs.open()
       await kvs.put(testDbKey0, testDbKey0)
       await kvs.put(testDbKey1, testDbKey1)
       await kvs.put(testDbKey2, testDbKey2)
@@ -79,6 +95,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
 
     afterEach(async () => {
       await clearDb()
+      await kvs.close()
     })
 
     it('succeed to next', async () => {
@@ -119,6 +136,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
 
     beforeEach(async () => {
       kvs = new KVS(testDbName)
+      await kvs.open()
       testNotEmptyBucket = await kvs.bucket(testNotEmptyBucketName)
       await testNotEmptyBucket.put(testDbKey0, testDbKey0)
       await testNotEmptyBucket.put(testDbKey1, testDbKey1)
