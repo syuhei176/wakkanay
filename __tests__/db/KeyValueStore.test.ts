@@ -1,18 +1,25 @@
 import {
   InMemoryKeyValueStore,
+  LevelDownKeyValueStore,
   IndexedDbKeyValueStore,
   KeyValueStore
 } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 import 'fake-indexeddb/auto'
+import leveldown from 'leveldown'
+import util from 'util'
 
-const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
+const KVSs = [
+  InMemoryKeyValueStore,
+  LevelDownKeyValueStore,
+  IndexedDbKeyValueStore
+]
 const testDbName = Bytes.fromString('root')
 const testDbKey = Bytes.fromString('aaa')
 const testDbValue = Bytes.fromString('value')
 
 describe.each(KVSs)('KeyValueStore: %p', KVS => {
-  async function clearDb() {
+  async function clearDb(kvs: KeyValueStore) {
     if (KVS.name === 'IndexedDbKeyValueStore') {
       await new Promise(resolve => {
         const req = indexedDB.deleteDatabase(testDbName.intoString())
@@ -23,43 +30,64 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
           resolve()
         }
       })
+    } else if (KVS.name === 'LevelDownKeyValueStore') {
+      const leveldownKvs: LevelDownKeyValueStore = kvs as LevelDownKeyValueStore
+      const db = leveldown(leveldownKvs.location)
+      const open = util.promisify(db.open.bind(db))
+      const clear = util.promisify(db.clear.bind(db))
+      const close = util.promisify(db.close.bind(db))
+      await open()
+      await clear()
+      await close()
     }
   }
 
   describe('get', () => {
+    let kvs: KeyValueStore
+    beforeEach(async () => {
+      kvs = new KVS(testDbName)
+      await kvs.open()
+    })
+
     afterEach(async () => {
-      await clearDb()
+      await kvs.close()
+      await clearDb(kvs)
     })
 
     it('succeed to get', async () => {
-      const kvs = new KVS(testDbName)
-      kvs.put(testDbKey, testDbValue)
+      await kvs.put(testDbKey, testDbValue)
       const result = await kvs.get(testDbKey)
       expect(result).toEqual(testDbValue)
     })
 
     it('fail to get', async () => {
-      const kvs = new KVS(testDbName)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
   })
 
   describe('del', () => {
+    let kvs: KeyValueStore
+    beforeEach(async () => {
+      kvs = new KVS(testDbName)
+      await kvs.open()
+    })
+
     afterEach(async () => {
-      await clearDb()
+      await kvs.close()
+      await clearDb(kvs)
     })
 
     it('succeed to del', async () => {
-      const kvs = new KVS(testDbName)
       await kvs.put(testDbKey, testDbValue)
+      expect(await kvs.get(testDbKey)).toEqual(testDbValue)
       await kvs.del(testDbKey)
       const result = await kvs.get(testDbKey)
       expect(result).toBeNull()
     })
 
     it('delete key which does not exist', async () => {
-      const kvs = new KVS(testDbName)
+      expect(await kvs.get(testDbKey)).toBeNull()
       await kvs.del(testDbKey)
     })
   })
@@ -69,16 +97,17 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     const testDbKey1 = Bytes.fromString('1')
     const testDbKey2 = Bytes.fromString('2')
     let kvs: KeyValueStore
-
     beforeEach(async () => {
       kvs = new KVS(testDbName)
+      await kvs.open()
       await kvs.put(testDbKey0, testDbKey0)
       await kvs.put(testDbKey1, testDbKey1)
       await kvs.put(testDbKey2, testDbKey2)
     })
 
     afterEach(async () => {
-      await clearDb()
+      await kvs.close()
+      await clearDb(kvs)
     })
 
     it('succeed to next', async () => {
@@ -119,6 +148,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
 
     beforeEach(async () => {
       kvs = new KVS(testDbName)
+      await kvs.open()
       testNotEmptyBucket = await kvs.bucket(testNotEmptyBucketName)
       await testNotEmptyBucket.put(testDbKey0, testDbKey0)
       await testNotEmptyBucket.put(testDbKey1, testDbKey1)
@@ -127,7 +157,7 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
     afterEach(async () => {
       await kvs.close()
       await testNotEmptyBucket.close()
-      await clearDb()
+      await clearDb(kvs)
     })
 
     it('succeed to get bucket', async () => {
