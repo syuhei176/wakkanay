@@ -1,5 +1,6 @@
 import { Property } from './types'
-import Coder from '../coder'
+import { getDefaultCoder } from '../coder'
+const Coder = getDefaultCoder()
 import { Bytes } from '../types/Codables'
 
 export const decodeProperty = (input: Bytes) =>

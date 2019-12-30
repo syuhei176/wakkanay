@@ -1,8 +1,9 @@
-import { Bytes, Integer, BigNumber } from '../../types/Codables'
+import { Bytes, BigNumber } from '../../types/Codables'
 import { KeyValueStore, RangeDb } from '../../db'
 import { decodeStructable } from '../../utils/DecoderUtil'
 import { Range } from '../../types'
-import Coder from '../../coder'
+import { getDefaultCoder } from '../../coder'
+const Coder = getDefaultCoder()
 import { makeRange } from '../../utils/BigIntMath'
 
 /**

@@ -1,10 +1,11 @@
-import Coder from '../../../coder'
+import { getDefaultCoder } from '../../../coder'
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { Range } from '../../../types'
 import { DecoderUtil } from '../../../utils'
+const Coder = getDefaultCoder()
 
 /**
  * IsContainedDecider decides to true if for given two ranges,

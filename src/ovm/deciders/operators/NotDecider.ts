@@ -1,5 +1,6 @@
 import { Bytes } from '../../../types/Codables'
-import Coder from '../../../coder'
+import { getDefaultCoder } from '../../../coder'
+const Coder = getDefaultCoder()
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'

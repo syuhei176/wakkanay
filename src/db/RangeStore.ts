@@ -1,11 +1,13 @@
-import { BigNumber, Bytes, Struct } from '../types/Codables'
-import JsonCoder from '../coder/JsonCoder'
+import { BigNumber, Bytes } from '../types/Codables'
 import { BigIntMath } from '../utils'
 
 export class RangeRecord {
   public static decode(bytes: Bytes): RangeRecord {
-    return RangeRecord.fromStruct(
-      JsonCoder.decode(RangeRecord.getParamType(), bytes)
+    const data = JSON.parse(bytes.intoString())
+    return new RangeRecord(
+      BigNumber.fromString(data.start),
+      BigNumber.fromString(data.end),
+      Bytes.fromHexString(data.value)
     )
   }
   public start: BigNumber
@@ -20,35 +22,15 @@ export class RangeRecord {
     this.end = BigNumber.from(end)
     this.value = value
   }
-  public toStruct(): Struct {
-    return new Struct([
-      {
-        key: 'start',
-        value: this.start
-      },
-      { key: 'end', value: this.end },
-      { key: 'value', value: this.value }
-    ])
-  }
-  public static fromStruct(_struct: Struct): RangeRecord {
-    return new RangeRecord(
-      _struct.data[0].value as BigNumber,
-      _struct.data[1].value as BigNumber,
-      _struct.data[2].value as Bytes
-    )
-  }
-  public static getParamType(): Struct {
-    return Struct.from([
-      {
-        key: 'start',
-        value: BigNumber.default()
-      },
-      { key: 'end', value: BigNumber.default() },
-      { key: 'value', value: Bytes.default() }
-    ])
-  }
+
   public encode(): Bytes {
-    return JsonCoder.encode(this.toStruct())
+    return Bytes.fromString(
+      JSON.stringify({
+        start: this.start.data.toString(),
+        end: this.end.data.toString(),
+        value: this.value.toHexString()
+      })
+    )
   }
   public intersect(start: bigint, end: bigint): boolean {
     if (end <= start) {

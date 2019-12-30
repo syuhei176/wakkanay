@@ -1,7 +1,8 @@
 import { Bytes, Address } from '../../types'
 import { Property, FreeVariable } from '../types'
 import { parser, transpiler } from 'ovm-compiler'
-import Coder from '../../coder'
+import { getDefaultCoder } from '../../coder'
+const Coder = getDefaultCoder()
 import { replaceHint } from '../deciders/getWitnesses'
 import { decodeStructable } from '../../utils/DecoderUtil'
 import NormalInput = transpiler.NormalInput
