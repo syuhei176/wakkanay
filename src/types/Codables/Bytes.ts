@@ -1,5 +1,5 @@
 import Codable from './Codable'
-import { TextEncoder, TextDecoder } from 'text-encoding-shim'
+import { TextEncoder, TextDecoder } from 'text-encoding'
 
 export default class Bytes implements Codable {
   static from(data: Uint8Array): Bytes {
