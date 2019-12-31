@@ -1,6 +1,5 @@
 import {
   InMemoryKeyValueStore,
-  LevelDownKeyValueStore,
   IndexedDbKeyValueStore,
   KeyValueStore
 } from '../../src/db'
@@ -9,11 +8,7 @@ import 'fake-indexeddb/auto'
 import leveldown from 'leveldown'
 import util from 'util'
 
-const KVSs = [
-  InMemoryKeyValueStore,
-  LevelDownKeyValueStore,
-  IndexedDbKeyValueStore
-]
+const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
 const testDbName = Bytes.fromString('root')
 const testDbKey = Bytes.fromString('aaa')
 const testDbValue = Bytes.fromString('value')
@@ -30,15 +25,6 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
           resolve()
         }
       })
-    } else if (KVS.name === 'LevelDownKeyValueStore') {
-      const leveldownKvs: LevelDownKeyValueStore = kvs as LevelDownKeyValueStore
-      const db = leveldown(leveldownKvs.location)
-      const open = util.promisify(db.open.bind(db))
-      const clear = util.promisify(db.clear.bind(db))
-      const close = util.promisify(db.close.bind(db))
-      await open()
-      await clear()
-      await close()
     }
   }
 
