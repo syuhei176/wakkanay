@@ -114,7 +114,7 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
         resolve(null)
       }
       req.onsuccess = () => {
-        const result = req.result ? req.result.value : null
+        const result = req.result ? new Bytes(req.result.value.data) : null
         resolve(result)
       }
     })
@@ -127,7 +127,8 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     store.put(createKeyValue(key.intoString(), value))
 
     return new Promise((resolve, reject) => {
-      tx.onerror = () => {
+      tx.onerror = e => {
+        console.error(e)
         reject(new Error('cannot complete put operation'))
       }
       tx.oncomplete = () => {
