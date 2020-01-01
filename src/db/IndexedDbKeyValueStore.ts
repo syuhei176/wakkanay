@@ -17,7 +17,7 @@ class IndexedDbIterator implements Iterator {
     const tx = db.transaction(this.storeKey, 'readonly')
     const store = tx.objectStore(this.storeKey)
     this.req = store.openCursor(
-      IDBKeyRange.lowerBound(this.lowerBound.intoString())
+      IDBKeyRange.lowerBound(this.lowerBound.toHexString())
     )
   }
 
@@ -36,11 +36,15 @@ class IndexedDbIterator implements Iterator {
       const result: IDBCursorWithValue = await new Promise(resolve => {
         if (this.cursor && this.req) {
           this.cursor.continue()
+          this.req.onerror = e => {
+            console.error(e)
+          }
           this.req.onsuccess = e => {
             resolve((e.target as any).result)
           }
         }
       })
+      if (!result) return null
       return result.value ? createBytesKeyValue({ ...result.value }) : null
     }
   }
@@ -107,14 +111,14 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     const db = await this.getDb()
     const tx = db.transaction(this.storeKey, 'readonly')
     const store = tx.objectStore(this.storeKey)
-    const req = store.get(key.intoString())
+    const req = store.get(key.toHexString())
 
     return await new Promise(resolve => {
       req.onerror = () => {
         resolve(null)
       }
       req.onsuccess = () => {
-        const result = req.result ? req.result.value : null
+        const result = req.result ? new Bytes(req.result.value.data) : null
         resolve(result)
       }
     })
@@ -124,10 +128,11 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     const db = await this.getDb()
     const tx = db.transaction(this.storeKey, 'readwrite')
     const store = tx.objectStore(this.storeKey)
-    store.put(createKeyValue(key.intoString(), value))
+    store.put(createKeyValue(key.toHexString(), value))
 
     return new Promise((resolve, reject) => {
-      tx.onerror = () => {
+      tx.onerror = e => {
+        console.error(e)
         reject(new Error('cannot complete put operation'))
       }
       tx.oncomplete = () => {
@@ -140,7 +145,7 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     const db = await this.getDb()
     const tx = db.transaction(this.storeKey, 'readwrite')
     const store = tx.objectStore(this.storeKey)
-    store.delete(key.intoString())
+    store.delete(key.toHexString())
     return new Promise((resolve, reject) => {
       tx.onerror = () => {
         reject(new Error('cannot complete put operation'))
@@ -152,7 +157,27 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
   }
 
   public async batch(operations: BatchOperation[]): Promise<void> {
-    // console.log('batch')
+    const db = await this.getDb()
+    const tx = db.transaction(this.storeKey, 'readwrite')
+    const store = tx.objectStore(this.storeKey)
+
+    operations.forEach(operation => {
+      if (operation.type === 'Put') {
+        store.put(createKeyValue(operation.key.toHexString(), operation.value))
+      } else if (operation.type === 'Del') {
+        store.delete(operation.key.toHexString())
+      }
+    })
+
+    return new Promise((resolve, reject) => {
+      tx.onerror = e => {
+        console.error(e)
+        reject(new Error('cannot complete transaction'))
+      }
+      tx.oncomplete = () => {
+        resolve()
+      }
+    })
   }
 
   public iter(lowerBound: Bytes): Iterator {
@@ -167,7 +192,7 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
   public async bucket(key: Bytes): Promise<KeyValueStore> {
     let version
     const objectStoreNames = await this.getObjectStoreNames()
-    const newObjectStoreKey = this.storeKey + key.intoString()
+    const newObjectStoreKey = this.storeKey + key.toHexString()
     if (!objectStoreNames.contains(newObjectStoreKey)) {
       version = (await this.getVersion()) + 1
     }
@@ -205,9 +230,11 @@ function createKeyValue<T>(key: string, value: T) {
   }
 }
 
-function createBytesKeyValue<T>({ key, value }: { key: string; value: T }) {
+// create key value pair.
+// because type info is lost in IndexedDB, value has to be reinstantiated as Bytes
+function createBytesKeyValue({ key, value }: { key: string; value: Bytes }) {
   return {
-    key: Bytes.fromString(key),
-    value
+    key: Bytes.fromHexString(key),
+    value: new Bytes(value.data)
   }
 }
