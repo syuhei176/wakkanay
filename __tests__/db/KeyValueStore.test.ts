@@ -7,6 +7,7 @@ import { Bytes } from '../../src/types/Codables'
 import 'fake-indexeddb/auto'
 import leveldown from 'leveldown'
 import util from 'util'
+import { BatchOperation } from '../../src/db/KeyValueStore'
 
 const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
 const testDbName = Bytes.fromString('root')
@@ -180,6 +181,49 @@ describe.each(KVSs)('KeyValueStore: %p', KVS => {
       const iter = bucket.iter(testDbKey0)
       const result = await iter.next()
       expect(result).toBeNull()
+    })
+  })
+
+  describe('batch', () => {
+    const testDbKey0 = Bytes.fromString('0')
+    const testDbKey1 = Bytes.fromString('1')
+    let kvs: KeyValueStore
+
+    beforeEach(async () => {
+      kvs = new KVS(testDbName)
+      await kvs.open()
+    })
+
+    afterEach(async () => {
+      await kvs.close()
+      await clearDb(kvs)
+    })
+
+    test('batch put', async () => {
+      const operations: BatchOperation[] = [
+        { type: 'Put', key: testDbKey0, value: testDbKey0 },
+        { type: 'Put', key: testDbKey1, value: testDbKey1 }
+      ]
+
+      await kvs.batch(operations)
+      let result = await kvs.get(testDbKey0)
+      expect(result).toEqual(testDbKey0)
+      result = await kvs.get(testDbKey1)
+      expect(result).toEqual(testDbKey1)
+    })
+
+    test('batch del', async () => {
+      await kvs.put(testDbKey0, testDbKey0)
+      const operations: BatchOperation[] = [
+        { type: 'Del', key: testDbKey0 },
+        { type: 'Put', key: testDbKey1, value: testDbKey1 }
+      ]
+      await kvs.batch(operations)
+
+      let result = await kvs.get(testDbKey0)
+      expect(result).toBeNull()
+      result = await kvs.get(testDbKey1)
+      expect(result).toEqual(testDbKey1)
     })
   })
 })
