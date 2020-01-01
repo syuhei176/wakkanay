@@ -153,7 +153,27 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
   }
 
   public async batch(operations: BatchOperation[]): Promise<void> {
-    // console.log('batch')
+    const db = await this.getDb()
+    const tx = db.transaction(this.storeKey, 'readwrite')
+    const store = tx.objectStore(this.storeKey)
+
+    operations.forEach(operation => {
+      if (operation.type === 'Put') {
+        store.put(createKeyValue(operation.key.intoString(), operation.value))
+      } else if (operation.type === 'Del') {
+        store.delete(operation.key.intoString())
+      }
+    })
+
+    return new Promise((resolve, reject) => {
+      tx.onerror = e => {
+        console.error(e)
+        reject(new Error('cannot complete transaction'))
+      }
+      tx.oncomplete = () => {
+        resolve()
+      }
+    })
   }
 
   public iter(lowerBound: Bytes): Iterator {
