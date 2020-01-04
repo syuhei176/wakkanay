@@ -11,10 +11,7 @@ export default class Struct implements Codable {
   constructor(public data: InnerRep, public name?: string) {}
 
   public get raw() {
-    return this.data.map(({ key, value }) => ({
-      key,
-      value: value.raw
-    }))
+    return this.data.map(({ value }) => value.raw)
   }
 
   public setData(data: InnerRep) {
