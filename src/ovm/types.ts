@@ -19,21 +19,29 @@ export class Property {
     this.inputs = inputs
   }
   public toStruct(): Struct {
-    return new Struct({
-      deciderAddress: this.deciderAddress,
-      inputs: new List(Bytes, this.inputs)
-    })
+    return new Struct([
+      {
+        key: 'deciderAddress',
+        value: this.deciderAddress
+      },
+      { key: 'inputs', value: new List(Bytes, this.inputs) }
+    ])
   }
+
   public static getParamType(): Struct {
-    return Struct.from({
-      deciderAddress: Address.default(),
-      inputs: List.default(Bytes, Bytes.default())
-    })
+    return Struct.from([
+      {
+        key: 'deciderAddress',
+        value: Address.default()
+      },
+      { key: 'inputs', value: List.default(Bytes, Bytes.default()) }
+    ])
   }
+
   public static fromStruct(_struct: Struct): Property {
     return new Property(
-      _struct.data['deciderAddress'] as Address,
-      (_struct.data['inputs'] as List<Bytes>).data
+      _struct.data[0].value as Address,
+      (_struct.data[1].value as List<Bytes>).data
     )
   }
 }
