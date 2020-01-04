@@ -1,7 +1,9 @@
 import Codable from './Codable'
 
 export default class BigNumber implements Codable {
-  static MAX_NUMBER: BigNumber = new BigNumber(2n ** 256n - 1n)
+  static MAX_NUMBER: BigNumber = new BigNumber(
+    BigInt(2) ** BigInt(256) - BigInt(1)
+  )
 
   static fromString(str: string): BigNumber {
     return new BigNumber(BigInt(str))
@@ -27,7 +29,7 @@ export default class BigNumber implements Codable {
   }
 
   static default(): BigNumber {
-    return new BigNumber(0n)
+    return new BigNumber(BigInt(0))
   }
 
   constructor(public data: bigint) {}
