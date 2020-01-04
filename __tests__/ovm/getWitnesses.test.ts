@@ -1,9 +1,10 @@
-import { Bytes } from '../../src/types/Codables'
+import { Bytes, BigNumber, Range } from '../../src/types'
 import { InMemoryKeyValueStore, RangeDb } from '../../src/db'
 import getWitnesses, {
   isHint,
   replaceHint
 } from '../../src/ovm/deciders/getWitnesses'
+import JSONCoder from '../../src/coder/JsonCoder'
 
 describe('get witnesses', () => {
   let db: InMemoryKeyValueStore
@@ -52,7 +53,7 @@ describe('get witnesses', () => {
     await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
 
     // 0x5b223235222c223135225d is Range(15, 20)
-    const hint = 'bucket5,RANGE,0x5b223235222c223135225d'
+    const hint = 'bucket5,RANGE,0x5b223135222c223230225d'
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(1)
     expect(result[0]).toStrictEqual(Bytes.fromString('v'))
@@ -63,7 +64,7 @@ describe('get witnesses', () => {
     const bukcet = await rangeDb.bucket(Bytes.fromString('bucket'))
     await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
 
-    const hint = 'bucket,RANGE,0x5b223235222c223135225d'
+    const hint = 'bucket,RANGE,0x5b223135222c223230225d'
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(1)
     expect(result[0]).toStrictEqual(Bytes.fromString('v'))

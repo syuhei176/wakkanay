@@ -21,25 +21,31 @@ export class RangeRecord {
     this.value = value
   }
   public toStruct(): Struct {
-    return new Struct({
-      start: this.start,
-      end: this.end,
-      value: this.value
-    })
+    return new Struct([
+      {
+        key: 'start',
+        value: this.start
+      },
+      { key: 'end', value: this.end },
+      { key: 'value', value: this.value }
+    ])
   }
   public static fromStruct(_struct: Struct): RangeRecord {
     return new RangeRecord(
-      _struct.data['start'] as BigNumber,
-      _struct.data['end'] as BigNumber,
-      _struct.data['value'] as Bytes
+      _struct.data[0].value as BigNumber,
+      _struct.data[1].value as BigNumber,
+      _struct.data[2].value as Bytes
     )
   }
   public static getParamType(): Struct {
-    return Struct.from({
-      start: BigNumber.default(),
-      end: BigNumber.default(),
-      value: Bytes.default()
-    })
+    return Struct.from([
+      {
+        key: 'start',
+        value: BigNumber.default()
+      },
+      { key: 'end', value: BigNumber.default() },
+      { key: 'value', value: Bytes.default() }
+    ])
   }
   public encode(): Bytes {
     return JsonCoder.encode(this.toStruct())
