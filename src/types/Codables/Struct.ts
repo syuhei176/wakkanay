@@ -1,36 +1,33 @@
 import Codable from './Codable'
 
+type InnerRep = Array<{ key: string; value: Codable }>
+
 // TODO: implement struct
 export default class Struct implements Codable {
-  static from(data: { [key: string]: Codable }): Struct {
+  static from(data: InnerRep): Struct {
     return new Struct(data)
   }
 
-  constructor(public data: { [key: string]: Codable }, public name?: string) {}
+  constructor(public data: InnerRep, public name?: string) {}
 
   public get raw() {
-    const ret = {
-      ...this.data
-    }
-
-    Object.keys(this.data).forEach(k => (ret[k] = this.data[k].raw))
-    return ret
+    return this.data.map(({ key, value }) => ({
+      key,
+      value: value.raw
+    }))
   }
 
-  public setData(data: { [key: string]: Codable }) {
+  public setData(data: InnerRep) {
     this.data = data
   }
 
   public toString(): string {
-    return `Struct({${Object.keys(this.data)
-      .sort()
-      .map(k => `${k}:${this.data[k]}`)
-      .join(',')}})`
+    return `Struct({${this.data.map(d => `${d.key}:${d.value}`).join(',')}})`
   }
 
   public toTypeString(): string {
-    return `Struct<{${Object.keys(this.data)
-      .sort()
-      .map(k => `${k}:${this.data[k].constructor.name}`)}}>`
+    return `Struct<{${this.data.map(
+      d => `${d.key}:${d.value.constructor.name}`
+    )}}>`
   }
 }

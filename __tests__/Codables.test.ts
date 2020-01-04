@@ -10,10 +10,16 @@ import {
 describe('Codables', () => {
   describe('Codable.toTypeString', () => {
     test('Struct.toTypeString', () => {
-      const v = Struct.from({
-        amount: Integer.from(1),
-        to: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-      })
+      const v = Struct.from([
+        {
+          key: 'amount',
+          value: Integer.from(1)
+        },
+        {
+          key: 'to',
+          value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        }
+      ])
       expect(v.toTypeString()).toBe('Struct<{amount:Integer,to:Address}>')
     })
 
@@ -21,17 +27,26 @@ describe('Codables', () => {
       const v = List.from(
         {
           default: () =>
-            Struct.from({
-              address: Address.default()
-            })
+            Struct.from([
+              {
+                key: 'address',
+                value: Address.default()
+              }
+            ])
         },
         [
-          Struct.from({
-            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-          }),
-          Struct.from({
-            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-          })
+          Struct.from([
+            {
+              key: 'address',
+              value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+            }
+          ]),
+          Struct.from([
+            {
+              key: 'address',
+              value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+            }
+          ])
         ]
       )
       expect(v.toTypeString()).toBe('List<Struct<{address:Address}>>')
@@ -65,17 +80,26 @@ describe('Codables', () => {
       const v = List.from(
         {
           default: () =>
-            Struct.from({
-              address: Address.default()
-            })
+            Struct.from([
+              {
+                key: 'address',
+                value: Address.default()
+              }
+            ])
         },
         [
-          Struct.from({
-            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-          }),
-          Struct.from({
-            address: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-          })
+          Struct.from([
+            {
+              key: 'address',
+              value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+            }
+          ]),
+          Struct.from([
+            {
+              key: 'address',
+              value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+            }
+          ])
         ]
       )
       expect(v.toString()).toBe(
@@ -94,10 +118,16 @@ describe('Codables', () => {
     })
 
     test('Struct.toString', () => {
-      const v = Struct.from({
-        amount: Integer.from(1),
-        to: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-      })
+      const v = Struct.from([
+        {
+          key: 'amount',
+          value: Integer.from(1)
+        },
+        {
+          key: 'to',
+          value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        }
+      ])
       expect(v.toString()).toBe(
         `Struct({amount:Integer(1),to:Address(0x0472ec0185ebb8202f3d4ddb0226998889663cf2)})`
       )
@@ -137,14 +167,23 @@ describe('Codables', () => {
     })
 
     test('Struct.raw', () => {
-      const v = Struct.from({
-        amount: Integer.from(1),
-        to: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
-      })
-      expect(v.raw).toStrictEqual({
-        amount: 1,
-        to: '0x0472ec0185ebb8202f3d4ddb0226998889663cf2'
-      })
+      const v = Struct.from([
+        {
+          key: 'amount',
+          value: Integer.from(1)
+        },
+        {
+          key: 'to',
+          value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        }
+      ])
+      expect(v.raw).toStrictEqual([
+        {
+          key: 'amount',
+          value: 1
+        },
+        { key: 'to', value: '0x0472ec0185ebb8202f3d4ddb0226998889663cf2' }
+      ])
     })
   })
 })
