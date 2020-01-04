@@ -25,9 +25,7 @@ export function encodeInner(e: Codable): any {
   } else if (e instanceof Tuple) {
     return e.data.map(d => encodeInner(d))
   } else if (e instanceof Struct) {
-    return Object.keys(e.data)
-      .sort()
-      .map(k => encodeInner(e.data[k]))
+    return e.data.map(({ key, value }) => encodeInner(value))
   } else {
     throw JsonDecodeError.from(e)
   }
@@ -55,13 +53,12 @@ export function decodeInner(d: Codable, input: any): Codable {
   } else if (d instanceof Tuple) {
     d.setData(d.data.map((d, i) => decodeInner(d, input[i])))
   } else if (d instanceof Struct) {
-    const data: { [key: string]: Codable } = {}
-    Object.keys(d.data)
-      .sort()
-      .forEach((k, i) => {
-        data[k] = decodeInner(d.data[k], input[i])
-      })
-    d.setData(data)
+    d.setData(
+      d.data.map(({ key, value }, i) => ({
+        key,
+        value: decodeInner(value, input[i])
+      }))
+    )
   } else {
     throw JsonDecodeError.from(d)
   }

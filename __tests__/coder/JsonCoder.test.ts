@@ -12,15 +12,18 @@ import {
 describe('JsonCoder', () => {
   describe('encode', () => {
     test('encode struct', () => {
-      const testData = {
-        num: Integer.from(5),
-        addr: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2'),
-        greet: Bytes.fromString('hello')
-      }
+      const testData = [
+        { key: 'num', value: Integer.from(5) },
+        {
+          key: 'addr',
+          value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+        },
+        { key: 'greet', value: Bytes.fromString('hello') }
+      ]
       const struct = Struct.from(testData)
 
       expect(JsonCoder.encode(struct).intoString()).toBe(
-        '["0x0472ec0185ebb8202f3d4ddb0226998889663cf2","0x68656c6c6f",5]'
+        '[5,"0x0472ec0185ebb8202f3d4ddb0226998889663cf2","0x68656c6c6f"]'
       )
     })
 
@@ -39,25 +42,34 @@ describe('JsonCoder', () => {
     test('encode list of struct', () => {
       const factory = {
         default: () =>
-          Struct.from({
-            num: Integer.default(),
-            greet: Bytes.default()
-          })
+          Struct.from([
+            {
+              key: 'num',
+              value: Integer.default()
+            },
+            { key: 'greet', value: Bytes.default() }
+          ])
       }
 
       const list = List.from(factory, [
-        Struct.from({
-          num: Integer.from(1),
-          greet: Bytes.fromString('hello')
-        }),
-        Struct.from({
-          num: Integer.from(2),
-          greet: Bytes.fromString('hello')
-        })
+        Struct.from([
+          {
+            key: 'num',
+            value: Integer.from(1)
+          },
+          { key: 'greet', value: Bytes.fromString('hello') }
+        ]),
+        Struct.from([
+          {
+            key: 'num',
+            value: Integer.from(2)
+          },
+          { key: 'greet', value: Bytes.fromString('hello') }
+        ])
       ])
 
       expect(JsonCoder.encode(list).intoString()).toBe(
-        '[["0x68656c6c6f",1],["0x68656c6c6f",2]]'
+        '[[1,"0x68656c6c6f"],[2,"0x68656c6c6f"]]'
       )
     })
 
@@ -80,18 +92,30 @@ describe('JsonCoder', () => {
     test('decode struct', () => {
       const b =
         '["0x0472ec0185ebb8202f3d4ddb0226998889663cf2","0x68656c6c6f",5]'
-      const t = Struct.from({
-        addr: Address.default(),
-        greet: Bytes.default(),
-        num: Integer.default()
-      })
+      const t = Struct.from([
+        { key: 'addr', value: Address.default() },
+        { key: 'greet', value: Bytes.default() },
+        {
+          key: 'num',
+          value: Integer.default()
+        }
+      ])
 
       expect(JsonCoder.decode(t, Bytes.fromString(b))).toStrictEqual(
-        Struct.from({
-          num: Integer.from(5),
-          addr: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2'),
-          greet: Bytes.from(new Uint8Array([104, 101, 108, 108, 111]))
-        })
+        Struct.from([
+          {
+            key: 'addr',
+            value: Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2')
+          },
+          {
+            key: 'greet',
+            value: Bytes.from(new Uint8Array([104, 101, 108, 108, 111]))
+          },
+          {
+            key: 'num',
+            value: Integer.from(5)
+          }
+        ])
       )
     })
 
@@ -124,30 +148,42 @@ describe('JsonCoder', () => {
     test('decode List of Struct', () => {
       const factory = {
         default: () =>
-          Struct.from({
-            num: Integer.default(),
-            greet: Bytes.default()
-          })
+          Struct.from([
+            {
+              key: 'num',
+              value: Integer.default()
+            },
+            { key: 'greet', value: Bytes.default() }
+          ])
       }
-      const b = '[["0x68656c6c6f",1],["0x68656c6c6f",2]]'
+      const b = '[[1,"0x68656c6c6f"],[2,"0x68656c6c6f"]]'
       const t = List.default(
         factory,
-        Struct.from({
-          num: Integer.default(),
-          greet: Bytes.default()
-        })
+        Struct.from([
+          {
+            key: 'num',
+            value: Integer.default()
+          },
+          { key: 'greet', value: Bytes.default() }
+        ])
       )
 
       expect(JsonCoder.decode(t, Bytes.fromString(b))).toStrictEqual(
         List.from(factory, [
-          Struct.from({
-            num: Integer.from(1),
-            greet: Bytes.fromString('hello')
-          }),
-          Struct.from({
-            num: Integer.from(2),
-            greet: Bytes.fromString('hello')
-          })
+          Struct.from([
+            {
+              key: 'num',
+              value: Integer.from(1)
+            },
+            { key: 'greet', value: Bytes.fromString('hello') }
+          ]),
+          Struct.from([
+            {
+              key: 'num',
+              value: Integer.from(2)
+            },
+            { key: 'greet', value: Bytes.fromString('hello') }
+          ])
         ])
       )
     })
