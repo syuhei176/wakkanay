@@ -178,11 +178,8 @@ describe('Codables', () => {
         }
       ])
       expect(v.raw).toStrictEqual([
-        {
-          key: 'amount',
-          value: 1
-        },
-        { key: 'to', value: '0x0472ec0185ebb8202f3d4ddb0226998889663cf2' }
+        1,
+        '0x0472ec0185ebb8202f3d4ddb0226998889663cf2'
       ])
     })
   })
