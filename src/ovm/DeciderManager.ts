@@ -3,6 +3,7 @@ import { Decider } from './interfaces/Decider'
 import { Property, Decision, FreeVariable, AtomicPredicate } from './types'
 import { Quantifier } from './interfaces/Quantifier'
 import { KeyValueStore } from '../db'
+import { initialize, InitilizationConfig } from './load'
 
 export interface DeciderManagerInterface {
   decide(
@@ -26,6 +27,15 @@ export class DeciderManager implements DeciderManagerInterface {
     this.shortnames = new Map<string, Address>()
     this.quantifiers = new Map<string, Quantifier>()
   }
+
+  /**
+   * load JSON file to initialize DeciderManager
+   * @param config
+   */
+  loadJson(config: InitilizationConfig) {
+    initialize(this, config)
+  }
+
   /**
    * Sets new decider with address
    * @param address
