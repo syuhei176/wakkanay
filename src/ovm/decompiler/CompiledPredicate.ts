@@ -59,6 +59,10 @@ export class CompiledPredicate {
     )
   }
 
+  getPredicateName(): string {
+    return this.compiled.name
+  }
+
   makeProperty(inputs: Bytes[]): Property {
     return new Property(this.deployedAddress, inputs)
   }
