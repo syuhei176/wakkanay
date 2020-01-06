@@ -1,9 +1,9 @@
-import { Bytes, BigNumber, Integer } from '../../types'
+import { Bytes, BigNumber, Integer, List, Struct } from '../../types'
 import {
   AbstractMerkleTree,
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
-import { MerkleTreeNode } from './MerkleTreeInterface'
+import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
 import { BigIntMath } from '../../utils'
 
 export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
@@ -18,11 +18,46 @@ export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
   getInterval(): BigNumber {
     return this.start
   }
+  static decode(b: Bytes): IntervalTreeNode {
+    const d = b.split(32)
+    return new IntervalTreeNode(
+      BigNumber.fromHexString(d[1].toHexString()),
+      d[0]
+    )
+  }
   encode(): Bytes {
     return Bytes.concat([
       this.data,
       Bytes.fromHexString(this.start.data.toString(16)).padZero(32)
     ])
+  }
+}
+
+export class IntervalTreeInclusionProof extends InclusionProof<
+  BigNumber,
+  IntervalTreeNode
+> {
+  public static getParamType(): Struct {
+    return new Struct([
+      { key: 'leafIndex', value: BigNumber.default() },
+      { key: 'leafPosition', value: Integer.default() },
+      {
+        key: 'siblings',
+        value: List.default(Bytes, Bytes.default())
+      }
+    ])
+  }
+
+  public static fromStruct(struct: Struct): IntervalTreeInclusionProof {
+    const leafIndex = struct.data[0].value as BigNumber
+    const leafPosition = struct.data[1].value as Integer
+    const siblings = struct.data[2].value as List<Bytes>
+
+    return new IntervalTreeInclusionProof(
+      leafIndex,
+      leafPosition.data,
+      siblings.data.map(IntervalTreeNode.decode)
+    )
   }
 }
 
