@@ -1,7 +1,8 @@
 import {
   IntervalTree,
   IntervalTreeNode,
-  IntervalTreeVerifier
+  IntervalTreeVerifier,
+  IntervalTreeInclusionProof
 } from '../../../src/verifiers/tree'
 import { Keccak256 } from '../../../src/verifiers/hash/Keccak256'
 import { Bytes, BigNumber } from '../../../src/types'
@@ -245,10 +246,10 @@ describe('IntervalTree', () => {
       const root = Bytes.fromHexString(
         '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
-      const invalidInclusionProof = {
-        leafIndex: BigNumber.from(0n),
-        leafPosition: 0,
-        siblings: [
+      const invalidInclusionProof = new IntervalTreeInclusionProof(
+        BigNumber.from(0n),
+        0,
+        [
           new IntervalTreeNode(
             BigNumber.from(7n),
             Bytes.fromHexString(
@@ -262,7 +263,7 @@ describe('IntervalTree', () => {
             )
           )
         ]
-      }
+      )
       expect(() => {
         verifier.verifyInclusion(
           leaf0,
@@ -277,10 +278,10 @@ describe('IntervalTree', () => {
       const root = Bytes.fromHexString(
         '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
-      const invalidInclusionProof = {
-        leafIndex: BigNumber.from(7n),
-        leafPosition: 1,
-        siblings: [
+      const invalidInclusionProof = new IntervalTreeInclusionProof(
+        BigNumber.from(7n),
+        1,
+        [
           new IntervalTreeNode(
             BigNumber.from(0n),
             Bytes.fromHexString(
@@ -294,7 +295,7 @@ describe('IntervalTree', () => {
             )
           )
         ]
-      }
+      )
       expect(() => {
         verifier.verifyInclusion(
           leaf1,
