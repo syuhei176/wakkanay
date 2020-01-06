@@ -84,6 +84,15 @@ export class IntervalTree extends AbstractMerkleTree<
     })
     return results
   }
+
+  getInclusionProof(index: number): IntervalTreeInclusionProof {
+    const inclusionProof = super.getInclusionProof(index)
+    return new IntervalTreeInclusionProof(
+      inclusionProof.leafIndex,
+      inclusionProof.leafPosition,
+      inclusionProof.siblings
+    )
+  }
 }
 
 export class IntervalTreeVerifier extends AbstractMerkleVerifier<

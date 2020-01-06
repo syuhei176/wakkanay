@@ -57,6 +57,14 @@ export class AddressTree extends AbstractMerkleTree<Address, AddressTreeNode> {
     const index = this.leaves.findIndex(l => l.address.data == address.data)
     return index >= 0 ? index : null
   }
+  getInclusionProof(index: number): AddressTreeInclusionProof {
+    const inclusionProof = super.getInclusionProof(index)
+    return new AddressTreeInclusionProof(
+      inclusionProof.leafIndex,
+      inclusionProof.leafPosition,
+      inclusionProof.siblings
+    )
+  }
 }
 
 export class AddressTreeVerifier extends AbstractMerkleVerifier<
