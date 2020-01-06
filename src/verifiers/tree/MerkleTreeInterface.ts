@@ -1,4 +1,4 @@
-import { Bytes } from '../../types'
+import { Integer, Bytes, Struct, Codable, List } from '../../types'
 
 export interface MerkleTreeNode<T> {
   readonly data: Bytes
@@ -20,10 +20,21 @@ export interface MerkleTreeVerifier<B, T extends MerkleTreeNode<I>, I> {
   verifyInclusion(leaf: T, interval: B, root: Bytes, inclusionProof: I): boolean
 }
 
-export class InclusionProof<I, T extends MerkleTreeNode<I>> {
+export class InclusionProof<I extends Codable, T extends MerkleTreeNode<I>> {
   constructor(
     readonly leafIndex: I,
     readonly leafPosition: number,
     readonly siblings: T[]
   ) {}
+
+  public toStruct(): Struct {
+    return new Struct([
+      { key: 'leafIndex', value: this.leafIndex },
+      { key: 'leafPosition', value: Integer.from(this.leafPosition) },
+      {
+        key: 'siblings',
+        value: List.from(Bytes, this.siblings.map(s => s.encode()))
+      }
+    ])
+  }
 }
