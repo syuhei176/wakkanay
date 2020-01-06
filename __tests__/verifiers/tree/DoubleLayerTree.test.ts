@@ -12,6 +12,7 @@ import {
 } from '../../../src/verifiers/tree'
 import { Bytes, BigNumber, Address, Range } from '../../../src/types'
 import { Keccak256 } from '../../../src/verifiers/hash/Keccak256'
+import coder from '../../../src/coder/JsonCoder'
 
 describe('DoubleLayerTree', () => {
   describe('DoubleLayerTreeGenerator', () => {
@@ -382,6 +383,44 @@ describe('DoubleLayerTree', () => {
         const leaves = tree.getLeaves(token0, BigInt(5), BigInt(100))
         expect(leaves.length).toStrictEqual(3)
       })
+    })
+  })
+
+  describe('coding', () => {
+    it('encode and decode', () => {
+      const inclusionProof: DoubleLayerInclusionProof = new DoubleLayerInclusionProof(
+        new IntervalTreeInclusionProof(BigNumber.from(0n), 0, [
+          new IntervalTreeNode(
+            BigNumber.from(7n),
+            Bytes.fromHexString(
+              '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+            )
+          ),
+          new IntervalTreeNode(
+            BigNumber.from(5000n),
+            Bytes.fromHexString(
+              '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+            )
+          )
+        ]),
+        new AddressTreeInclusionProof(
+          Address.from('0x0000000000000000000000000000000000000000'),
+          0,
+          [
+            new AddressTreeNode(
+              Address.from('0x0000000000000000000000000000000000000001'),
+              Bytes.fromHexString(
+                '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
+              )
+            )
+          ]
+        )
+      )
+      const encoded = coder.encode(inclusionProof.toStruct())
+      const decoded = DoubleLayerInclusionProof.fromStruct(
+        coder.decode(DoubleLayerInclusionProof.getParamType(), encoded)
+      )
+      expect(decoded).toStrictEqual(inclusionProof)
     })
   })
 })
