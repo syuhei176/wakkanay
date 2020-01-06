@@ -1,9 +1,4 @@
-import Codable from './Codable'
-
-// Interface for Codable Class
-interface CodableF<T extends Codable> {
-  default(): T
-}
+import Codable, { CodableF } from './Codable'
 
 export default class List<T extends Codable> implements Codable {
   static from<T extends Codable>(C: CodableF<T>, data: Array<T>): List<T> {
