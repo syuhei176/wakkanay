@@ -9,3 +9,8 @@ export default interface Codable {
   toTypeString(): string
   toString(): string
 }
+
+// Interface for Codable Class
+export interface CodableF<T extends Codable> {
+  default(): T
+}

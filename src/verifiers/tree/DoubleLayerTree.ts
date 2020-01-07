@@ -1,10 +1,8 @@
-import { Bytes, Address, BigNumber, Range } from '../../types'
+import { Bytes, Address, BigNumber, Range, Struct } from '../../types'
 import {
   MerkleTreeInterface,
   MerkleTreeGenerator,
-  MerkleTreeNode,
-  MerkleTreeVerifier,
-  InclusionProof
+  MerkleTreeNode
 } from './MerkleTreeInterface'
 import {
   AddressTree,
@@ -15,12 +13,48 @@ import {
 import {
   IntervalTree,
   IntervalTreeNode,
-  IntervalTreeVerifier
+  IntervalTreeVerifier,
+  IntervalTreeInclusionProof
 } from './IntervalTree'
 
-export interface DoubleLayerInclusionProof {
-  intervalInclusionProof: InclusionProof<BigNumber, IntervalTreeNode>
-  addressInclusionProof: AddressTreeInclusionProof
+export class DoubleLayerInclusionProof {
+  constructor(
+    readonly intervalInclusionProof: IntervalTreeInclusionProof,
+    readonly addressInclusionProof: AddressTreeInclusionProof
+  ) {}
+
+  public toStruct(): Struct {
+    return new Struct([
+      {
+        key: 'intervalInclusionProof',
+        value: this.intervalInclusionProof.toStruct()
+      },
+      {
+        key: 'addressInclusionProof',
+        value: this.addressInclusionProof.toStruct()
+      }
+    ])
+  }
+
+  public static fromStruct(s: Struct): DoubleLayerInclusionProof {
+    return new DoubleLayerInclusionProof(
+      IntervalTreeInclusionProof.fromStruct(s.data[0].value as Struct),
+      AddressTreeInclusionProof.fromStruct(s.data[1].value as Struct)
+    )
+  }
+
+  public static getParamType(): Struct {
+    return new Struct([
+      {
+        key: 'intervalInclusionProof',
+        value: IntervalTreeInclusionProof.getParamType()
+      },
+      {
+        key: 'addressInclusionProof',
+        value: AddressTreeInclusionProof.getParamType()
+      }
+    ])
+  }
 }
 
 export interface DoubleLayerInterval {
@@ -123,10 +157,10 @@ export class DoubleLayerTree
       const intervalTree = this.intervalTreeMap.get(address.data)
       if (intervalTree) {
         const intervalInclusionProof = intervalTree.getInclusionProof(index)
-        return {
+        return new DoubleLayerInclusionProof(
           intervalInclusionProof,
           addressInclusionProof
-        }
+        )
       }
     }
     throw new Error('address not found in address tree')

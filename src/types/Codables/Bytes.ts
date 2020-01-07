@@ -92,6 +92,12 @@ export default class Bytes implements Codable {
     }
   }
 
+  public split(position: number): [Bytes, Bytes] {
+    const d1 = this.data.subarray(0, position)
+    const d2 = this.data.subarray(position)
+    return [Bytes.from(d1), Bytes.from(d2)]
+  }
+
   public increment(): Bytes {
     const arr = this.raw.slice()
     for (let i = arr.length - 1; i >= 0; i--) {

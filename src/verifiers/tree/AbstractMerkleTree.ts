@@ -1,15 +1,17 @@
-import { Bytes } from '../../types'
+import { Bytes, Codable } from '../../types'
 import {
   MerkleTreeInterface,
   MerkleTreeNode,
   InclusionProof
 } from './MerkleTreeInterface'
-import { ArrayUtils, BufferUtils } from '../../utils'
+import { ArrayUtils } from '../../utils'
 import { Hash } from '../hash/Hash'
 import { Keccak256 } from '../hash/Keccak256'
 
-export abstract class AbstractMerkleTree<B, T extends MerkleTreeNode<B>>
-  implements MerkleTreeInterface<B, T> {
+export abstract class AbstractMerkleTree<
+  B extends Codable,
+  T extends MerkleTreeNode<B>
+> implements MerkleTreeInterface<B, T> {
   levels: T[][] = []
   constructor(
     protected leaves: T[],
@@ -62,11 +64,11 @@ export abstract class AbstractMerkleTree<B, T extends MerkleTreeNode<B>>
       parentIndex = this.getParentIndex(siblingIndex)
       siblingIndex = this.getSiblingIndex(parentIndex)
     }
-    return {
-      leafIndex: this.levels[0][index].getInterval(),
-      leafPosition: index,
-      siblings: inclusionProofElement
-    }
+    return new InclusionProof(
+      this.levels[0][index].getInterval(),
+      index,
+      inclusionProofElement
+    )
   }
   /**
    * Calucurate sibling index
@@ -92,7 +94,10 @@ export abstract class AbstractMerkleTree<B, T extends MerkleTreeNode<B>>
   }
 }
 
-export abstract class AbstractMerkleVerifier<B, T extends MerkleTreeNode<B>> {
+export abstract class AbstractMerkleVerifier<
+  B extends Codable,
+  T extends MerkleTreeNode<B>
+> {
   constructor(protected hashAlgorythm: Hash = Keccak256) {}
   /**
    * verify inclusion of the leaf in certain range
