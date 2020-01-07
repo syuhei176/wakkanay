@@ -5,6 +5,8 @@ export interface ICommitmentContract {
 
   getCurrentBlock(): Promise<BigNumber>
 
+  getRoot(blockNumber: BigNumber): Promise<Bytes>
+
   subscribeBlockSubmitted(
     handler: (blockNumber: BigNumber, root: Bytes) => void
   ): void
