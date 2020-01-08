@@ -1,4 +1,4 @@
-import { BigNumber, Bytes } from '../types/Codables'
+import { Bytes } from '../types/Codables'
 import { RangeStore, RangeRecord as Range } from './RangeStore'
 import { BatchOperation, KeyValueStore } from './KeyValueStore'
 
