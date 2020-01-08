@@ -1,5 +1,5 @@
 export { KeyValueStore } from './KeyValueStore'
-export { RangeStore } from './RangeStore'
+export { RangeStore, RangeRecord } from './RangeStore'
 export {
   WitnessStore,
   createWitnessStore,
