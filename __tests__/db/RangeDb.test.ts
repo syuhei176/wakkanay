@@ -1,21 +1,43 @@
-import { InMemoryKeyValueStore, RangeDb } from '../../src/db'
+import 'fake-indexeddb/auto'
+import {
+  InMemoryKeyValueStore,
+  IndexedDbKeyValueStore,
+  RangeDb,
+  KeyValueStore
+} from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 import { RangeRecord, RangeStore } from '../../src/db/RangeStore'
 
-describe('RangeDb', () => {
-  let kvs: InMemoryKeyValueStore
+const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
+
+describe.each(KVSs)('RangeDb for: %p', KVS => {
+  async function clearDb(kvs: KeyValueStore) {
+    if (KVS.name === 'IndexedDbKeyValueStore') {
+      await new Promise(resolve => {
+        const req = indexedDB.deleteDatabase(testDbName.intoString())
+        req.onblocked = () => {
+          console.log('blocked')
+        }
+        req.onsuccess = () => {
+          resolve()
+        }
+      })
+    }
+  }
+  let kvs: KeyValueStore
   let rangeDb: RangeDb
   const testDbName = Bytes.fromString('root')
   const alice = Bytes.fromString('alice')
   const bob = Bytes.fromString('bob')
   const carol = Bytes.fromString('carol')
   beforeEach(async () => {
-    kvs = new InMemoryKeyValueStore(testDbName)
+    kvs = new KVS(testDbName)
     await kvs.open()
     rangeDb = new RangeDb(kvs)
   })
   afterEach(async () => {
     await kvs.close()
+    await clearDb(kvs)
   })
 
   describe('createKey', () => {
@@ -63,7 +85,6 @@ describe('RangeDb', () => {
         await testPut(rangeDb, 0n, 100n, alice)
         await testPut(bucketA, 100n, 200n, bob)
         await testPut(bucketB, 200n, 300n, carol)
-        const ranges = await testGet(rangeDb, 0n, 300n)
         const rangesA = await testGet(bucketA, 0n, 300n)
         const rangesB = await testGet(bucketB, 0n, 300n)
         // TODO: fix spec

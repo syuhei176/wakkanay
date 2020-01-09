@@ -5,8 +5,6 @@ import {
 } from '../../src/db'
 import { Bytes } from '../../src/types/Codables'
 import 'fake-indexeddb/auto'
-import leveldown from 'leveldown'
-import util from 'util'
 import { BatchOperation } from '../../src/db/KeyValueStore'
 
 const KVSs = [InMemoryKeyValueStore, IndexedDbKeyValueStore]
