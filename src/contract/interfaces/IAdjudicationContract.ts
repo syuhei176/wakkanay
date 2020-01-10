@@ -1,42 +1,63 @@
 import { Bytes, BigNumber, List } from '../../types/Codables'
-import { Property } from '../../ovm'
+import { ChallengeGame, Property } from '../../ovm'
 
 export interface IAdjudicationContract {
   /**
-   * Claims property to create new game.
+   * @name getGame
+   * @description Gets instantiated challenge game by gameId.
+   *     Throw exception if game is not found.
+   * @param gameId
+   */
+  getGame(gameId: Bytes): Promise<ChallengeGame>
+
+  /**
+   * @name isDecided
+   * @description Gets if a game is decided or not
+   * @param gameId
+   */
+  isDecided(gameId: Bytes): Promise<boolean>
+
+  /**
+   * @name claimProperty
+   * @description Claims property to create new game.
    * @param property
    */
   claimProperty(property: Property): Promise<void>
 
   /**
-   * decide claim to true
+   * @name decideClaimToTrue
+   * @description decide claim to true
    * @param gameId
    */
   decideClaimToTrue(gameId: Bytes): Promise<void>
 
   /**
-   * decide claim to false
+   * @name decideClaimToFalse
+   * @description decide claim to false
    * @param gameId
    * @param challengingGameId
    */
   decideClaimToFalse(gameId: Bytes, challengingGameId: Bytes): Promise<void>
 
   /**
-   * remove challenge of a game
+   * @name removeChallenge
+   * @description remove challenge of a game
    * @param gameId
    * @param challengingGameId
    */
   removeChallenge(gameId: Bytes, challengingGameId: Bytes): Promise<void>
 
   /**
-   * set predicate decision to decide a game
+   * @name setPredicateDecision
+   * @description set predicate decision to decide a game
    * @param gameId
    * @param decision
    */
   setPredicateDecision(gameId: Bytes, decision: boolean): Promise<void>
 
   /**
-   * challenge a game specified by gameId with a challengingGame specified by challengingGameId
+   * @name clallenge
+   * @description challenge a game specified by gameId with a challengingGame specified by challengingGameId
    * @param gameId
    * @param challengeInputs
    * @param challengingGameId
