@@ -1,4 +1,11 @@
-import { Address, Bytes, List, Struct, Integer } from '../types/Codables'
+import {
+  Address,
+  Bytes,
+  List,
+  Struct,
+  Integer,
+  BigNumber
+} from '../types/Codables'
 
 export interface Challenge {
   property: Property
@@ -56,7 +63,7 @@ export class ChallengeGame {
     readonly property: Property,
     readonly challenges: Bytes[],
     readonly decision: boolean,
-    readonly createdBlock: Integer
+    readonly createdBlock: BigNumber
   ) {}
 }
 
