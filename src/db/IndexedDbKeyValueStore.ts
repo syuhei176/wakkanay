@@ -9,15 +9,19 @@ class IndexedDbIterator implements Iterator {
   constructor(
     readonly lowerBound: Bytes,
     readonly dbPromise: Promise<IDBDatabase>,
-    readonly storeKey: string
+    readonly storeKey: string,
+    readonly lowerBoundExclusive?: boolean
   ) {}
 
   private async init() {
     const db = await this.dbPromise
     const tx = db.transaction(this.storeKey, 'readonly')
     const store = tx.objectStore(this.storeKey)
+    const lowerBound = this.lowerBoundExclusive
+      ? this.lowerBound.increment()
+      : this.lowerBound
     this.req = store.openCursor(
-      IDBKeyRange.lowerBound(this.lowerBound.toHexString())
+      IDBKeyRange.lowerBound(lowerBound.toHexString())
     )
   }
 
@@ -180,8 +184,13 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
     })
   }
 
-  public iter(lowerBound: Bytes): Iterator {
-    return new IndexedDbIterator(lowerBound, this.getDb(), this.storeKey)
+  public iter(lowerBound: Bytes, lowerBoundExclusive?: boolean): Iterator {
+    return new IndexedDbIterator(
+      lowerBound,
+      this.getDb(),
+      this.storeKey,
+      lowerBoundExclusive
+    )
   }
 
   // use objectStore to manage bucket
@@ -197,9 +206,15 @@ export class IndexedDbKeyValueStore implements KeyValueStore {
       version = (await this.getVersion()) + 1
     }
 
-    return Promise.resolve(
-      new IndexedDbKeyValueStore(this.dbName, newObjectStoreKey, version)
+    const bucket = new IndexedDbKeyValueStore(
+      this.dbName,
+      newObjectStoreKey,
+      version
     )
+
+    // in order for new version to be detected
+    await bucket.openDb()
+    return Promise.resolve(bucket)
   }
 
   public async open(): Promise<void> {
