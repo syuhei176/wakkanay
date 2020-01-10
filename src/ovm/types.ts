@@ -1,4 +1,4 @@
-import { Address, Bytes, List, Struct } from '../types/Codables'
+import { Address, Bytes, List, Struct, Integer } from '../types/Codables'
 
 export interface Challenge {
   property: Property
@@ -44,6 +44,20 @@ export class Property {
       (_struct.data[1].value as List<Bytes>).data
     )
   }
+}
+
+/**
+ * ChallengeGame is a part of L2 dispute. It's instantiated by claiming property.
+ * Client can get game instance from Adjudicator Contract.
+ * https://github.com/cryptoeconomicslab/ovm-contracts/blob/53aeb7e121473a9d47dbc75d1f2ce4801a29b67e/contracts/DataTypes.sol#L13
+ */
+export class ChallengeGame {
+  constructor(
+    readonly property: Property,
+    readonly challenges: Bytes[],
+    readonly decision: boolean,
+    readonly createdBlock: Integer
+  ) {}
 }
 
 const VARIABLE_PREFIX = '__VARIABLE__'

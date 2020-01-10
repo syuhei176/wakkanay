@@ -1,7 +1,19 @@
 import { Bytes, BigNumber, List } from '../../types/Codables'
-import { Property } from '../../ovm'
+import { ChallengeGame, Property } from '../../ovm'
 
 export interface IAdjudicationContract {
+  /**
+   * Gets instantiated challenge game by gameId
+   * @param gameId
+   */
+  getGame(gameId: Bytes): Promise<ChallengeGame>
+
+  /**
+   * Gets if a game is decided or not
+   * @param gameId
+   */
+  isDecided(gameId: Bytes): Promise<boolean>
+
   /**
    * Claims property to create new game.
    * @param property
