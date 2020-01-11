@@ -42,17 +42,17 @@ describe.each(KVSs)('RangeDb for: %p', KVS => {
 
   describe('createKey', () => {
     it('return key', async () => {
-      expect(RangeDb.createKey(0x1234n)).toEqual(
+      expect(RangeDb.createKey(BigInt(0x1234))).toEqual(
         Bytes.fromHexString(
           '0x0000000000000000000000000000000000000000000000000000000000001234'
         )
       )
-      expect(RangeDb.createKey(0x1200n)).toEqual(
+      expect(RangeDb.createKey(BigInt(0x1200))).toEqual(
         Bytes.fromHexString(
           '0x0000000000000000000000000000000000000000000000000000000000001200'
         )
       )
-      expect(RangeDb.createKey(0x120n)).toEqual(
+      expect(RangeDb.createKey(BigInt(0x120))).toEqual(
         Bytes.fromHexString(
           '0x0000000000000000000000000000000000000000000000000000000000000120'
         )
@@ -60,7 +60,7 @@ describe.each(KVSs)('RangeDb for: %p', KVS => {
     })
   })
 
-  describe.each([0n, 2n ** 100n])('baseStart: %p', baseStart => {
+  describe.each([BigInt(0), BigInt(2) ** BigInt(100)])('baseStart: %p', baseStart => {
     function testPut(store: RangeStore, s: bigint, e: bigint, value: Bytes) {
       return store.put(baseStart + s, baseStart + e, value)
     }
@@ -82,21 +82,21 @@ describe.each(KVSs)('RangeDb for: %p', KVS => {
         bucketB = await rangeDb.bucket(Bytes.fromString('b'))
       })
       it('buckets are independent', async () => {
-        await testPut(rangeDb, 0n, 100n, alice)
-        await testPut(bucketA, 100n, 200n, bob)
-        await testPut(bucketB, 200n, 300n, carol)
-        const rangesA = await testGet(bucketA, 0n, 300n)
-        const rangesB = await testGet(bucketB, 0n, 300n)
+        await testPut(rangeDb, BigInt(0), BigInt(100), alice)
+        await testPut(bucketA, BigInt(100), BigInt(200), bob)
+        await testPut(bucketB, BigInt(200), BigInt(300), carol)
+        const rangesA = await testGet(bucketA, BigInt(0), BigInt(300))
+        const rangesB = await testGet(bucketB, BigInt(0), BigInt(300))
         // TODO: fix spec
-        // expect(ranges).toEqual([testRangeRecord(0n, 100n, alice)])
+        // expect(ranges).toEqual([testRangeRecord(BigInt(0), BigInt(100), alice)])
         // or
         // expect(ranges).toEqual([
-        //   testRangeRecord(0n, 100n, alice),
-        //   testRangeRecord(100n, 200n, bob),
-        //   testRangeRecord(200n, 300n, carol)
+        //   testRangeRecord(BigInt(0), BigInt(100), alice),
+        //   testRangeRecord(BigInt(100), BigInt(200), bob),
+        //   testRangeRecord(BigInt(200), BigInt(300), carol)
         // ])
-        expect(rangesA).toEqual([testRangeRecord(100n, 200n, bob)])
-        expect(rangesB).toEqual([testRangeRecord(200n, 300n, carol)])
+        expect(rangesA).toEqual([testRangeRecord(BigInt(100), BigInt(200), bob)])
+        expect(rangesB).toEqual([testRangeRecord(BigInt(200), BigInt(300), carol)])
       })
     })
 
@@ -112,127 +112,127 @@ describe.each(KVSs)('RangeDb for: %p', KVS => {
 
       describe('get', () => {
         it('get a range', async () => {
-          await testPut(rangeStore, 0n, 500n, alice)
-          const ranges = await testGet(rangeStore, 0n, 1000n)
-          expect(ranges).toEqual([testRangeRecord(0n, 500n, alice)])
+          await testPut(rangeStore, BigInt(0), BigInt(500), alice)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(1000))
+          expect(ranges).toEqual([testRangeRecord(BigInt(0), BigInt(500), alice)])
         })
         it('get ranges', async () => {
-          await testPut(rangeStore, 0n, 100n, alice)
-          await testPut(rangeStore, 100n, 200n, bob)
-          await testPut(rangeStore, 200n, 300n, carol)
-          const ranges = await testGet(rangeStore, 0n, 300n)
+          await testPut(rangeStore, BigInt(0), BigInt(100), alice)
+          await testPut(rangeStore, BigInt(100), BigInt(200), bob)
+          await testPut(rangeStore, BigInt(200), BigInt(300), carol)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(300))
           expect(ranges).toEqual([
-            testRangeRecord(0n, 100n, alice),
-            testRangeRecord(100n, 200n, bob),
-            testRangeRecord(200n, 300n, carol)
+            testRangeRecord(BigInt(0), BigInt(100), alice),
+            testRangeRecord(BigInt(100), BigInt(200), bob),
+            testRangeRecord(BigInt(200), BigInt(300), carol)
           ])
         })
         it('get mid range', async () => {
-          await testPut(rangeStore, 0n, 100n, alice)
-          await testPut(rangeStore, 100n, 200n, bob)
-          await testPut(rangeStore, 200n, 300n, carol)
-          const ranges = await testGet(rangeStore, 100n, 150n)
-          expect(ranges).toEqual([testRangeRecord(100n, 200n, bob)])
+          await testPut(rangeStore, BigInt(0), BigInt(100), alice)
+          await testPut(rangeStore, BigInt(100), BigInt(200), bob)
+          await testPut(rangeStore, BigInt(200), BigInt(300), carol)
+          const ranges = await testGet(rangeStore, BigInt(100), BigInt(150))
+          expect(ranges).toEqual([testRangeRecord(BigInt(100), BigInt(200), bob)])
         })
         it('get small range', async () => {
-          await testPut(rangeStore, 120n, 150n, alice)
-          await testPut(rangeStore, 0n, 20n, bob)
-          await testPut(rangeStore, 500n, 600n, carol)
-          const ranges = await testGet(rangeStore, 100n, 200n)
-          expect(ranges).toEqual([testRangeRecord(120n, 150n, alice)])
+          await testPut(rangeStore, BigInt(120), BigInt(150), alice)
+          await testPut(rangeStore, BigInt(0), BigInt(20), bob)
+          await testPut(rangeStore, BigInt(500), BigInt(600), carol)
+          const ranges = await testGet(rangeStore, BigInt(100), BigInt(200))
+          expect(ranges).toEqual([testRangeRecord(BigInt(120), BigInt(150), alice)])
         })
         it('get large range', async () => {
-          await testPut(rangeStore, 0n, 500n, alice)
-          const ranges = await testGet(rangeStore, 100n, 200n)
-          expect(ranges).toEqual([testRangeRecord(0n, 500n, alice)])
+          await testPut(rangeStore, BigInt(0), BigInt(500), alice)
+          const ranges = await testGet(rangeStore, BigInt(100), BigInt(200))
+          expect(ranges).toEqual([testRangeRecord(BigInt(0), BigInt(500), alice)])
         })
         it('get no ranges', async () => {
-          await testPut(rangeStore, 0n, 500n, alice)
-          const ranges = await testGet(rangeStore, 1000n, 2000n)
+          await testPut(rangeStore, BigInt(0), BigInt(500), alice)
+          const ranges = await testGet(rangeStore, BigInt(1000), BigInt(2000))
           expect(ranges).toEqual([])
         })
         it('get no ranges edge case, later query', async () => {
-          await testPut(rangeStore, 0n, 500n, alice)
-          const ranges = await testGet(rangeStore, 500n, 1000n)
+          await testPut(rangeStore, BigInt(0), BigInt(500), alice)
+          const ranges = await testGet(rangeStore, BigInt(500), BigInt(1000))
           expect(ranges).toEqual([])
         })
         it('get no ranges edge case, fomer query', async () => {
-          await testPut(rangeStore, 500n, 1000n, alice)
-          const ranges = await testGet(rangeStore, 0n, 500n)
+          await testPut(rangeStore, BigInt(500), BigInt(1000), alice)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(500))
           expect(ranges).toEqual([])
         })
 
         it('get ranges correctly', async () => {
-          await rangeStore.put(0x100n, 0x120n, alice)
-          await rangeStore.put(0x120n, 0x200n, bob)
-          await rangeStore.put(0x1000n, 0x1200n, carol)
-          const ranges = await rangeStore.get(0n, 0x2000n)
+          await rangeStore.put(BigInt(0x100), BigInt(0x120), alice)
+          await rangeStore.put(BigInt(0x120), BigInt(0x200), bob)
+          await rangeStore.put(BigInt(0x1000), BigInt(0x1200), carol)
+          const ranges = await rangeStore.get(BigInt(0), BigInt(0x2000))
           expect(ranges).toEqual([
-            new RangeRecord(0x100n, 0x120n, alice),
-            new RangeRecord(0x120n, 0x200n, bob),
-            new RangeRecord(0x1000n, 0x1200n, carol)
+            new RangeRecord(BigInt(0x100), BigInt(0x120), alice),
+            new RangeRecord(BigInt(0x120), BigInt(0x200), bob),
+            new RangeRecord(BigInt(0x1000), BigInt(0x1200), carol)
           ])
         })
       })
 
       describe('put', () => {
         beforeEach(async () => {
-          await testPut(rangeStore, 0n, 1000n, alice)
-          await testPut(rangeStore, 1000n, 2000n, bob)
+          await testPut(rangeStore, BigInt(0), BigInt(1000), alice)
+          await testPut(rangeStore, BigInt(1000), BigInt(2000), bob)
         })
         it('put to former', async () => {
-          await testPut(rangeStore, 0n, 500n, carol)
-          const ranges = await testGet(rangeStore, 0n, 2000n)
+          await testPut(rangeStore, BigInt(0), BigInt(500), carol)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(2000))
           expect(ranges).toEqual([
-            testRangeRecord(0n, 500n, carol),
-            testRangeRecord(500n, 1000n, alice),
-            testRangeRecord(1000n, 2000n, bob)
+            testRangeRecord(BigInt(0), BigInt(500), carol),
+            testRangeRecord(BigInt(500), BigInt(1000), alice),
+            testRangeRecord(BigInt(1000), BigInt(2000), bob)
           ])
         })
         it('put to middle', async () => {
-          await testPut(rangeStore, 200n, 500n, carol)
-          const ranges = await testGet(rangeStore, 0n, 2000n)
+          await testPut(rangeStore, BigInt(200), BigInt(500), carol)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(2000))
           expect(ranges).toEqual([
-            testRangeRecord(0n, 200n, alice),
-            testRangeRecord(200n, 500n, carol),
-            testRangeRecord(500n, 1000n, alice),
-            testRangeRecord(1000n, 2000n, bob)
+            testRangeRecord(BigInt(0), BigInt(200), alice),
+            testRangeRecord(BigInt(200), BigInt(500), carol),
+            testRangeRecord(BigInt(500), BigInt(1000), alice),
+            testRangeRecord(BigInt(1000), BigInt(2000), bob)
           ])
         })
         it('put to later', async () => {
-          await testPut(rangeStore, 500n, 1000n, carol)
-          const ranges = await testGet(rangeStore, 0n, 2000n)
+          await testPut(rangeStore, BigInt(500), BigInt(1000), carol)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(2000))
           expect(ranges).toEqual([
-            testRangeRecord(0n, 500n, alice),
-            testRangeRecord(500n, 1000n, carol),
-            testRangeRecord(1000n, 2000n, bob)
+            testRangeRecord(BigInt(0), BigInt(500), alice),
+            testRangeRecord(BigInt(500), BigInt(1000), carol),
+            testRangeRecord(BigInt(1000), BigInt(2000), bob)
           ])
         })
         it('put across', async () => {
-          await testPut(rangeStore, 500n, 1500n, carol)
-          const ranges = await testGet(rangeStore, 0n, 2000n)
+          await testPut(rangeStore, BigInt(500), BigInt(1500), carol)
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(2000))
           expect(ranges).toEqual([
-            testRangeRecord(0n, 500n, alice),
-            testRangeRecord(500n, 1500n, carol),
-            testRangeRecord(1500n, 2000n, bob)
+            testRangeRecord(BigInt(0), BigInt(500), alice),
+            testRangeRecord(BigInt(500), BigInt(1500), carol),
+            testRangeRecord(BigInt(1500), BigInt(2000), bob)
           ])
         })
       })
 
       describe('del', () => {
         it('del ranges', async () => {
-          await testPut(rangeStore, 0n, 100n, alice)
-          await testPut(rangeStore, 100n, 200n, bob)
-          await testPut(rangeStore, 200n, 300n, carol)
-          await testDel(rangeStore, 0n, 300n)
-          const ranges = await testGet(rangeStore, 0n, 300n)
+          await testPut(rangeStore, BigInt(0), BigInt(100), alice)
+          await testPut(rangeStore, BigInt(100), BigInt(200), bob)
+          await testPut(rangeStore, BigInt(200), BigInt(300), carol)
+          await testDel(rangeStore, BigInt(0), BigInt(300))
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(300))
           expect(ranges).toEqual([])
         })
 
         it('del middle range', async () => {
-          await testPut(rangeStore, 0n, 100n, alice)
-          await testDel(rangeStore, 10n, 20n)
-          const ranges = await testGet(rangeStore, 0n, 100n)
+          await testPut(rangeStore, BigInt(0), BigInt(100), alice)
+          await testDel(rangeStore, BigInt(10), BigInt(20))
+          const ranges = await testGet(rangeStore, BigInt(0), BigInt(100))
           // del method is not used in public, no correct spec exists.
           expect(ranges).toEqual([])
         })

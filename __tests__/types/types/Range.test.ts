@@ -2,8 +2,8 @@ import { Range } from '../../../src/types/types'
 import { BigNumber, Struct } from '../../../src/types/Codables'
 
 describe('Range', () => {
-  const start = BigNumber.from(10n)
-  const end = BigNumber.from(12n)
+  const start = BigNumber.from(BigInt(10))
+  const end = BigNumber.from(BigInt(12))
   describe('toStruct', () => {
     it('return struct', async () => {
       const range = new Range(start, end)

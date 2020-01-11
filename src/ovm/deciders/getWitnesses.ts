@@ -59,7 +59,7 @@ export default async function getWitnesses(
     return result
   } else if (type === 'NUMBER') {
     const [start, end] = param.split('-').map(n => BigNumber.fromHexString(n))
-    return makeRange(start.data, end.data - 1n)
+    return makeRange(start.data, end.data - BigInt(1))
       .map(BigNumber.from)
       .map(Coder.encode)
   } else {
