@@ -80,7 +80,7 @@ describe('JsonCoder', () => {
     })
 
     test('encode big number', () => {
-      const bigNumber = BigNumber.from(2n ** 80n)
+      const bigNumber = BigNumber.from(BigInt(2) ** BigInt(80))
 
       expect(JsonCoder.encode(bigNumber).intoString()).toBe(
         '"1208925819614629174706176"'
@@ -194,7 +194,7 @@ describe('JsonCoder', () => {
           BigNumber.default(),
           Bytes.fromString('"1208925819614629174706176"')
         )
-      ).toStrictEqual(BigNumber.from(2n ** 80n))
+      ).toStrictEqual(BigNumber.from(BigInt(2) ** BigInt(80)))
     })
   })
 })
