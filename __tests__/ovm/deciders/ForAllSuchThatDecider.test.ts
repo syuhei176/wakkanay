@@ -1,5 +1,5 @@
 import { Property, FreeVariable } from '../../../src/ovm/types'
-import { Bytes, Integer } from '../../../src/types/Codables'
+import { Bytes, Integer, BigNumber } from '../../../src/types/Codables'
 import Coder from '../../../src/coder'
 import {
   initializeDeciderManager,
@@ -12,6 +12,8 @@ import {
 } from '../helpers/initiateDeciderManager'
 
 describe('ForAllsuchThatDecider', () => {
+  const zero =
+    '0x0000000000000000000000000000000000000000000000000000000000000000'
   const trueProperty = Coder.encode(
     new Property(SampleDeciderAddress, [Bytes.fromString('true')]).toStruct()
   )
@@ -28,12 +30,12 @@ describe('ForAllsuchThatDecider', () => {
   const deciderManager = initializeDeciderManager()
 
   it('decide for all n such that n < 10: true', async () => {
-    const upperBound = Coder.encode(Integer.from(10))
-    const quantifier = Coder.encode(
-      new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
+    const upperBound = BigNumber.from(10)
+    const hint = Bytes.fromString(
+      `range,NUMBER,${zero}-${upperBound.toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       trueProperty
     ])
@@ -42,19 +44,19 @@ describe('ForAllsuchThatDecider', () => {
   })
 
   it('decide for all n such that n < 10: false', async () => {
-    const upperBound = Coder.encode(Integer.from(10))
-    const quantifier = Coder.encode(
-      new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
+    const upperBound = BigNumber.from(10)
+    const hint = Bytes.fromString(
+      `range,NUMBER,${zero}-${upperBound.toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       falseProperty
     ])
     const decision = await deciderManager.decide(property)
     expect(decision.outcome).toEqual(false)
     expect(decision.challenges[0].challengeInput).toEqual(
-      Coder.encode(Integer.from(0))
+      Coder.encode(BigNumber.from(0))
     )
     expect(decision.challenges[0].property.deciderAddress).toEqual(
       NotDeciderAddress
@@ -62,12 +64,12 @@ describe('ForAllsuchThatDecider', () => {
   })
 
   it('decide for all n such that n < 2: n < 5', async () => {
-    const upperBound = Coder.encode(Integer.from(2))
-    const quantifier = Coder.encode(
-      new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
+    const upperBound = BigNumber.from(2)
+    const hint = Bytes.fromString(
+      `range,NUMBER,${zero}-${upperBound.toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       placeholderedProperty
     ])
@@ -76,12 +78,12 @@ describe('ForAllsuchThatDecider', () => {
   })
 
   it('decide for all n such that n < 10: n < 5', async () => {
-    const upperBound = Coder.encode(Integer.from(10))
-    const quantifier = Coder.encode(
-      new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
+    const upperBound = BigNumber.from(10)
+    const hint = Bytes.fromString(
+      `range,NUMBER,${zero}-${upperBound.toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       placeholderedProperty
     ])
@@ -89,21 +91,19 @@ describe('ForAllsuchThatDecider', () => {
     expect(decision.outcome).toEqual(false)
     // challengeInput is 5 because 5 < 5 is false
     expect(decision.challenges[0].challengeInput).toEqual(
-      Coder.encode(Integer.from(5))
+      Coder.encode(BigNumber.from(5))
     )
   })
 
-  it('fail to decide because of invalid quantifier address', async () => {
-    const quantifier = Coder.encode(
-      new Property(AndDeciderAddress, [upperBound]).toStruct()
-    )
+  it('fail to decide because of invalid hint data', async () => {
+    const hint = Bytes.fromString('invalid hint string')
     const property = new Property(ForAllSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       placeholderedProperty
     ])
     await expect(deciderManager.decide(property)).rejects.toEqual(
-      new Error('quantifier not found')
+      new Error('inputs[0] must be valid hint data.')
     )
   })
 })

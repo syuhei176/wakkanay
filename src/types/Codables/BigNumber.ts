@@ -46,6 +46,11 @@ export default class BigNumber implements Codable {
     return `BigNumber(${this.data})`
   }
 
+  public toHexString(prefixRequired = true) {
+    const hex = this.data.toString(16)
+    return (prefixRequired ? '0x' : '') + (hex.length % 2 == 1 ? '0' : '') + hex
+  }
+
   public toTypeString(): string {
     return this.constructor.name
   }

@@ -21,21 +21,7 @@ export class ThereExistsSuchThatDecider implements Decider {
         replaceHint(inputs[0].intoString(), substitutions)
       )
     } else {
-      const quantifierProperty = Property.fromStruct(
-        Coder.decode(Property.getParamType(), inputs[0])
-      )
-
-      const quantifier = manager.getQuantifier(
-        quantifierProperty.deciderAddress
-      )
-      if (!quantifier) {
-        throw new Error('quantifier not found')
-      }
-      const quantified = await quantifier.getAllQuantified(
-        manager,
-        quantifierProperty.inputs
-      )
-      witnesses = quantified.quantifiedResult
+      throw new Error('inputs[0] must be valid hint data.')
     }
     const innerProperty = Property.fromStruct(
       Coder.decode(Property.getParamType(), inputs[2])

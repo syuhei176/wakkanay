@@ -1,9 +1,9 @@
 import { Address, Bytes } from '../../src/types/Codables'
 import { Decider } from './interfaces/Decider'
-import { Property, Decision, FreeVariable, AtomicPredicate } from './types'
-import { Quantifier } from './interfaces/Quantifier'
+import { Property, Decision, FreeVariable } from './types'
 import { KeyValueStore } from '../db'
 import { initialize, InitilizationConfig } from './load'
+import { CompiledPredicate } from './decompiler'
 
 export interface DeciderManagerInterface {
   decide(
@@ -19,13 +19,13 @@ export interface DeciderManagerInterface {
 export class DeciderManager implements DeciderManagerInterface {
   private deciders: Map<string, Decider>
   private shortnames: Map<string, Address>
-  private quantifiers: Map<string, Quantifier>
+  private compiledPredicates: Map<string, CompiledPredicate>
   public witnessDb: KeyValueStore
   constructor(witnessDb: KeyValueStore) {
     this.witnessDb = witnessDb
     this.deciders = new Map<string, Decider>()
     this.shortnames = new Map<string, Address>()
-    this.quantifiers = new Map<string, Quantifier>()
+    this.compiledPredicates = new Map<string, CompiledPredicate>()
   }
 
   /**
@@ -76,33 +76,17 @@ export class DeciderManager implements DeciderManagerInterface {
     return this.shortnames
   }
 
-  /**
-   * Sets quantifier with address
-   * @param address
-   * @param quantifier
-   */
-  public setQuantifier(
-    address: Address,
-    quantifier: Quantifier,
-    operator?: AtomicPredicate
+  public get compiledPredicateMap(): ReadonlyMap<string, CompiledPredicate> {
+    return this.compiledPredicates
+  }
+
+  public setCompiledPredicate(
+    predicateName: string,
+    compiledPredicate: CompiledPredicate
   ) {
-    this.quantifiers.set(address.data, quantifier)
-    if (operator !== undefined) {
-      this.shortnames.set(operator, address)
-    }
+    this.compiledPredicates.set(predicateName, compiledPredicate)
   }
-  /**
-   * Gets quantifier with address
-   * @param address
-   */
-  public getQuantifier(address: Address): Quantifier | null {
-    const quantifier = this.quantifiers.get(address.data)
-    if (quantifier) {
-      return quantifier
-    } else {
-      return null
-    }
-  }
+
   /**
    * Decides property is true or false and returns decision structure.
    * @param property

@@ -1,18 +1,18 @@
 import Coder from '../../../src/coder'
-import { Bytes, Integer } from '../../../src/types/Codables'
+import { Bytes, Integer, BigNumber } from '../../../src/types/Codables'
 import {
   initializeDeciderManager,
   ThereExistsSuchThatDeciderAddress,
   LessThanDeciderAddress,
   GreaterThanDeciderAddress,
-  LessThanQuantifierAddress,
   IsValidSignatureDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import { Property, FreeVariable } from '../../../src/ovm/types'
 import { DeciderManager } from '../../../src/ovm/DeciderManager'
-import { secp256k1Verifier } from '../../../src/verifiers'
 
 describe('ThereExistsSuchThatDecider', () => {
+  const zero =
+    '0x0000000000000000000000000000000000000000000000000000000000000000'
   const upperBound = Coder.encode(Integer.from(2))
   const lowerBound = Coder.encode(Integer.from(10))
   const lessThanTwoProperty = Coder.encode(
@@ -34,12 +34,12 @@ describe('ThereExistsSuchThatDecider', () => {
   })
 
   test('ThereExists positive integer n of number less than 10 such that n is less than 2.', async () => {
-    const upperBound = Coder.encode(Integer.from(10))
-    const quantifier = Coder.encode(
-      new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
+    const upperBound = BigNumber.from(10)
+    const hint = Bytes.fromString(
+      `range,NUMBER,${zero}-${upperBound.toHexString()}`
     )
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       lessThanTwoProperty
     ])
@@ -49,12 +49,12 @@ describe('ThereExistsSuchThatDecider', () => {
   })
 
   test('ThereDoesNotExists positive integer n of number less than 5 such that n is greater than 10.', async () => {
-    const upperBound = Coder.encode(Integer.from(5))
-    const quantifier = Coder.encode(
-      new Property(LessThanQuantifierAddress, [upperBound]).toStruct()
+    const upperBound = BigNumber.from(5)
+    const hint = Bytes.fromString(
+      `range,NUMBER,${zero}-${upperBound.toHexString()}`
     )
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
-      quantifier,
+      hint,
       Bytes.fromString('n'),
       greaterThanTenProperty
     ])

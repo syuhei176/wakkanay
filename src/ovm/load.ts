@@ -124,6 +124,7 @@ function initializeCompiledPredicates(
       Address.from(deployedPredicateInfo.deployedAddress),
       deployedPredicateInfo.source
     )
+    deciderManager.setCompiledPredicate(predicate.getPredicateName(), predicate)
     const decider = new CompiledDecider(predicate, constantVariableTable)
     deciderManager.setDecider(
       Address.from(deployedPredicateInfo.deployedAddress),

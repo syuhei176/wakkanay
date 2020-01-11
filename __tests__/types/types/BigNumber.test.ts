@@ -14,4 +14,19 @@ describe('BigNumber', () => {
       expect(BigNumber.fromString('0b10000')).toStrictEqual(BigNumber.from(16))
     })
   })
+
+  describe('toHexString', () => {
+    it('to 0x00', async () => {
+      const num = BigNumber.from(0)
+      expect(num.toHexString()).toStrictEqual('0x00')
+    })
+    it('to 0x10', async () => {
+      const num = BigNumber.fromHexString('0x10')
+      expect(num.toHexString()).toStrictEqual('0x10')
+    })
+    it('to 0123', async () => {
+      const num = BigNumber.fromHexString('0x123')
+      expect(num.toHexString(false)).toStrictEqual('0123')
+    })
+  })
 })
