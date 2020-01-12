@@ -99,11 +99,6 @@ export function initializeDeciderManager() {
     new ForAllSuchThatDecider(),
     LogicalConnective.ForAllSuchThat
   )
-  deciderManager.setQuantifier(
-    LessThanQuantifierAddress,
-    new LessThanQuantifier(),
-    AtomicPredicate.LessThan
-  )
   deciderManager.setDecider(GreaterThanDeciderAddress, new GreaterThanDecider())
   deciderManager.setDecider(
     ThereExistsSuchThatDeciderAddress,
