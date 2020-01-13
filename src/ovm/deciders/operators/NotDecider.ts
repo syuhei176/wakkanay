@@ -1,6 +1,4 @@
 import { Bytes } from '../../../types/Codables'
-import { getDefaultCoder } from '../../../coder'
-const Coder = getDefaultCoder()
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
@@ -16,7 +14,7 @@ export class NotDecider implements Decider {
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const property = Property.fromStruct(
-      Coder.decode(Property.getParamType(), inputs[0])
+      manager.coder.decode(Property.getParamType(), inputs[0])
     )
     const decision = await manager.decide(property)
     return {

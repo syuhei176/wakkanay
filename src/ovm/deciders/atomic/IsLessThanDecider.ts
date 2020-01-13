@@ -1,5 +1,3 @@
-import { getDefaultCoder } from '../../../coder'
-const Coder = getDefaultCoder()
 import { Bytes, BigNumber } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
@@ -20,8 +18,8 @@ export class IsLessThanDecider implements Decider {
       }
     }
 
-    const first = Coder.decode(BigNumber.default(), inputs[0])
-    const second = Coder.decode(BigNumber.default(), inputs[1])
+    const first = manager.coder.decode(BigNumber.default(), inputs[0])
+    const second = manager.coder.decode(BigNumber.default(), inputs[1])
 
     return {
       outcome: first.data < second.data,

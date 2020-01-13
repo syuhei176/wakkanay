@@ -1,9 +1,8 @@
 import { Property } from './types'
-import { getDefaultCoder } from '../coder'
-const Coder = getDefaultCoder()
 import { Bytes } from '../types/Codables'
+import { Coder } from '../coder'
 
-export const decodeProperty = (input: Bytes) =>
-  Property.fromStruct(Coder.decode(Property.getParamType(), input))
-export const encodeProperty = (property: Property) =>
-  Coder.encode(property.toStruct())
+export const decodeProperty = (coder: Coder, input: Bytes) =>
+  Property.fromStruct(coder.decode(Property.getParamType(), input))
+export const encodeProperty = (coder: Coder, property: Property) =>
+  coder.encode(property.toStruct())

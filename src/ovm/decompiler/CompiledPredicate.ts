@@ -1,14 +1,13 @@
 import { Bytes, Address } from '../../types'
 import { Property, FreeVariable } from '../types'
 import { parser, transpiler } from 'ovm-compiler'
-import { getDefaultCoder } from '../../coder'
-const Coder = getDefaultCoder()
 import { replaceHint } from '../deciders/getWitnesses'
 import { decodeStructable } from '../../utils/DecoderUtil'
 import NormalInput = transpiler.NormalInput
 import AtomicProposition = transpiler.AtomicProposition
 import LogicalConnective = transpiler.LogicalConnective
 import { IntermediateCompiledPredicate } from 'ovm-compiler/dist/transpiler'
+import JsonCoder, { Coder } from '../../coder'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -77,7 +76,8 @@ export class CompiledPredicate {
   decompileProperty(
     compiledProperty: Property,
     predicateTable: ReadonlyMap<string, Address>,
-    constantTable: { [key: string]: Bytes } = {}
+    constantTable: { [key: string]: Bytes } = {},
+    coder: Coder = JsonCoder
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
     const findContract = (name: string) => {
@@ -122,7 +122,8 @@ export class CompiledPredicate {
         createAtomicPropositionCall(
           def.inputs[2] as AtomicProposition,
           def,
-          context
+          context,
+          coder
         )
       ])
     } else {
@@ -130,7 +131,12 @@ export class CompiledPredicate {
       return new Property(
         predicateAddress,
         def.inputs.map(i =>
-          createAtomicPropositionCall(i as AtomicProposition, def, context)
+          createAtomicPropositionCall(
+            i as AtomicProposition,
+            def,
+            context,
+            coder
+          )
         )
       )
     }
@@ -144,7 +150,8 @@ export const createAtomicPropositionCall = (
     compiledProperty: Property
     predicateTable: ReadonlyMap<string, Address>
     constantTable: { [key: string]: Bytes }
-  }
+  },
+  coder: Coder = JsonCoder
 ): Bytes => {
   if (input.predicate.type == 'AtomicPredicateCall') {
     const originalAddress: Address = context.compiledProperty.deciderAddress
@@ -161,25 +168,26 @@ export const createAtomicPropositionCall = (
     if (atomicPredicateAddress === undefined) {
       throw new Error(`The address of ${input.predicate.source} not found.`)
     }
-    return Coder.encode(
+    return coder.encode(
       createChildProperty(
         atomicPredicateAddress,
         input,
         context.compiledProperty,
-        context.constantTable
+        context.constantTable,
+        coder
       ).toStruct()
     )
   } else if (input.predicate.type == 'InputPredicateCall') {
     const property = decodeStructable(
       Property,
-      Coder,
+      coder,
       context.compiledProperty.inputs[input.predicate.source.inputIndex]
     )
     const extraInputBytes = input.inputs.map(
       i => context.compiledProperty.inputs[(i as NormalInput).inputIndex]
     )
     property.inputs = property.inputs.concat(extraInputBytes)
-    return Coder.encode(property.toStruct())
+    return coder.encode(property.toStruct())
   } else if (input.predicate.type == 'VariablePredicateCall') {
     // When predicateDef has VariablePredicate, inputs[1] must be variable name
     return FreeVariable.from(def.inputs[1] as string)
@@ -198,7 +206,8 @@ const createChildProperty = (
   atomicPredicateAddress: Address,
   proposition: transpiler.AtomicProposition,
   compiledProperty: Property,
-  constantsTable: { [key: string]: Bytes }
+  constantsTable: { [key: string]: Bytes },
+  coder: Coder = JsonCoder
 ): Property => {
   return new Property(
     atomicPredicateAddress,
@@ -209,7 +218,11 @@ const createChildProperty = (
             `Property(${compiledProperty.deciderAddress}) don't have enough inputs.`
           )
         }
-        return constructInput(compiledProperty.inputs[i.inputIndex], i.children)
+        return constructInput(
+          compiledProperty.inputs[i.inputIndex],
+          i.children,
+          coder
+        )
       } else if (i.type == 'VariableInput') {
         return FreeVariable.from(i.placeholder)
       } else if (i.type == 'LabelInput') {
@@ -254,15 +267,23 @@ export const createSubstitutions = (
  * @param anInput if children has items, anInput must be Property
  * @param children children are array of input indexed to return child
  */
-export const constructInput = (anInput: Bytes, children: number[]): Bytes => {
+export const constructInput = (
+  anInput: Bytes,
+  children: number[],
+  coder: Coder = JsonCoder
+): Bytes => {
   if (children.length == 0) {
     return anInput
   }
-  const property = decodeStructable(Property, Coder, anInput)
+  const property = decodeStructable(Property, coder, anInput)
   if (children[0] == -1) {
     // -1 means `.address`
     return Bytes.fromHexString(property.deciderAddress.data)
   } else {
-    return constructInput(property.inputs[children[0]], children.slice(1))
+    return constructInput(
+      property.inputs[children[0]],
+      children.slice(1),
+      coder
+    )
   }
 }

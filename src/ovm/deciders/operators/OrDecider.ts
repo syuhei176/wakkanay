@@ -11,7 +11,7 @@ export class OrDecider implements Decider {
   ): Promise<Decision> {
     let properties: Array<Property>
     try {
-      properties = inputs.map(decodeProperty)
+      properties = inputs.map(i => decodeProperty(manager.coder, i))
     } catch (e) {
       return {
         outcome: false,
@@ -39,10 +39,10 @@ export class OrDecider implements Decider {
           .map(
             p =>
               new Property(manager.getDeciderAddress(LogicalConnective.Not), [
-                encodeProperty(p)
+                encodeProperty(manager.coder, p)
               ])
           )
-          .map(encodeProperty)
+          .map(i => encodeProperty(manager.coder, i))
       ),
       challengeInput: null
     }

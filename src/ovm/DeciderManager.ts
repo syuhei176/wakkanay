@@ -4,8 +4,10 @@ import { Property, Decision, FreeVariable } from './types'
 import { KeyValueStore } from '../db'
 import { initialize, InitilizationConfig } from './load'
 import { CompiledPredicate } from './decompiler'
+import JsonCoder, { Coder } from '../coder'
 
 export interface DeciderManagerInterface {
+  readonly coder: Coder
   decide(
     property: Property,
     substitutions?: { [key: string]: Bytes }
@@ -21,7 +23,7 @@ export class DeciderManager implements DeciderManagerInterface {
   private shortnames: Map<string, Address>
   private compiledPredicates: Map<string, CompiledPredicate>
   public witnessDb: KeyValueStore
-  constructor(witnessDb: KeyValueStore) {
+  constructor(witnessDb: KeyValueStore, readonly coder: Coder = JsonCoder) {
     this.witnessDb = witnessDb
     this.deciders = new Map<string, Decider>()
     this.shortnames = new Map<string, Address>()

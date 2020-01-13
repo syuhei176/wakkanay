@@ -1,5 +1,3 @@
-import { getDefaultCoder } from '../../../coder'
-const Coder = getDefaultCoder()
 import { Bytes, Integer } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
@@ -17,7 +15,7 @@ export class AndDecider implements Decider {
   ): Promise<Decision> {
     let properties
     try {
-      properties = inputs.map(decodeProperty)
+      properties = inputs.map(i => decodeProperty(manager.coder, i))
     } catch (e) {
       return {
         outcome: false,
@@ -34,9 +32,9 @@ export class AndDecider implements Decider {
         const challenge: Challenge = {
           property: new Property(
             manager.getDeciderAddress(LogicalConnective.Not),
-            [Coder.encode(p.toStruct())]
+            [manager.coder.encode(p.toStruct())]
           ),
-          challengeInput: Coder.encode(Integer.from(index))
+          challengeInput: manager.coder.encode(Integer.from(index))
         }
         return {
           outcome: false,

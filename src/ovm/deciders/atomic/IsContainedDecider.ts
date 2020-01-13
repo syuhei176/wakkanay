@@ -1,11 +1,9 @@
-import { getDefaultCoder } from '../../../coder'
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { Range } from '../../../types'
 import { DecoderUtil } from '../../../utils'
-const Coder = getDefaultCoder()
 
 /**
  * IsContainedDecider decides to true if for given two ranges,
@@ -23,8 +21,8 @@ export class IsContainedDecider implements Decider {
       }
     }
 
-    const first = DecoderUtil.decodeStructable(Range, Coder, inputs[0])
-    const second = DecoderUtil.decodeStructable(Range, Coder, inputs[1])
+    const first = DecoderUtil.decodeStructable(Range, manager.coder, inputs[0])
+    const second = DecoderUtil.decodeStructable(Range, manager.coder, inputs[1])
 
     return {
       outcome:

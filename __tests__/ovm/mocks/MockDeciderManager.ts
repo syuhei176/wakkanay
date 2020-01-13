@@ -6,6 +6,7 @@ import {
   LogicalConnective,
   OrDecider
 } from '../../../src/ovm'
+import JsonCoder, { Coder } from '../../../src/coder'
 
 const BoolDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'
@@ -24,6 +25,7 @@ const OrDeciderAddress = Address.from(
 )
 
 export class MockDeciderManager implements DeciderManagerInterface {
+  readonly coder: Coder = JsonCoder
   constructor() {}
   public async decide(
     property: Property,

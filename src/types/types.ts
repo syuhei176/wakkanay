@@ -1,4 +1,4 @@
-import { Struct, BigNumber } from './Codables'
+import { Struct, BigNumber, Bytes } from './Codables'
 
 export type ParamType = {
   name?: string
@@ -9,6 +9,14 @@ export type ParamType = {
 
 export class Range {
   constructor(readonly start: BigNumber, readonly end: BigNumber) {}
+  public static fromBytes(bytes: Bytes): Range {
+    const getBigNumber = (b: Uint8Array) =>
+      BigNumber.fromHexString(Bytes.from(b).toHexString())
+    return new Range(
+      getBigNumber(bytes.data.slice(0, 32)),
+      getBigNumber(bytes.data.slice(32))
+    )
+  }
   public toStruct(): Struct {
     return new Struct([
       {
