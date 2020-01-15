@@ -1,4 +1,3 @@
-import Coder from '../../../coder'
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
@@ -25,7 +24,7 @@ export class ForAllSuchThatDecider implements Decider {
     }
 
     const innerProperty = Property.fromStruct(
-      Coder.decode(Property.getParamType(), inputs[2])
+      manager.coder.decode(Property.getParamType(), inputs[2])
     )
     const variableName = inputs[1].intoString()
 
@@ -43,7 +42,7 @@ export class ForAllSuchThatDecider implements Decider {
         const challenge: Challenge = {
           property: new Property(
             manager.getDeciderAddress(LogicalConnective.Not),
-            [Coder.encode(innerProperty.toStruct())]
+            [manager.coder.encode(innerProperty.toStruct())]
           ),
           challengeInput: q
         }

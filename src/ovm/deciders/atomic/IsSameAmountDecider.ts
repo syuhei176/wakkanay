@@ -1,4 +1,3 @@
-import Coder from '../../../coder'
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
@@ -21,9 +20,9 @@ export class IsSameAmountDecider implements Decider {
       }
     }
 
-    const first = DecoderUtil.decodeStructable(Range, Coder, inputs[0])
+    const first = DecoderUtil.decodeStructable(Range, manager.coder, inputs[0])
     const firstAmount = first.end.data - first.start.data
-    const second = DecoderUtil.decodeStructable(Range, Coder, inputs[1])
+    const second = DecoderUtil.decodeStructable(Range, manager.coder, inputs[1])
     const secondAmount = second.end.data - second.start.data
 
     return {

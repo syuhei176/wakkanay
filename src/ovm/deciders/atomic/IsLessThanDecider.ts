@@ -1,4 +1,3 @@
-import Coder from '../../../coder'
 import { Bytes, BigNumber } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
@@ -19,8 +18,8 @@ export class IsLessThanDecider implements Decider {
       }
     }
 
-    const first = Coder.decode(BigNumber.default(), inputs[0])
-    const second = Coder.decode(BigNumber.default(), inputs[1])
+    const first = BigNumber.fromHexString(inputs[0].toHexString())
+    const second = BigNumber.fromHexString(inputs[1].toHexString())
 
     return {
       outcome: first.data < second.data,

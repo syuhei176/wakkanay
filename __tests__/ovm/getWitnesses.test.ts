@@ -53,7 +53,9 @@ describe('get witnesses', () => {
     await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
 
     // 0x5b223235222c223135225d is Range(15, 20)
-    const hint = 'bucket5,RANGE,0x5b223135222c223230225d'
+    const hint =
+      'bucket5,RANGE,' +
+      new Range(BigNumber.from(15), BigNumber.from(20)).toBytes().toHexString()
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(1)
     expect(result[0]).toStrictEqual(Bytes.fromString('v'))
@@ -64,7 +66,9 @@ describe('get witnesses', () => {
     const bukcet = await rangeDb.bucket(Bytes.fromString('bucket'))
     await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
 
-    const hint = 'bucket,RANGE,0x5b223135222c223230225d'
+    const hint =
+      'bucket,RANGE,' +
+      new Range(BigNumber.from(15), BigNumber.from(20)).toBytes().toHexString()
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(1)
     expect(result[0]).toStrictEqual(Bytes.fromString('v'))
@@ -88,12 +92,8 @@ describe('get witnesses', () => {
     const hint = 'range,NUMBER,0x1000000-0x1000010'
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(16)
-    expect(result[0]).toStrictEqual(
-      Bytes.fromString(JSON.stringify('16777216'))
-    )
-    expect(result[15]).toStrictEqual(
-      Bytes.fromString(JSON.stringify('16777231'))
-    )
+    expect(result[0]).toStrictEqual(Bytes.fromHexString('0x1000000'))
+    expect(result[15]).toStrictEqual(Bytes.fromHexString('0x100000f'))
   })
 
   test('throw exception unknown type', async () => {

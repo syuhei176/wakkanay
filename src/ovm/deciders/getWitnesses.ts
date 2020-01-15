@@ -1,8 +1,7 @@
-import { Bytes, Integer, BigNumber } from '../../types/Codables'
+import { Bytes, BigNumber } from '../../types/Codables'
 import { KeyValueStore, RangeDb } from '../../db'
 import { decodeStructable } from '../../utils/DecoderUtil'
 import { Range } from '../../types'
-import Coder from '../../coder'
 import { makeRange } from '../../utils/BigIntMath'
 
 /**
@@ -41,7 +40,7 @@ export default async function getWitnesses(
     for await (const b of bucketNames) {
       db = await db.bucket(Bytes.fromString(b))
     }
-    const range = decodeStructable(Range, Coder, Bytes.fromHexString(param))
+    const range = Range.fromBytes(Bytes.fromHexString(param))
     const result = await db.get(range.start.data, range.end.data)
     return result.map(r => r.value)
   } else if (type === 'ITER') {
@@ -61,7 +60,7 @@ export default async function getWitnesses(
     const [start, end] = param.split('-').map(n => BigNumber.fromHexString(n))
     return makeRange(start.data, end.data - BigInt(1))
       .map(BigNumber.from)
-      .map(Coder.encode)
+      .map(n => Bytes.fromHexString(n.toHexString()))
   } else {
     throw new Error(`${type} is unknown type of hint.`)
   }

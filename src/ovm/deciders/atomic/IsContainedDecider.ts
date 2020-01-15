@@ -1,4 +1,3 @@
-import Coder from '../../../coder'
 import { Bytes } from '../../../types/Codables'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
@@ -22,8 +21,8 @@ export class IsContainedDecider implements Decider {
       }
     }
 
-    const first = DecoderUtil.decodeStructable(Range, Coder, inputs[0])
-    const second = DecoderUtil.decodeStructable(Range, Coder, inputs[1])
+    const first = DecoderUtil.decodeStructable(Range, manager.coder, inputs[0])
+    const second = DecoderUtil.decodeStructable(Range, manager.coder, inputs[1])
 
     return {
       outcome:

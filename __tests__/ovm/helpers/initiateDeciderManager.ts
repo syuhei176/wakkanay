@@ -19,6 +19,7 @@ import {
 import { LogicalConnective, AtomicPredicate } from '../../../src/ovm/types'
 import { Address, Bytes } from '../../../src/types/Codables'
 import { InMemoryKeyValueStore } from '../../../src/db'
+import JsonCoder from '../../../src/coder'
 
 export const SampleDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'
@@ -68,7 +69,7 @@ export const IsContainedDeciderAddress = Address.from(
 
 export function initializeDeciderManager() {
   const witnessDb = new InMemoryKeyValueStore(Bytes.fromString('test'))
-  const deciderManager = new DeciderManager(witnessDb)
+  const deciderManager = new DeciderManager(witnessDb, JsonCoder)
   deciderManager.setDecider(
     SampleDeciderAddress,
     new SampleDecider(),

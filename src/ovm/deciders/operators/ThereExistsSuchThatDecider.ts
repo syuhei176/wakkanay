@@ -1,4 +1,3 @@
-import Coder from '../../../coder'
 import { Decider } from '../../interfaces/Decider'
 import { DeciderManager } from '../../DeciderManager'
 import { Bytes } from '../../../types/Codables'
@@ -24,7 +23,7 @@ export class ThereExistsSuchThatDecider implements Decider {
       throw new Error('inputs[0] must be valid hint data.')
     }
     const innerProperty = Property.fromStruct(
-      Coder.decode(Property.getParamType(), inputs[2])
+      manager.coder.decode(Property.getParamType(), inputs[2])
     )
     const variableName = inputs[1].intoString()
 

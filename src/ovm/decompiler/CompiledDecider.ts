@@ -17,7 +17,8 @@ export class CompiledDecider implements Decider {
     const property = this.predicateSource.decompileProperty(
       new Property(this.predicateSource.deployedAddress, inputs),
       manager.shortnameMap,
-      this.constantTable
+      this.constantTable,
+      manager.coder
     )
     return manager.decide(property, substitutions)
   }

@@ -7,6 +7,7 @@ import { Bytes } from '../../../src/types/Codables'
 import { OrDecider } from '../../../src/ovm/deciders'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
 import { encodeProperty } from '../../../src/ovm/helpers'
+import JsonCoder from '../../../src/coder'
 
 describe('OrDecider', () => {
   const deciderManager = new MockDeciderManager()
@@ -20,9 +21,13 @@ describe('OrDecider', () => {
     AtomicPredicate.Bool
   )
   const trueProperty = encodeProperty(
+    JsonCoder,
     new Property(BoolDeciderAddress, [Bytes.fromString('true')])
   )
-  const falseProperty = encodeProperty(new Property(BoolDeciderAddress, []))
+  const falseProperty = encodeProperty(
+    JsonCoder,
+    new Property(BoolDeciderAddress, [])
+  )
   test('decide or(false, false) to false', async () => {
     const orDecier = new OrDecider()
     const decision = await orDecier.decide(deciderManager, [
@@ -34,8 +39,14 @@ describe('OrDecider', () => {
     expect(decision.challenges).toEqual([
       {
         property: new Property(AndDeciderAddress, [
-          encodeProperty(new Property(NotDeciderAddress, [falseProperty])),
-          encodeProperty(new Property(NotDeciderAddress, [falseProperty]))
+          encodeProperty(
+            JsonCoder,
+            new Property(NotDeciderAddress, [falseProperty])
+          ),
+          encodeProperty(
+            JsonCoder,
+            new Property(NotDeciderAddress, [falseProperty])
+          )
         ]),
         challengeInput: null
       }
