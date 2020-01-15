@@ -18,8 +18,8 @@ export class IsLessThanDecider implements Decider {
       }
     }
 
-    const first = manager.coder.decode(BigNumber.default(), inputs[0])
-    const second = manager.coder.decode(BigNumber.default(), inputs[1])
+    const first = BigNumber.fromHexString(inputs[0].toHexString())
+    const second = BigNumber.fromHexString(inputs[1].toHexString())
 
     return {
       outcome: first.data < second.data,

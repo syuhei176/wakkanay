@@ -20,7 +20,7 @@ describe('ForAllsuchThatDecider', () => {
   const falseProperty = Coder.encode(
     new Property(SampleDeciderAddress, []).toStruct()
   )
-  const upperBound = Coder.encode(Integer.from(5))
+  const upperBound = Bytes.fromHexString(BigNumber.from(5).toHexString())
   const placeholderedProperty = Coder.encode(
     new Property(LessThanDeciderAddress, [
       upperBound,
@@ -56,7 +56,7 @@ describe('ForAllsuchThatDecider', () => {
     const decision = await deciderManager.decide(property)
     expect(decision.outcome).toEqual(false)
     expect(decision.challenges[0].challengeInput).toEqual(
-      Coder.encode(BigNumber.from(0))
+      Bytes.fromHexString(BigNumber.from(0).toHexString())
     )
     expect(decision.challenges[0].property.deciderAddress).toEqual(
       NotDeciderAddress
@@ -91,7 +91,7 @@ describe('ForAllsuchThatDecider', () => {
     expect(decision.outcome).toEqual(false)
     // challengeInput is 5 because 5 < 5 is false
     expect(decision.challenges[0].challengeInput).toEqual(
-      Coder.encode(BigNumber.from(5))
+      Bytes.fromHexString(BigNumber.from(5).toHexString())
     )
   })
 

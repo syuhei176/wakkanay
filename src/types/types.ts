@@ -17,6 +17,15 @@ export class Range {
       getBigNumber(bytes.data.slice(32))
     )
   }
+
+  public toBytes(): Bytes {
+    return Bytes.concat(
+      [this.start.toHexString(), this.end.toHexString()].map(h =>
+        Bytes.fromHexString(h).padZero(32)
+      )
+    )
+  }
+
   public toStruct(): Struct {
     return new Struct([
       {
