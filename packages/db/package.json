@@ -49,7 +49,8 @@
   },
   "dependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.3",
-    "@cryptoeconomicslab/utils": "^0.0.3"
+    "@cryptoeconomicslab/utils": "^0.0.3",
+    "abstract-leveldown": "^6.2.2"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
