@@ -11,6 +11,7 @@ before_install:
   - npm install -g lerna
 
 script:
+  - lerna bootstrap
   - lerna run build:check --parallel
   - lerna run test --parallel
   - lerna run lint --parallel
