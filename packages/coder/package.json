@@ -1,0 +1,54 @@
+{
+  "name": "@cryptoeconomicslab/coder",
+  "version": "0.0.3",
+  "description": "coder",
+  "author": {
+    "name": "Cryptoeconomics Lab",
+    "url": "https://www.cryptoeconomicslab.com/"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "build:check": "tsc --noEmit",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint --ext ts,tsx src",
+    "doc": "typedoc --out docs src",
+    "clean": "rm -rf lib docs"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testMatch": [
+      "**/__tests__/**/?(*.)+(spec|test).(ts|js)",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    }
+  },
+  "dependencies": {
+    "@cryptoeconomicslab/primitives": "^0.0.3"
+  },
+  "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e"
+}
