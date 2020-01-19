@@ -9,9 +9,7 @@ before_install:
   - npm install -g lerna
 
 script:
-  - lerna clean -y
-  - lerna link
   - lerna bootstrap
-  - lerna run build:check --parallel
+  - lerna run build
   - lerna run test --parallel
   - lerna run lint --parallel
