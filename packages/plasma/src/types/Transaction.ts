@@ -7,12 +7,8 @@ import {
 } from '@cryptoeconomicslab/primitives'
 import { Property } from '@cryptoeconomicslab/ovm'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
-import JsonCoder, { Coder } from '@cryptoeconomicslab/coder'
 
 export default class Transaction {
-  ['constructor']: typeof Transaction
-  private static coder: Coder = JsonCoder
-
   constructor(
     public depositContractAddress: Address,
     public range: Range,
@@ -80,6 +76,6 @@ export default class Transaction {
   }
 
   public getHash(): Bytes {
-    return Keccak256.hash(this.constructor.coder.encode(this.body))
+    return Keccak256.hash(context.coder.encode(this.body))
   }
 }

@@ -1,4 +1,4 @@
-interface Context {
+declare interface Context {
   coder: import('@cryptoeconomicslab/coder').Coder
 }
 

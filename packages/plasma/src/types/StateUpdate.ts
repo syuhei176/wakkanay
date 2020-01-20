@@ -7,7 +7,6 @@ import {
 import { Property } from '@cryptoeconomicslab/ovm'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { RangeRecord } from '@cryptoeconomicslab/db'
-import JsonCoder, { Coder } from '@cryptoeconomicslab/coder'
 
 import StateUpdateRecord from './StateUpdateRecord'
 
@@ -17,9 +16,6 @@ import StateUpdateRecord from './StateUpdateRecord'
  * [tokenAddress: Address, range: Range, block_number: uint256, stateObject: Property]
  */
 export default class StateUpdate {
-  ['constructor']: typeof StateUpdate
-  public static coder: Coder = JsonCoder
-
   constructor(
     public deciderAddress: Address,
     public depositContractAddress: Address,
@@ -37,7 +33,7 @@ export default class StateUpdate {
   }
 
   public get property(): Property {
-    const { coder } = this.constructor
+    const { coder } = context
     return new Property(this.deciderAddress, [
       coder.encode(this.depositContractAddress),
       coder.encode(this.range.toStruct()),
@@ -72,18 +68,18 @@ export default class StateUpdate {
   }
 
   public static fromProperty(property: Property) {
-    return new this(
+    return new StateUpdate(
       property.deciderAddress,
-      this.coder.decode(Address.default(), property.inputs[0]),
-      decodeStructable(Range, this.coder, property.inputs[1]),
-      this.coder.decode(BigNumber.default(), property.inputs[2]),
-      decodeStructable(Property, this.coder, property.inputs[3])
+      context.coder.decode(Address.default(), property.inputs[0]),
+      decodeStructable(Range, context.coder, property.inputs[1]),
+      context.coder.decode(BigNumber.default(), property.inputs[2]),
+      decodeStructable(Property, context.coder, property.inputs[3])
     )
   }
 
   public static fromRangeRecord(r: RangeRecord): StateUpdate {
     return StateUpdate.fromRecord(
-      decodeStructable(StateUpdateRecord, this.coder, r.value),
+      decodeStructable(StateUpdateRecord, context.coder, r.value),
       new Range(r.start, r.end)
     )
   }
@@ -97,11 +93,11 @@ export default class StateUpdate {
       range.toStruct(),
       record.blockNumber,
       record.stateObject.toStruct()
-    ].map(this.coder.encode)
+    ].map(context.coder.encode)
 
     const property = new Property(record.predicateAddress, inputs)
 
-    return this.fromProperty(property)
+    return StateUpdate.fromProperty(property)
   }
 
   public toRecord(): StateUpdateRecord {
@@ -111,12 +107,5 @@ export default class StateUpdate {
       this.blockNumber,
       this.stateObject
     )
-  }
-}
-
-export function InjectCoderToStateUpdate(coder: Coder): typeof StateUpdate {
-  return class InjectedStateUpdate extends StateUpdate {
-    ['constructor']: typeof StateUpdate
-    public static coder: Coder = coder
   }
 }

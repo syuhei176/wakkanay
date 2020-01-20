@@ -1,5 +1,4 @@
 import { BigNumber, Bytes, Struct, List } from '@cryptoeconomicslab/primitives'
-import JsonCoder, { Coder } from '@cryptoeconomicslab/coder'
 import { Property } from '@cryptoeconomicslab/ovm'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import {
@@ -12,9 +11,6 @@ import {
 import StateUpdate from './StateUpdate'
 
 export default class Block {
-  ['constructor']: typeof Block
-
-  public static coder: Coder = JsonCoder
   private static StateUpdate = StateUpdate
   private tree: DoubleLayerTree | null = null
 
@@ -34,9 +30,7 @@ export default class Block {
     return new DoubleLayerTreeLeaf(
       stateUpdate.depositContractAddress,
       stateUpdate.range.start,
-      Keccak256.hash(
-        this.constructor.coder.encode(stateUpdate.property.toStruct())
-      )
+      Keccak256.hash(context.coder.encode(stateUpdate.property.toStruct()))
     )
   }
 
@@ -165,12 +159,5 @@ export default class Block {
         )
       }
     ])
-  }
-}
-
-export function InjectCoderToBlock(coder: Coder): typeof Block {
-  return class InjectedBlock extends Block {
-    ['constructor']: typeof Block
-    public static coder: Coder = coder
   }
 }
