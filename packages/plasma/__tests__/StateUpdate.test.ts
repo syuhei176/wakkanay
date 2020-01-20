@@ -7,6 +7,8 @@ import {
 import { Property } from '@cryptoeconomicslab/ovm'
 import { StateUpdate, StateUpdateRecord } from '../src'
 import Coder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('StateUpdate', () => {
   const stateUpdateProperty = new Property(

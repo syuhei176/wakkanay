@@ -2,4 +2,14 @@ declare interface Context {
   coder: import('@cryptoeconomicslab/coder').Coder
 }
 
-declare let context: Context
+declare namespace NodeJS {
+  interface Global {
+    context: Context
+  }
+}
+
+declare global {
+  interface Window {
+    context: Context
+  }
+}
