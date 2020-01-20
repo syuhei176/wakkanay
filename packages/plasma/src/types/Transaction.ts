@@ -76,6 +76,6 @@ export default class Transaction {
   }
 
   public getHash(): Bytes {
-    return Keccak256.hash(context.coder.encode(this.body))
+    return Keccak256.hash(ovmContext.coder.encode(this.body))
   }
 }

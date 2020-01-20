@@ -33,7 +33,7 @@ export default class StateUpdate {
   }
 
   public get property(): Property {
-    const { coder } = context
+    const { coder } = ovmContext
     return new Property(this.deciderAddress, [
       coder.encode(this.depositContractAddress),
       coder.encode(this.range.toStruct()),
@@ -70,16 +70,16 @@ export default class StateUpdate {
   public static fromProperty(property: Property) {
     return new StateUpdate(
       property.deciderAddress,
-      context.coder.decode(Address.default(), property.inputs[0]),
-      decodeStructable(Range, context.coder, property.inputs[1]),
-      context.coder.decode(BigNumber.default(), property.inputs[2]),
-      decodeStructable(Property, context.coder, property.inputs[3])
+      ovmContext.coder.decode(Address.default(), property.inputs[0]),
+      decodeStructable(Range, ovmContext.coder, property.inputs[1]),
+      ovmContext.coder.decode(BigNumber.default(), property.inputs[2]),
+      decodeStructable(Property, ovmContext.coder, property.inputs[3])
     )
   }
 
   public static fromRangeRecord(r: RangeRecord): StateUpdate {
     return StateUpdate.fromRecord(
-      decodeStructable(StateUpdateRecord, context.coder, r.value),
+      decodeStructable(StateUpdateRecord, ovmContext.coder, r.value),
       new Range(r.start, r.end)
     )
   }
@@ -93,7 +93,7 @@ export default class StateUpdate {
       range.toStruct(),
       record.blockNumber,
       record.stateObject.toStruct()
-    ].map(context.coder.encode)
+    ].map(ovmContext.coder.encode)
 
     const property = new Property(record.predicateAddress, inputs)
 

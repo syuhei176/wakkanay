@@ -4,12 +4,12 @@ declare interface Context {
 
 declare namespace NodeJS {
   interface Global {
-    context: Context
+    ovmContext: Context
   }
 }
 
 declare global {
   interface Window {
-    context: Context
+    ovmContext: Context
   }
 }

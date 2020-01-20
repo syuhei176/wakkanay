@@ -30,7 +30,7 @@ export default class Block {
     return new DoubleLayerTreeLeaf(
       stateUpdate.depositContractAddress,
       stateUpdate.range.start,
-      Keccak256.hash(context.coder.encode(stateUpdate.property.toStruct()))
+      Keccak256.hash(ovmContext.coder.encode(stateUpdate.property.toStruct()))
     )
   }
 
