@@ -1,7 +1,9 @@
 import { BigNumber } from '@cryptoeconomicslab/primitives'
-import Coder from '@cryptoeconomicslab/coder'
 import { IsLessThanDecider } from '../../src'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
+import Coder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('IsLessThanDecider', () => {
   const decider = new IsLessThanDecider()

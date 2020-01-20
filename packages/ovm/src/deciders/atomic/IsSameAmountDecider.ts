@@ -20,9 +20,9 @@ export class IsSameAmountDecider implements Decider {
       }
     }
 
-    const first = decodeStructable(Range, manager.coder, inputs[0])
+    const first = decodeStructable(Range, ovmContext.coder, inputs[0])
     const firstAmount = first.end.data - first.start.data
-    const second = decodeStructable(Range, manager.coder, inputs[1])
+    const second = decodeStructable(Range, ovmContext.coder, inputs[1])
     const secondAmount = second.end.data - second.start.data
 
     return {

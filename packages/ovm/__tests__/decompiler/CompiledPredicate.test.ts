@@ -26,6 +26,8 @@ import { testSource } from './TestSource'
 import { ethers } from 'ethers'
 import { Range } from '@cryptoeconomicslab/primitives'
 import { AtomicProposition } from '@cryptoeconomicslab/ovm-transpiler'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe.skip('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(

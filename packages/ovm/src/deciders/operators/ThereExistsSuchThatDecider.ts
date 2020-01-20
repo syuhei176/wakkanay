@@ -23,7 +23,7 @@ export class ThereExistsSuchThatDecider implements Decider {
       throw new Error('inputs[0] must be valid hint data.')
     }
     const innerProperty = Property.fromStruct(
-      manager.coder.decode(Property.getParamType(), inputs[2])
+      ovmContext.coder.decode(Property.getParamType(), inputs[2])
     )
     const variableName = inputs[1].intoString()
 

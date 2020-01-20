@@ -7,6 +7,8 @@ import {
   Property,
   Decision
 } from '../../src'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: JsonCoder })
 
 const BoolDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'

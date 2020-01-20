@@ -1,6 +1,8 @@
 import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
 import { bindVariables, FreeVariable } from '../../src'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('FreeVariable', () => {
   test('return variable name', () => {

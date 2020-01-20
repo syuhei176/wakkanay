@@ -8,6 +8,8 @@ import {
 import { Bytes } from '@cryptoeconomicslab/primitives'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
 import JsonCoder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: JsonCoder })
 
 describe('OrDecider', () => {
   const deciderManager = new MockDeciderManager()

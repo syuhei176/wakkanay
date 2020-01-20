@@ -8,6 +8,8 @@ import {
   IsValidSignatureDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import { Property, FreeVariable, DeciderManager } from '../../src'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('ThereExistsSuchThatDecider', () => {
   const zero =

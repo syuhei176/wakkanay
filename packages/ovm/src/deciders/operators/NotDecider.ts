@@ -14,7 +14,7 @@ export class NotDecider implements Decider {
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     const property = Property.fromStruct(
-      manager.coder.decode(Property.getParamType(), inputs[0])
+      ovmContext.coder.decode(Property.getParamType(), inputs[0])
     )
     const decision = await manager.decide(property)
     return {

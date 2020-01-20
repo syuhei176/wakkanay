@@ -3,6 +3,8 @@ import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
 import { CompiledDecider, CompiledPredicate, Property } from '../../src'
 import Coder from '@cryptoeconomicslab/coder'
 import { testSource } from './TestSource'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe.skip('CompiledDecider', () => {
   const TestPredicateAddress = Address.from(

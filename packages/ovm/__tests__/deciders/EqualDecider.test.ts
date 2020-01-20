@@ -2,6 +2,8 @@ import { BigNumber } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
 import { EqualDecider } from '../../src'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('EqualDecider', () => {
   const decider = new EqualDecider()

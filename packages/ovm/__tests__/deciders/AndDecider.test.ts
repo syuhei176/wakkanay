@@ -7,6 +7,9 @@ import {
 import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
 import DefaultCoder from '@cryptoeconomicslab/coder'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
+import Coder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('AndDecider', () => {
   const deciderManager = new MockDeciderManager()

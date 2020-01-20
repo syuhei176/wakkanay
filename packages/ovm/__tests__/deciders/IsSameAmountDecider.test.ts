@@ -2,6 +2,8 @@ import { BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
 import { IsSameAmountDecider } from '../../src'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('IsSameAmount', () => {
   const decider = new IsSameAmountDecider()

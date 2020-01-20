@@ -24,7 +24,7 @@ export class ForAllSuchThatDecider implements Decider {
     }
 
     const innerProperty = Property.fromStruct(
-      manager.coder.decode(Property.getParamType(), inputs[2])
+      ovmContext.coder.decode(Property.getParamType(), inputs[2])
     )
     const variableName = inputs[1].intoString()
 
@@ -42,7 +42,7 @@ export class ForAllSuchThatDecider implements Decider {
         const challenge: Challenge = {
           property: new Property(
             manager.getDeciderAddress(LogicalConnective.Not),
-            [manager.coder.encode(innerProperty.toStruct())]
+            [ovmContext.coder.encode(innerProperty.toStruct())]
           ),
           challengeInput: q
         }

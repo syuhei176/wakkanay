@@ -2,6 +2,8 @@ import { BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
 import { IsContainedDecider } from '../../src'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('IsContained', () => {
   const decider = new IsContainedDecider()

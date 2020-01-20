@@ -2,6 +2,8 @@ import { Property, AtomicPredicate, NotDecider } from '../../src'
 import { Bytes } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('NotDecider', () => {
   const deciderManager = new MockDeciderManager()

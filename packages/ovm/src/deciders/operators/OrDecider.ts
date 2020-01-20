@@ -11,7 +11,7 @@ export class OrDecider implements Decider {
   ): Promise<Decision> {
     let properties: Array<Property>
     try {
-      properties = inputs.map(i => decodeProperty(manager.coder, i))
+      properties = inputs.map(i => decodeProperty(ovmContext.coder, i))
     } catch (e) {
       return {
         outcome: false,
@@ -39,10 +39,10 @@ export class OrDecider implements Decider {
           .map(
             p =>
               new Property(manager.getDeciderAddress(LogicalConnective.Not), [
-                encodeProperty(manager.coder, p)
+                encodeProperty(ovmContext.coder, p)
               ])
           )
-          .map(i => encodeProperty(manager.coder, i))
+          .map(i => encodeProperty(ovmContext.coder, i))
       ),
       challengeInput: null
     }

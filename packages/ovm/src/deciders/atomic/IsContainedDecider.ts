@@ -21,8 +21,8 @@ export class IsContainedDecider implements Decider {
       }
     }
 
-    const first = decodeStructable(Range, manager.coder, inputs[0])
-    const second = decodeStructable(Range, manager.coder, inputs[1])
+    const first = decodeStructable(Range, ovmContext.coder, inputs[0])
+    const second = decodeStructable(Range, ovmContext.coder, inputs[1])
 
     return {
       outcome:

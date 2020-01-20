@@ -20,6 +20,8 @@ import {
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import JsonCoder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: JsonCoder })
 
 export const SampleDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000001'

@@ -8,6 +8,8 @@ import {
   LessThanDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import { Property, FreeVariable } from '../../src'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('ForAllsuchThatDecider', () => {
   const zero =

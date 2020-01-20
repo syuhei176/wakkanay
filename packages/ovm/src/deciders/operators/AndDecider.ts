@@ -15,7 +15,7 @@ export class AndDecider implements Decider {
   ): Promise<Decision> {
     let properties: Property[]
     try {
-      properties = inputs.map(i => decodeProperty(manager.coder, i))
+      properties = inputs.map(i => decodeProperty(ovmContext.coder, i))
     } catch (e) {
       return {
         outcome: false,
@@ -32,9 +32,9 @@ export class AndDecider implements Decider {
         const challenge: Challenge = {
           property: new Property(
             manager.getDeciderAddress(LogicalConnective.Not),
-            [manager.coder.encode(p.toStruct())]
+            [ovmContext.coder.encode(p.toStruct())]
           ),
-          challengeInput: manager.coder.encode(Integer.from(index))
+          challengeInput: ovmContext.coder.encode(Integer.from(index))
         }
         return {
           outcome: false,

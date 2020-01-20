@@ -3,6 +3,9 @@ import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import * as ethers from 'ethers'
 import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
+import Coder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('IsValidSignatureDecider', () => {
   const addr = Address.from('0x0000000000000000000000000000000000000001')
