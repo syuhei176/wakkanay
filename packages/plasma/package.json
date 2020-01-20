@@ -1,0 +1,66 @@
+{
+  "name": "@cryptoeconomicslab/plasma",
+  "version": "0.0.3",
+  "description": "plasma module",
+  "author": {
+    "name": "Cryptoeconomics Lab",
+    "url": "https://www.cryptoeconomicslab.com/"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "homepage": "https://github.com/cryptoeconomicslab/wakkanay#readme",
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cryptoeconomicslab/wakkanay.git"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "build:check": "tsc --noEmit",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint --ext ts,tsx src",
+    "doc": "typedoc --out docs src",
+    "clean": "rm -rf lib docs"
+  },
+  "bugs": {
+    "url": "https://github.com/cryptoeconomicslab/wakkanay/issues"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testMatch": [
+      "**/__tests__/**/?(*.)+(spec|test).(ts|js)",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    }
+  },
+  "dependencies": {
+    "@cryptoeconomicslab/coder": "^0.0.3",
+    "@cryptoeconomicslab/db": "^0.0.3",
+    "@cryptoeconomicslab/hash": "^0.0.3",
+    "@cryptoeconomicslab/merkle-tree": "^0.0.3",
+    "@cryptoeconomicslab/ovm": "^0.0.3",
+    "@cryptoeconomicslab/primitives": "^0.0.3"
+  }
+}
