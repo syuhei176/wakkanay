@@ -1,83 +1,23 @@
 {
-  "name": "wakkanay",
-  "version": "0.0.1",
-  "author": {
-    "name": "Cryptoeconomics Lab",
-    "url": "https://www.cryptoeconomicslab.com/"
-  },
-  "engines": {
-    "node": ">=10"
-  },
-  "main": "dist/index.js",
-  "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts"
-  ],
+  "name": "root",
   "scripts": {
-    "build": "tsc --build ./tsconfig.json",
-    "build:check": "tsc --noEmit",
-    "build:dev": "tsc",
-    "test": "jest",
-    "lint": "eslint --ext ts,tsx src",
-    "lint:fix": "eslint --fix --ext ts,tsx src",
-    "prepare": "npm run build"
-  },
-  "dependencies": {
-    "@types/text-encoding": "0.0.35",
-    "bignumber.js": "^9.0.0",
-    "bs58check": "^2.1.2",
-    "ethers": "^4.0.38",
-    "js-logger": "^1.6.0",
-    "levelup": "^4.3.1",
-    "libsodium-wrappers-sumo": "^0.7.6",
-    "memdown": "^5.1.0",
-    "node-fetch": "^2.3.0",
-    "ovm-compiler": "github:cryptoeconomicslab/ovm-compiler#v0.1.15",
-    "socket.io": "^2.3.0",
-    "socket.io-client": "^2.3.0",
-    "text-encoding": "^0.7.0",
-    "tslib": "^1.10.0"
+    "clean": "lerna run clean",
+    "publish": "lerna run build && lerna publish"
   },
   "devDependencies": {
-    "@types/express": "^4.17.1",
-    "@types/jest": "^24.0.20",
-    "@types/leveldown": "^4.0.2",
-    "@types/levelup": "^3.1.1",
-    "@types/libsodium-wrappers-sumo": "^0.7.3",
-    "@types/memdown": "^3.0.0",
-    "@types/node-fetch": "^2.5.2",
-    "@types/socket.io": "^2.1.4",
-    "@types/socket.io-client": "^1.4.32",
-    "@typescript-eslint/eslint-plugin": "^2.5.0",
-    "@typescript-eslint/parser": "^2.5.0",
-    "eslint": "^6.6.0",
-    "eslint-config-prettier": "^6.5.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "fake-indexeddb": "^3.0.0",
+    "@types/jest": "^24.9.0",
+    "@types/node": "^13.1.7",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
     "jest": "^24.9.0",
-    "nyc": "^14.0.0",
-    "prettier": "^1.18.2",
-    "ts-jest": "^24.1.0",
-    "ts-node": "^8.4.1",
-    "typedoc": "^0.15.0",
-    "typescript": "^3.6.4"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testMatch": [
-      "**/__tests__/**/?(*.)+(spec|test).(ts|js)",
-      "**/?(*.)+(spec|test).ts"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ],
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.json"
-      }
-    }
+    "lerna": "^3.20.2",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.3.0",
+    "ts-node": "^8.6.2",
+    "typedoc": "^0.16.6",
+    "typescript": "^3.7.4"
   }
 }
