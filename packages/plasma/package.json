@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/plasma",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "plasma module",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -56,14 +56,14 @@
     }
   },
   "dependencies": {
-    "@cryptoeconomicslab/db": "^0.0.4",
-    "@cryptoeconomicslab/hash": "^0.0.4",
-    "@cryptoeconomicslab/merkle-tree": "^0.0.4",
-    "@cryptoeconomicslab/ovm": "^0.0.4",
-    "@cryptoeconomicslab/primitives": "^0.0.4"
+    "@cryptoeconomicslab/db": "^0.0.5",
+    "@cryptoeconomicslab/hash": "^0.0.5",
+    "@cryptoeconomicslab/merkle-tree": "^0.0.5",
+    "@cryptoeconomicslab/ovm": "^0.0.5",
+    "@cryptoeconomicslab/primitives": "^0.0.5"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.4",
-    "@cryptoeconomicslab/context": "^0.0.4"
+    "@cryptoeconomicslab/coder": "^0.0.5",
+    "@cryptoeconomicslab/context": "^0.0.5"
   }
 }
