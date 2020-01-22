@@ -51,7 +51,7 @@
     "@cryptoeconomicslab/coder": "^0.0.6",
     "@cryptoeconomicslab/db": "^0.0.6",
     "@cryptoeconomicslab/ovm-parser": "^0.2.3",
-    "@cryptoeconomicslab/ovm-transpiler": "^0.2.3",
+    "@cryptoeconomicslab/ovm-transpiler": "^0.2.4",
     "@cryptoeconomicslab/primitives": "^0.0.6",
     "@cryptoeconomicslab/signature": "^0.0.6",
     "@cryptoeconomicslab/utils": "^0.0.6",

@@ -1,4 +1,4 @@
-import { Address, Bytes, Integer } from '@cryptoeconomicslab/primitives'
+import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
 import { CompiledDecider, CompiledPredicate, Property } from '../../src'
 import Coder from '@cryptoeconomicslab/coder'
@@ -6,7 +6,7 @@ import { testSource } from './TestSource'
 import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
 
-describe.skip('CompiledDecider', () => {
+describe('CompiledDecider', () => {
   const TestPredicateAddress = Address.from(
     '0x0250035000301010002000900380005700060001'
   )
@@ -17,7 +17,7 @@ describe.skip('CompiledDecider', () => {
     // An instance of compiled predicate "TestF(TestF, 10)".
     const property = new Property(TestPredicateAddress, [
       Bytes.fromString('TestF'),
-      Coder.encode(Integer.from(10))
+      Coder.encode(BigNumber.from(10))
     ])
 
     // Sets instance of CompiledDecider TestF

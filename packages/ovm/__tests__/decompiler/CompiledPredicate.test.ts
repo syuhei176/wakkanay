@@ -7,12 +7,7 @@ import {
   createSubstitutions,
   CompiledDecider
 } from '../../src'
-import {
-  Address,
-  Bytes,
-  Integer,
-  BigNumber
-} from '@cryptoeconomicslab/primitives'
+import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import {
   initializeDeciderManager,
   ForAllSuchThatDeciderAddress,
@@ -29,7 +24,7 @@ import { AtomicProposition } from '@cryptoeconomicslab/ovm-transpiler'
 import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
 
-describe.skip('CompiledPredicate', () => {
+describe('CompiledPredicate', () => {
   const TestPredicateAddress = Address.from(
     '0x0250035000301010002000900380005700060001'
   )
@@ -44,13 +39,17 @@ describe.skip('CompiledPredicate', () => {
     const testOriginalProperty = {
       deciderAddress: ForAllSuchThatDeciderAddress,
       inputs: [
-        Bytes.fromString('range,NUMBER,0x00-0x3130'),
+        Bytes.fromString(
+          `range,NUMBER,${Coder.encode(
+            BigNumber.from(0)
+          ).toHexString()}-${Coder.encode(BigNumber.from(10)).toHexString()}`
+        ),
         Bytes.fromString('b'),
         Coder.encode(
           new Property(TestPredicateAddress, [
             Bytes.fromString('TestFO'),
             FreeVariable.from('b'),
-            Coder.encode(Integer.from(10))
+            Coder.encode(BigNumber.from(10))
           ]).toStruct()
         )
       ]
@@ -73,7 +72,7 @@ describe.skip('CompiledPredicate', () => {
       const property = compiledPredicate.decompileProperty(
         new Property(TestPredicateAddress, [
           Bytes.fromString('TestF'),
-          Coder.encode(Integer.from(10))
+          Coder.encode(BigNumber.from(10))
         ]),
         deciderManager.shortnameMap
       )
@@ -83,7 +82,7 @@ describe.skip('CompiledPredicate', () => {
     it('use default contract if label is not provided', async () => {
       // Create an instance of compiled predicate "Test(10)".
       const property = compiledPredicate.decompileProperty(
-        new Property(TestPredicateAddress, [Coder.encode(Integer.from(10))]),
+        new Property(TestPredicateAddress, [Coder.encode(BigNumber.from(10))]),
         deciderManager.shortnameMap
       )
       expect(property).toEqual(testOriginalProperty)
@@ -97,14 +96,14 @@ describe.skip('CompiledPredicate', () => {
       const testOriginalProperty = {
         deciderAddress: AndDeciderAddress,
         inputs: [
-          encodeBoolDecider(Coder.encode(Integer.from(301))),
-          encodeBoolDecider(Coder.encode(Integer.from(302)))
+          encodeBoolDecider(Coder.encode(BigNumber.from(301))),
+          encodeBoolDecider(Coder.encode(BigNumber.from(302)))
         ]
       }
       const property = compiledPredicateAnd.decompileProperty(
         new Property(TestPredicateAddress, [
-          Coder.encode(Integer.from(301)),
-          Coder.encode(Integer.from(302))
+          Coder.encode(BigNumber.from(301)),
+          Coder.encode(BigNumber.from(302))
         ]),
         deciderManager.shortnameMap
       )
@@ -119,14 +118,14 @@ describe.skip('CompiledPredicate', () => {
       const testOriginalProperty = {
         deciderAddress: AndDeciderAddress,
         inputs: [
-          encodeBoolDecider(Coder.encode(Integer.from(301))),
-          encodeBoolDecider(Coder.encode(Integer.from(302)))
+          encodeBoolDecider(Coder.encode(BigNumber.from(301))),
+          encodeBoolDecider(Coder.encode(BigNumber.from(302)))
         ]
       }
       const property = compiledPredicateAnd.decompileProperty(
         new Property(TestPredicateAddress, [
-          encodeBoolDecider(Coder.encode(Integer.from(301))),
-          encodeBoolDecider(Coder.encode(Integer.from(302)))
+          encodeBoolDecider(Coder.encode(BigNumber.from(301))),
+          encodeBoolDecider(Coder.encode(BigNumber.from(302)))
         ]),
         deciderManager.shortnameMap
       )
@@ -140,12 +139,12 @@ describe.skip('CompiledPredicate', () => {
       const range = Coder.encode(
         new Range(BigNumber.from(0), BigNumber.from(100)).toStruct()
       )
-      const block = Coder.encode(Integer.from(50))
+      const block = Coder.encode(BigNumber.from(50))
       const so = Bytes.fromHexString('0x00')
       const tx = new Property(txAddress, [token, range, block, so])
       const compiledPredicateAnd = CompiledPredicate.fromSource(
         TestPredicateAddress,
-        'def test(token, range, block) := with Tx(token, range, block) as tx { tx() }'
+        'def test(token, range, block) := Tx(token, range, block).any(tx -> tx())'
       )
       const encodeEqDecider = (a: Bytes, b: Bytes) =>
         encodeProperty(new Property(EqualDeciderAddress, [a, b]))
@@ -157,13 +156,12 @@ describe.skip('CompiledPredicate', () => {
           encodeEqDecider(txAddressBytes, txAddressBytes),
           encodeEqDecider(token, token),
           encodeIsContainedDecider(range, range),
-          encodeEqDecider(block, block),
-          encodeProperty(tx)
+          encodeEqDecider(block, block)
         ]
       }
       const property = compiledPredicateAnd.decompileProperty(
         new Property(TestPredicateAddress, [
-          Bytes.fromString('TestTA'),
+          Bytes.fromString('TestTA1A'),
           encodeProperty(tx),
           token,
           range,
@@ -184,7 +182,7 @@ describe.skip('CompiledPredicate', () => {
     const definition = compiledPredicateAnd.compiled.contracts[0]
     const compiledProperty = new Property(TestPredicateAddress, [
       Bytes.fromString('TestA'),
-      Coder.encode(Integer.from(301))
+      Coder.encode(BigNumber.from(301))
     ])
 
     it('create atomic proposition call with normal input', async () => {
@@ -198,7 +196,7 @@ describe.skip('CompiledPredicate', () => {
             constantTable: {}
           }
         )
-      ).toEqual(encodeBoolDecider(Coder.encode(Integer.from(301))))
+      ).toEqual(encodeBoolDecider(Coder.encode(BigNumber.from(301))))
     })
 
     it('throw exception because not enough inputs', async () => {
@@ -226,10 +224,10 @@ describe.skip('CompiledPredicate', () => {
           {
             compiledProperty,
             predicateTable: deciderManager.shortnameMap,
-            constantTable: { b: Coder.encode(Integer.from(302)) }
+            constantTable: { b: Coder.encode(BigNumber.from(302)) }
           }
         )
-      ).toEqual(encodeBoolDecider(Coder.encode(Integer.from(302))))
+      ).toEqual(encodeBoolDecider(Coder.encode(BigNumber.from(302))))
     })
 
     it('create atomic proposition call with self input', async () => {
