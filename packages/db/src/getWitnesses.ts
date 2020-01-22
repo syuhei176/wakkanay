@@ -55,7 +55,11 @@ export async function getWitnesses(
     }
     return result
   } else if (type === 'NUMBER') {
-    const [start, end] = param.split('-').map(n => BigNumber.fromHexString(n))
+    const [start, end] = param
+      .split('-')
+      .map(n =>
+        ovmContext.coder.decode(BigNumber.default(), Bytes.fromHexString(n))
+      )
     return BigIntMath.makeRange(start.data, end.data - BigInt(1))
       .map(BigNumber.from)
       .map(n => Bytes.fromHexString(n.toHexString()))
