@@ -47,11 +47,12 @@
       }
     }
   },
-  "dependencies": {
-    "@cryptoeconomicslab/primitives": "^0.0.5"
-  },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.5"
+    "@cryptoeconomicslab/coder": "^0.0.5",
+    "@cryptoeconomicslab/primitives": "0.0.5"
+  },
+  "peerDependencies": {
+    "@cryptoeconomicslab/primitives": "0.0.5"
   }
 }
