@@ -57,7 +57,7 @@
     "@types/libsodium-wrappers-sumo": "^0.7.3"
   },
   "peerDependencies": {
-    "@cryptoeconomicslab/primitives": "0.0.5"
+    "@cryptoeconomicslab/primitives": "^0.0.6"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e"
 }
