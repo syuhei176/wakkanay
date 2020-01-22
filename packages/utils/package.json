@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/utils",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "utils",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -47,10 +47,9 @@
       }
     }
   },
-  "dependencies": {},
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
-    "@cryptoeconomicslab/primitives": "^0.0.5"
+    "@cryptoeconomicslab/primitives": "^0.0.6"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.5"
