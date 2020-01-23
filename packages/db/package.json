@@ -48,8 +48,8 @@
     }
   },
   "dependencies": {
-    "@cryptoeconomicslab/coder": "0.0.6",
-    "@cryptoeconomicslab/context": "0.0.6",
+    "@cryptoeconomicslab/coder": "^0.0.6",
+    "@cryptoeconomicslab/context": "^0.0.6",
     "@cryptoeconomicslab/utils": "^0.0.6",
     "abstract-leveldown": "^6.2.2"
   },
