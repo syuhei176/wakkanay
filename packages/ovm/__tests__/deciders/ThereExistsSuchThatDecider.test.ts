@@ -12,8 +12,7 @@ import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
 
 describe('ThereExistsSuchThatDecider', () => {
-  const zero =
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const zero = Coder.encode(BigNumber.from(0)).toHexString()
   const upperBound = Coder.encode(Integer.from(2))
   const lowerBound = Coder.encode(Integer.from(10))
   const lessThanTwoProperty = Coder.encode(
@@ -38,7 +37,7 @@ describe('ThereExistsSuchThatDecider', () => {
   test('ThereExists positive integer n of number less than 10 such that n is less than 2.', async () => {
     const upperBound = BigNumber.from(10)
     const hint = Bytes.fromString(
-      `range,NUMBER,${zero}-${upperBound.toHexString()}`
+      `range,NUMBER,${zero}-${Coder.encode(upperBound).toHexString()}`
     )
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
       hint,
@@ -53,7 +52,7 @@ describe('ThereExistsSuchThatDecider', () => {
   test('ThereDoesNotExists positive integer n of number less than 5 such that n is greater than 10.', async () => {
     const upperBound = BigNumber.from(5)
     const hint = Bytes.fromString(
-      `range,NUMBER,${zero}-${upperBound.toHexString()}`
+      `range,NUMBER,${zero}-${Coder.encode(upperBound).toHexString()}`
     )
     const property = new Property(ThereExistsSuchThatDeciderAddress, [
       hint,

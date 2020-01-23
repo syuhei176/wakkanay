@@ -1,6 +1,9 @@
 import { Bytes, BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import { getWitnesses, isHint, replaceHint, RangeDb } from '../src'
+import Coder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
 
 describe('get witnesses', () => {
   let db: InMemoryKeyValueStore
@@ -85,11 +88,11 @@ describe('get witnesses', () => {
   })
 
   test('getWitness number range', async () => {
-    const hint = 'range,NUMBER,0x1000000-0x1000010'
+    const hint = 'range,NUMBER,0x22313022-0x22323622'
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(16)
-    expect(result[0]).toStrictEqual(Bytes.fromHexString('0x1000000'))
-    expect(result[15]).toStrictEqual(Bytes.fromHexString('0x100000f'))
+    expect(result[0]).toStrictEqual(Bytes.fromHexString('0x0a'))
+    expect(result[15]).toStrictEqual(Bytes.fromHexString('0x19'))
   })
 
   test('throw exception unknown type', async () => {

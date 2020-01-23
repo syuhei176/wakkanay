@@ -12,8 +12,7 @@ import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
 
 describe('ForAllsuchThatDecider', () => {
-  const zero =
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const zero = Coder.encode(BigNumber.from(0)).toHexString()
   const trueProperty = Coder.encode(
     new Property(SampleDeciderAddress, [Bytes.fromString('true')]).toStruct()
   )
@@ -32,7 +31,7 @@ describe('ForAllsuchThatDecider', () => {
   it('decide for all n such that n < 10: true', async () => {
     const upperBound = BigNumber.from(10)
     const hint = Bytes.fromString(
-      `range,NUMBER,${zero}-${upperBound.toHexString()}`
+      `range,NUMBER,${zero}-${Coder.encode(upperBound).toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
       hint,
@@ -46,7 +45,7 @@ describe('ForAllsuchThatDecider', () => {
   it('decide for all n such that n < 10: false', async () => {
     const upperBound = BigNumber.from(10)
     const hint = Bytes.fromString(
-      `range,NUMBER,${zero}-${upperBound.toHexString()}`
+      `range,NUMBER,${zero}-${Coder.encode(upperBound).toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
       hint,
@@ -66,7 +65,7 @@ describe('ForAllsuchThatDecider', () => {
   it('decide for all n such that n < 2: n < 5', async () => {
     const upperBound = BigNumber.from(2)
     const hint = Bytes.fromString(
-      `range,NUMBER,${zero}-${upperBound.toHexString()}`
+      `range,NUMBER,${zero}-${Coder.encode(upperBound).toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
       hint,
@@ -80,7 +79,7 @@ describe('ForAllsuchThatDecider', () => {
   it('decide for all n such that n < 10: n < 5', async () => {
     const upperBound = BigNumber.from(10)
     const hint = Bytes.fromString(
-      `range,NUMBER,${zero}-${upperBound.toHexString()}`
+      `range,NUMBER,${zero}-${Coder.encode(upperBound).toHexString()}`
     )
     const property = new Property(ForAllSuchThatDeciderAddress, [
       hint,
