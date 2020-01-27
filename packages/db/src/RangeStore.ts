@@ -45,9 +45,14 @@ export class RangeRecord {
   }
 }
 
+export interface RangeIterator {
+  next(): Promise<RangeRecord | null>
+}
+
 export interface RangeStore {
   get(start: bigint, end: bigint): Promise<RangeRecord[]>
   put(start: bigint, end: bigint, value: Bytes): Promise<void>
   del(start: bigint, end: bigint): Promise<void>
   bucket(key: Bytes): Promise<RangeStore>
+  iter(lowerBound: bigint): RangeIterator
 }
