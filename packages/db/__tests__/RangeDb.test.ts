@@ -250,5 +250,17 @@ describe('RangeDb for InMemoryKVS', () => {
       )
       expect(await iter.next()).toBeNull()
     })
+
+    test('range iter returns between lowerBound to upperBound', async () => {
+      await rangeDb.put(BigInt(0), BigInt(10), Bytes.fromString('1'))
+      await rangeDb.put(BigInt(10), BigInt(20), Bytes.fromString('2'))
+      await rangeDb.put(BigInt(20), BigInt(30), Bytes.fromString('3'))
+      const iter = rangeDb.iter(BigInt(10), BigInt(24))
+      const v1 = await iter.next()
+      expect(v1).toEqual(
+        new RangeRecord(BigInt(10), BigInt(20), Bytes.fromString('2'))
+      )
+      expect(await iter.next()).toBeNull()
+    })
   })
 })

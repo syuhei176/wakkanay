@@ -2,15 +2,34 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 import {
   RangeStore,
   RangeRecord as Range,
-  RangeIterator as Iterator
+  RangeIterator as RangeIter
 } from './RangeStore'
-import { BatchOperation, KeyValueStore } from './KeyValueStore'
+import {
+  BatchOperation,
+  KeyValueStore,
+  Iterator as KVSIter
+} from './KeyValueStore'
 
-class RangeIterator implements Iterator {
-  constructor(readonly rangeDb: RangeDb, readonly lowerBound: bigint) {}
+/**
+ * RangeIterator
+ * iterator to return values between lowerBound as start to upperBound as end.
+ */
+class RangeIterator implements RangeIter {
+  private kvsIter: KVSIter
+  constructor(
+    readonly rangeDb: RangeDb,
+    readonly lowerBound: bigint,
+    readonly upperBound?: bigint
+  ) {
+    this.kvsIter = rangeDb.kvs.iter(RangeDb.createKey(lowerBound), true)
+  }
 
   public async next(): Promise<Range | null> {
-    return null
+    const keyValue = await this.kvsIter.next()
+    if (!keyValue) return null
+    const d = Range.decode(keyValue.value)
+    if (this.upperBound && d.end.data > this.upperBound) return null
+    return d
   }
 }
 
@@ -76,8 +95,8 @@ export class RangeDb implements RangeStore {
     return new RangeDb(db)
   }
 
-  public iter(lowerBound: bigint): RangeIterator {
-    return new RangeIterator(this, lowerBound)
+  public iter(lowerBound: bigint, upperBound?: bigint): RangeIterator {
+    return new RangeIterator(this, lowerBound, upperBound)
   }
 
   private async delBatch(start: bigint, end: bigint): Promise<Range[]> {
