@@ -1,6 +1,18 @@
 import { Bytes } from '@cryptoeconomicslab/primitives'
-import { RangeStore, RangeRecord as Range } from './RangeStore'
+import {
+  RangeStore,
+  RangeRecord as Range,
+  RangeIterator as Iterator
+} from './RangeStore'
 import { BatchOperation, KeyValueStore } from './KeyValueStore'
+
+class RangeIterator implements Iterator {
+  constructor(readonly rangeDb: RangeDb, readonly lowerBound: bigint) {}
+
+  public async next(): Promise<Range | null> {
+    return null
+  }
+}
 
 export class RangeDb implements RangeStore {
   public kvs: KeyValueStore
@@ -62,6 +74,10 @@ export class RangeDb implements RangeStore {
   public async bucket(key: Bytes): Promise<RangeStore> {
     const db = await this.kvs.bucket(key)
     return new RangeDb(db)
+  }
+
+  public iter(lowerBound: bigint): RangeIterator {
+    return new RangeIterator(this, lowerBound)
   }
 
   private async delBatch(start: bigint, end: bigint): Promise<Range[]> {
