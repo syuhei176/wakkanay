@@ -12,4 +12,5 @@ script:
   - lerna bootstrap
   - lerna run build
   - lerna run test --parallel
+  - lerna run coveralls --parallel
   - lerna run lint --parallel

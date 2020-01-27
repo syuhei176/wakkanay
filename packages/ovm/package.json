@@ -27,6 +27,7 @@
     "test": "jest --passWithNoTests",
     "lint": "eslint --ext ts,tsx src",
     "doc": "typedoc --out docs src",
+    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls",
     "clean": "rm -rf lib docs"
   },
   "jest": {
