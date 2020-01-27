@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/context",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "context",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -49,8 +49,8 @@
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.9",
-    "@cryptoeconomicslab/primitives": "^0.0.9"
+    "@cryptoeconomicslab/coder": "^0.0.10",
+    "@cryptoeconomicslab/primitives": "^0.0.10"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.6"
