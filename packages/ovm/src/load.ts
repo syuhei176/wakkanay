@@ -121,7 +121,7 @@ function initializeCompiledPredicates(
   const registerPredicate = (
     deployedPredicateInfo: CompiledPredicateConfig
   ) => {
-    const predicate = CompiledPredicate.fromJson(
+    const predicate = new CompiledPredicate(
       Address.from(deployedPredicateInfo.deployedAddress),
       deployedPredicateInfo.source[0]
     )

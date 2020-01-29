@@ -62,13 +62,6 @@ export class CompiledPredicate {
     )
   }
 
-  static fromJson(
-    deployedAddress: Address,
-    propertyData: TranspilerCompiledPredicate
-  ): CompiledPredicate {
-    return new CompiledPredicate(deployedAddress, propertyData)
-  }
-
   getPredicateName(): string {
     return this.compiled.name
   }
