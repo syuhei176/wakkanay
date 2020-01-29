@@ -144,7 +144,19 @@ describe('CompiledPredicate', () => {
       const tx = new Property(txAddress, [token, range, block, so])
       const compiledPredicateAnd = CompiledPredicate.fromSource(
         TestPredicateAddress,
-        'def test(token, range, block) := Tx(token, range, block).any(tx -> tx())'
+        `@library
+def IsValidTx(tx, token, range, block_number) :=
+  Equal(tx.address, $TransactionAddress)
+  and Equal(tx.0, token)
+  and IsContained(range, tx.1)
+  and Equal(block_number, tx.2)
+
+@library
+@quantifier("tx.block\${b}.range\${token},RANGE,\${range}")
+def Tx(tx, token, range, b) :=
+  IsValidTx(tx, token, range, b)
+
+def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
       )
       const encodeEqDecider = (a: Bytes, b: Bytes) =>
         encodeProperty(new Property(EqualDeciderAddress, [a, b]))
