@@ -8,7 +8,7 @@ import {
   AtomicProposition,
   LogicalConnective,
   IntermediateCompiledPredicate,
-  transpilePropertyDefsToCompiledPredicate
+  transpile
 } from '@cryptoeconomicslab/ovm-transpiler'
 import { Property, FreeVariable } from '../types'
 
@@ -55,7 +55,9 @@ export class CompiledPredicate {
     const propertyParser = new Parser()
     return new CompiledPredicate(
       deployedAddress,
-      transpilePropertyDefsToCompiledPredicate(propertyParser.parse(source))[0],
+      transpile(propertyParser.parse(source), () => {
+        throw new Error('')
+      })[0],
       source
     )
   }

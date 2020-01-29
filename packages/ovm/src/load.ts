@@ -24,6 +24,7 @@ import {
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { Decider } from './interfaces/Decider'
 import { CompiledPredicate, CompiledDecider } from './decompiler'
+import { CompiledPredicate as TranspilerCompiledPredicate } from '@cryptoeconomicslab/ovm-transpiler'
 
 const deciders: { [key: string]: Decider } = {
   And: new AndDecider(),
@@ -42,7 +43,7 @@ const deciders: { [key: string]: Decider } = {
 
 export interface CompiledPredicateConfig {
   deployedAddress: string
-  source: string
+  source: TranspilerCompiledPredicate[]
 }
 
 export interface InitilizationConfig {
@@ -120,9 +121,9 @@ function initializeCompiledPredicates(
   const registerPredicate = (
     deployedPredicateInfo: CompiledPredicateConfig
   ) => {
-    const predicate = CompiledPredicate.fromSource(
+    const predicate = new CompiledPredicate(
       Address.from(deployedPredicateInfo.deployedAddress),
-      deployedPredicateInfo.source
+      deployedPredicateInfo.source[0]
     )
     deciderManager.setCompiledPredicate(predicate.getPredicateName(), predicate)
     const decider = new CompiledDecider(predicate, constantVariableTable)

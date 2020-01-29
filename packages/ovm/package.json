@@ -31,8 +31,8 @@
   "dependencies": {
     "@cryptoeconomicslab/coder": "^0.0.10",
     "@cryptoeconomicslab/db": "^0.0.10",
-    "@cryptoeconomicslab/ovm-parser": "^0.2.3",
-    "@cryptoeconomicslab/ovm-transpiler": "^0.2.4",
+    "@cryptoeconomicslab/ovm-parser": "^0.2.5",
+    "@cryptoeconomicslab/ovm-transpiler": "^0.2.5",
     "@cryptoeconomicslab/primitives": "^0.0.10",
     "@cryptoeconomicslab/signature": "^0.0.10",
     "@cryptoeconomicslab/utils": "^0.0.10",
