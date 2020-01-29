@@ -1,6 +1,6 @@
 import { PropertyFilterBuilder } from '../src/propertyFilter'
 import { Property } from '../src/types'
-import { Address } from '@cryptoeconomicslab/primitives'
+import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import JsonCoder from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
 import { encodeProperty } from '../src/helpers'
@@ -20,8 +20,15 @@ describe('PropertyFilter', () => {
     encodeProperty(ovmContext.coder, new Property(ADDRESS2, []))
   ])
 
+  const invalidNestedProperty = new Property(ADDRESS1, [Bytes.default()])
+
   const propertyHavingChildren = new Property(ADDRESS1, [
     encodeProperty(ovmContext.coder, new Property(ADDRESS2, [])),
+    encodeProperty(ovmContext.coder, new Property(ADDRESS3, []))
+  ])
+
+  const propertyHavingInvalidChildren = new Property(ADDRESS1, [
+    Bytes.default(),
     encodeProperty(ovmContext.coder, new Property(ADDRESS3, []))
   ])
 
@@ -79,6 +86,14 @@ describe('PropertyFilter', () => {
     expect(filter.match(nestedProperty)).toBeFalsy()
   })
 
+  test('do not match with nested property with invalid child property', () => {
+    const filter = new PropertyFilterBuilder()
+      .address(ADDRESS1)
+      .child(new PropertyFilterBuilder().address(ADDRESS3).build())
+      .build()
+    expect(filter.match(invalidNestedProperty)).toBeFalsy()
+  })
+
   test('match children', () => {
     const filter = new PropertyFilterBuilder()
       .address(ADDRESS1)
@@ -130,5 +145,16 @@ describe('PropertyFilter', () => {
       ])
       .build()
     expect(filter.match(propertyHavingChildren)).toBeFalsy()
+  })
+
+  test('do not match with property with invalid children properties', () => {
+    const filter = new PropertyFilterBuilder()
+      .address(ADDRESS1)
+      .children([
+        new PropertyFilterBuilder().address(ADDRESS2).build(),
+        new PropertyFilterBuilder().address(ADDRESS3).build()
+      ])
+      .build()
+    expect(filter.match(propertyHavingInvalidChildren)).toBeFalsy()
   })
 })
