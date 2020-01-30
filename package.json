@@ -41,7 +41,8 @@
       }
     },
     "collectCoverageFrom": [
-      "packages/**/src/**/*.ts?(x)"
+      "packages/**/src/**/*.ts?(x)",
+      "!**/@types/**"
     ]
   }
 }
