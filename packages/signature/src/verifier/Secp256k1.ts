@@ -2,7 +2,8 @@ import {
   splitSignature,
   recoverAddress,
   arrayify,
-  keccak256
+  keccak256,
+  hexZeroPad
 } from 'ethers/utils'
 import SignatureVerifier from './SignatureVerifier'
 import { Bytes } from '@cryptoeconomicslab/primitives'
@@ -14,8 +15,11 @@ export const secp256k1Verifier: SignatureVerifier = {
       arrayify(keccak256(arrayify(message.data))),
       sig
     )
+
+    // padZero because addresses encoded with ethers.js have leading zeros.
     return Promise.resolve(
-      addr.toLocaleLowerCase() === publicKey.toHexString().toLocaleLowerCase()
+      hexZeroPad(addr.toLocaleLowerCase(), 32) ===
+        hexZeroPad(publicKey.toHexString().toLocaleLowerCase(), 32)
     )
   }
 }
