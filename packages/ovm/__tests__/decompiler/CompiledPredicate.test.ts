@@ -312,15 +312,31 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
     const a = Bytes.fromString('a')
     const b = Bytes.fromString('b')
     it('return key Bytes map object', async () => {
-      expect(createSubstitutions(['a', 'b'], [a, b], [])).toEqual({
+      expect(
+        createSubstitutions(
+          ['a', 'b'],
+          [a, b],
+          [
+            { name: 'a', children: [] },
+            { name: 'b', children: [] }
+          ]
+        )
+      ).toEqual({
         a,
         b
       })
     })
-    it('throw exception because input length are different', async () => {
+    it('throw exception because of less inputDefs', async () => {
       expect(() => {
-        createSubstitutions(['a', 'b'], [a], [])
-      }).toThrowError('The length of inputDefs and inputs must be same.')
+        createSubstitutions(
+          ['a'],
+          [a],
+          [
+            { name: 'a', children: [] },
+            { name: 'b', children: [] }
+          ]
+        )
+      }).toThrowError('Invalid inputDescriptions b.')
     })
     it('return key Bytes map object with inputDescriptions', async () => {
       const predicateAddress = Address.from(
@@ -333,7 +349,11 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
         createSubstitutions(
           ['a', 'b'],
           [nestedProperty, b],
-          [{ name: 'a', children: [0] }]
+          [
+            { name: 'a', children: [] },
+            { name: 'a', children: [0] },
+            { name: 'b', children: [] }
+          ]
         )
       ).toEqual({
         a: nestedProperty,

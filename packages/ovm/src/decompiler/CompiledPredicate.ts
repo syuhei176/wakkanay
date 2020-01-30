@@ -247,24 +247,22 @@ export const createSubstitutions = (
   inputs: Bytes[],
   inputDescriptions: Array<{ name: string; children: number[] }>
 ): { [key: string]: Bytes } => {
-  const result: { [key: string]: Bytes } = {}
-  if (inputDefs.length != inputs.length) {
-    throw new Error('The length of inputDefs and inputs must be same.')
-  }
-  inputDefs.forEach((def, index) => {
-    result[def] = inputs[index]
-  })
-  inputDescriptions
-    .filter(description => description.children.length > 0)
-    .forEach(description => {
+  return inputDescriptions.reduce(
+    (result: { [key: string]: Bytes }, description) => {
       const inputIndex = inputDefs.findIndex(name => name === description.name)
       if (inputIndex < 0) {
-        throw new Error(`invalid propertyInputs ${description.name}.`)
+        throw new Error(`Invalid inputDescriptions ${description.name}.`)
       }
-      const key = description.name + '.' + description.children.join('.')
+      const key =
+        description.name +
+        (description.children.length > 0
+          ? '.' + description.children.join('.')
+          : '')
       result[key] = constructInput(inputs[inputIndex], description.children)
-    })
-  return result
+      return result
+    },
+    {}
+  )
 }
 
 /**
