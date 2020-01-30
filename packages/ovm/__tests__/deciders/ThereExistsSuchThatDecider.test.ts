@@ -13,8 +13,8 @@ setupContext({ coder: Coder })
 
 describe('ThereExistsSuchThatDecider', () => {
   const zero = Coder.encode(BigNumber.from(0)).toHexString()
-  const upperBound = Coder.encode(Integer.from(2))
-  const lowerBound = Coder.encode(Integer.from(10))
+  const upperBound = Coder.encode(BigNumber.from(2))
+  const lowerBound = Coder.encode(BigNumber.from(10))
   const lessThanTwoProperty = Coder.encode(
     new Property(LessThanDeciderAddress, [
       upperBound,
