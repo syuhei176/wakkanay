@@ -113,14 +113,15 @@ export class CompiledPredicate {
       def.connective == LogicalConnective.ForAllSuchThat ||
       def.connective == LogicalConnective.ThereExistsSuchThat
     ) {
+      const hint = def.inputs[0] as string
       return new Property(predicateAddress, [
         Bytes.fromString(
           replaceHint(
-            def.inputs[0] as string,
+            hint,
             createSubstitutions(
               def.inputDefs,
               compiledProperty.inputs,
-              def.propertyInputs
+              parseHintToGetVariables(hint).map(parseVariable)
             )
           )
         ),
@@ -243,7 +244,7 @@ const createChildProperty = (
 export const createSubstitutions = (
   inputDefs: string[],
   inputs: Bytes[],
-  propertyInputs: NormalInput[]
+  propertyInputs: Array<{ name: string; children: number[] }>
 ): { [key: string]: Bytes } => {
   const result: { [key: string]: Bytes } = {}
   if (inputDefs.length != inputs.length) {
@@ -252,14 +253,18 @@ export const createSubstitutions = (
   inputDefs.forEach((def, index) => {
     result[def] = inputs[index]
   })
-  propertyInputs.forEach(propertyInput => {
-    const inputDefName = inputDefs[propertyInput.inputIndex]
-    const key = inputDefName + '.' + propertyInput.children.join('.')
-    result[key] = constructInput(
-      inputs[propertyInput.inputIndex],
-      propertyInput.children
-    )
-  })
+  propertyInputs
+    .filter(propertyInput => propertyInput.children.length > 0)
+    .forEach(propertyInput => {
+      const inputIndex = inputDefs.findIndex(
+        name => name === propertyInput.name
+      )
+      if (inputIndex < 0) {
+        throw new Error(`invalid propertyInputs ${propertyInput.name}.`)
+      }
+      const key = propertyInput.name + '.' + propertyInput.children.join('.')
+      result[key] = constructInput(inputs[inputIndex], propertyInput.children)
+    })
   return result
 }
 
@@ -279,5 +284,45 @@ export const constructInput = (anInput: Bytes, children: number[]): Bytes => {
     return Bytes.fromHexString(property.deciderAddress.data)
   } else {
     return constructInput(property.inputs[children[0]], children.slice(1))
+  }
+}
+
+/**
+ * parseHintToGetVariables parses "aaa.${a}.${b.0}" to ["a", "b.0"]
+ * @param hint
+ */
+export const parseHintToGetVariables = (hint: string): string[] => {
+  const regStr = /\${([a-zA-Z_][a-zA-Z0-9_.]*)}/
+  const matched = hint.match(new RegExp(regStr, 'g'))
+  if (matched === null) {
+    return []
+  }
+  return matched.map(i => {
+    const matched = i.match(new RegExp(regStr))
+    if (matched) {
+      return matched[1]
+    } else {
+      throw new Error('unexpected item')
+    }
+  })
+}
+
+/**
+ * parseVariable parses "aaa.0.1" to {name:"v", children: [0, 1]}
+ * @param v
+ */
+export const parseVariable = (
+  v: string
+): { name: string; children: number[] } => {
+  if (v.indexOf('.') < 0) {
+    return {
+      name: v,
+      children: []
+    }
+  }
+  const arr = v.split('.')
+  return {
+    name: arr[0],
+    children: arr.slice(1).map(c => Number(c))
   }
 }

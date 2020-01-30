@@ -5,7 +5,9 @@ import {
   createAtomicPropositionCall,
   constructInput,
   createSubstitutions,
-  CompiledDecider
+  CompiledDecider,
+  parseHintToGetVariables,
+  parseVariable
 } from '../../src'
 import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import {
@@ -331,13 +333,34 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
         createSubstitutions(
           ['a', 'b'],
           [nestedProperty, b],
-          [{ type: 'NormalInput', inputIndex: 0, children: [0] }]
+          [{ name: 'a', children: [0] }]
         )
       ).toEqual({
-        a: a,
+        a: nestedProperty,
         'a.0': a,
         b
       })
+    })
+  })
+
+  describe('parseHintToGetVariables', () => {
+    it('return empty list', async () => {
+      expect(parseHintToGetVariables('a,b,c')).toEqual([])
+    })
+    it('return variable list', async () => {
+      expect(parseHintToGetVariables('${a},b,${c.0}')).toEqual(['a', 'c.0'])
+    })
+  })
+
+  describe('parseVariable', () => {
+    it('do not have children', async () => {
+      expect(parseVariable('a')).toEqual({ name: 'a', children: [] })
+    })
+    it('return variable object', async () => {
+      expect(parseVariable('a.0')).toEqual({ name: 'a', children: [0] })
+    })
+    it('return variable object with children', async () => {
+      expect(parseVariable('a.0.1')).toEqual({ name: 'a', children: [0, 1] })
     })
   })
 })
