@@ -15,6 +15,8 @@ export const secp256k1Verifier: SignatureVerifier = {
       arrayify(keccak256(arrayify(message.data))),
       sig
     )
+
+    // padZero because addresses encoded with ethers.js have leading zeros.
     return Promise.resolve(
       hexZeroPad(addr.toLocaleLowerCase(), 32) ===
         hexZeroPad(publicKey.toHexString().toLocaleLowerCase(), 32)
