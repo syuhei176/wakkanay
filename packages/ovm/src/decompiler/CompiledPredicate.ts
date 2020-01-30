@@ -240,11 +240,12 @@ const createChildProperty = (
  * create substitution map from key list and value list
  * @param inputDefs key list
  * @param inputs value list
+ * @param inputDescriptions are description data about how inputs are used
  */
 export const createSubstitutions = (
   inputDefs: string[],
   inputs: Bytes[],
-  propertyInputs: Array<{ name: string; children: number[] }>
+  inputDescriptions: Array<{ name: string; children: number[] }>
 ): { [key: string]: Bytes } => {
   const result: { [key: string]: Bytes } = {}
   if (inputDefs.length != inputs.length) {
@@ -253,17 +254,15 @@ export const createSubstitutions = (
   inputDefs.forEach((def, index) => {
     result[def] = inputs[index]
   })
-  propertyInputs
-    .filter(propertyInput => propertyInput.children.length > 0)
-    .forEach(propertyInput => {
-      const inputIndex = inputDefs.findIndex(
-        name => name === propertyInput.name
-      )
+  inputDescriptions
+    .filter(description => description.children.length > 0)
+    .forEach(description => {
+      const inputIndex = inputDefs.findIndex(name => name === description.name)
       if (inputIndex < 0) {
-        throw new Error(`invalid propertyInputs ${propertyInput.name}.`)
+        throw new Error(`invalid propertyInputs ${description.name}.`)
       }
-      const key = propertyInput.name + '.' + propertyInput.children.join('.')
-      result[key] = constructInput(inputs[inputIndex], propertyInput.children)
+      const key = description.name + '.' + description.children.join('.')
+      result[key] = constructInput(inputs[inputIndex], description.children)
     })
   return result
 }

@@ -322,7 +322,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
         createSubstitutions(['a', 'b'], [a], [])
       }).toThrowError('The length of inputDefs and inputs must be same.')
     })
-    it('return key Bytes map object with propertyInputs', async () => {
+    it('return key Bytes map object with inputDescriptions', async () => {
       const predicateAddress = Address.from(
         '0x0250035000301010002000900380005700060002'
       )
