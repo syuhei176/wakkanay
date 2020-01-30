@@ -117,7 +117,11 @@ export class CompiledPredicate {
         Bytes.fromString(
           replaceHint(
             def.inputs[0] as string,
-            createSubstitutions(def.inputDefs, compiledProperty.inputs)
+            createSubstitutions(
+              def.inputDefs,
+              compiledProperty.inputs,
+              def.propertyInputs
+            )
           )
         ),
         Bytes.fromString(def.inputs[1] as string),
@@ -238,7 +242,8 @@ const createChildProperty = (
  */
 export const createSubstitutions = (
   inputDefs: string[],
-  inputs: Bytes[]
+  inputs: Bytes[],
+  propertyInputs: NormalInput[]
 ): { [key: string]: Bytes } => {
   const result: { [key: string]: Bytes } = {}
   if (inputDefs.length != inputs.length) {
@@ -246,6 +251,14 @@ export const createSubstitutions = (
   }
   inputDefs.forEach((def, index) => {
     result[def] = inputs[index]
+  })
+  propertyInputs.forEach(propertyInput => {
+    const inputDefName = inputDefs[propertyInput.inputIndex]
+    const key = inputDefName + '.' + propertyInput.children.join('.')
+    result[key] = constructInput(
+      inputs[propertyInput.inputIndex],
+      propertyInput.children
+    )
   })
   return result
 }

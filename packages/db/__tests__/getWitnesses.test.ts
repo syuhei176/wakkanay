@@ -115,5 +115,13 @@ describe('get witnesses', () => {
         })
       ).toEqual('a,b.0x676767.c,0x646464')
     })
+
+    test('replace vars with dot', async () => {
+      expect(
+        replaceHint('a,b,${a.0}', {
+          'a.0': Bytes.fromString('aaa')
+        })
+      ).toEqual('a,b,0x616161')
+    })
   })
 })

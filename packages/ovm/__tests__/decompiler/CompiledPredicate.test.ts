@@ -310,15 +310,34 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
     const a = Bytes.fromString('a')
     const b = Bytes.fromString('b')
     it('return key Bytes map object', async () => {
-      expect(createSubstitutions(['a', 'b'], [a, b])).toEqual({
+      expect(createSubstitutions(['a', 'b'], [a, b], [])).toEqual({
         a,
         b
       })
     })
     it('throw exception because input length are different', async () => {
       expect(() => {
-        createSubstitutions(['a', 'b'], [a])
+        createSubstitutions(['a', 'b'], [a], [])
       }).toThrowError('The length of inputDefs and inputs must be same.')
+    })
+    it('return key Bytes map object with propertyInputs', async () => {
+      const predicateAddress = Address.from(
+        '0x0250035000301010002000900380005700060002'
+      )
+      const nestedProperty = Coder.encode(
+        new Property(predicateAddress, [a, b]).toStruct()
+      )
+      expect(
+        createSubstitutions(
+          ['a', 'b'],
+          [nestedProperty, b],
+          [{ type: 'NormalInput', inputIndex: 0, children: [0] }]
+        )
+      ).toEqual({
+        a: a,
+        'a.0': a,
+        b
+      })
     })
   })
 })
