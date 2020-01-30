@@ -88,9 +88,9 @@ export default class Transaction {
 
   public toProperty(deciderAddress: Address): Property {
     return new Property(deciderAddress, [
-      Bytes.fromHexString(this.depositContractAddress.raw).padZero(32),
-      this.range.toBytes(),
-      Bytes.fromHexString(this.maxBlockNumber.toHexString()).padZero(32),
+      ovmContext.coder.encode(this.depositContractAddress),
+      ovmContext.coder.encode(this.range.toStruct()),
+      ovmContext.coder.encode(this.maxBlockNumber),
       ovmContext.coder.encode(this.stateObject.toStruct())
     ])
   }
