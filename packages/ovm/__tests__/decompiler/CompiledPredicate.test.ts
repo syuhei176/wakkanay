@@ -5,7 +5,9 @@ import {
   createAtomicPropositionCall,
   constructInput,
   createSubstitutions,
-  CompiledDecider
+  CompiledDecider,
+  parseHintToGetVariables,
+  parseVariable
 } from '../../src'
 import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import {
@@ -310,15 +312,75 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
     const a = Bytes.fromString('a')
     const b = Bytes.fromString('b')
     it('return key Bytes map object', async () => {
-      expect(createSubstitutions(['a', 'b'], [a, b])).toEqual({
+      expect(
+        createSubstitutions(
+          ['a', 'b'],
+          [a, b],
+          [
+            { name: 'a', children: [] },
+            { name: 'b', children: [] }
+          ]
+        )
+      ).toEqual({
         a,
         b
       })
     })
-    it('throw exception because input length are different', async () => {
+    it('throw exception because of less inputDefs', async () => {
       expect(() => {
-        createSubstitutions(['a', 'b'], [a])
-      }).toThrowError('The length of inputDefs and inputs must be same.')
+        createSubstitutions(
+          ['a'],
+          [a],
+          [
+            { name: 'a', children: [] },
+            { name: 'b', children: [] }
+          ]
+        )
+      }).toThrowError('Invalid inputDescriptions b.')
+    })
+    it('return key Bytes map object with inputDescriptions', async () => {
+      const predicateAddress = Address.from(
+        '0x0250035000301010002000900380005700060002'
+      )
+      const nestedProperty = Coder.encode(
+        new Property(predicateAddress, [a, b]).toStruct()
+      )
+      expect(
+        createSubstitutions(
+          ['a', 'b'],
+          [nestedProperty, b],
+          [
+            { name: 'a', children: [] },
+            { name: 'a', children: [0] },
+            { name: 'b', children: [] }
+          ]
+        )
+      ).toEqual({
+        a: nestedProperty,
+        'a.0': a,
+        b
+      })
+    })
+  })
+
+  describe('parseHintToGetVariables', () => {
+    it('return empty list', async () => {
+      expect(parseHintToGetVariables('a,b,c')).toEqual([])
+    })
+    it('return variable list', async () => {
+      expect(parseHintToGetVariables('${a},b,${c.0}')).toEqual(['a', 'c.0'])
+    })
+  })
+
+  describe('parseVariable', () => {
+    it('do not have children', async () => {
+      expect(parseVariable('a')).toEqual({ name: 'a', children: [] })
+    })
+    it('return variable object', async () => {
+      expect(parseVariable('a.0')).toEqual({ name: 'a', children: [0] })
+    })
+    it('return variable object with children', async () => {
+      expect(parseVariable('a.0.1')).toEqual({ name: 'a', children: [0, 1] })
     })
   })
 })

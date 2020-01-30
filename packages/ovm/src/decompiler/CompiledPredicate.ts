@@ -113,11 +113,16 @@ export class CompiledPredicate {
       def.connective == LogicalConnective.ForAllSuchThat ||
       def.connective == LogicalConnective.ThereExistsSuchThat
     ) {
+      const hint = def.inputs[0] as string
       return new Property(predicateAddress, [
         Bytes.fromString(
           replaceHint(
-            def.inputs[0] as string,
-            createSubstitutions(def.inputDefs, compiledProperty.inputs)
+            hint,
+            createSubstitutions(
+              def.inputDefs,
+              compiledProperty.inputs,
+              parseHintToGetVariables(hint).map(parseVariable)
+            )
           )
         ),
         Bytes.fromString(def.inputs[1] as string),
@@ -235,19 +240,29 @@ const createChildProperty = (
  * create substitution map from key list and value list
  * @param inputDefs key list
  * @param inputs value list
+ * @param inputDescriptions are description data about how inputs are used
  */
 export const createSubstitutions = (
   inputDefs: string[],
-  inputs: Bytes[]
+  inputs: Bytes[],
+  inputDescriptions: Array<{ name: string; children: number[] }>
 ): { [key: string]: Bytes } => {
-  const result: { [key: string]: Bytes } = {}
-  if (inputDefs.length != inputs.length) {
-    throw new Error('The length of inputDefs and inputs must be same.')
-  }
-  inputDefs.forEach((def, index) => {
-    result[def] = inputs[index]
-  })
-  return result
+  return inputDescriptions.reduce(
+    (result: { [key: string]: Bytes }, description) => {
+      const inputIndex = inputDefs.findIndex(name => name === description.name)
+      if (inputIndex < 0) {
+        throw new Error(`Invalid inputDescriptions ${description.name}.`)
+      }
+      const key =
+        description.name +
+        (description.children.length > 0
+          ? '.' + description.children.join('.')
+          : '')
+      result[key] = constructInput(inputs[inputIndex], description.children)
+      return result
+    },
+    {}
+  )
 }
 
 /**
@@ -266,5 +281,45 @@ export const constructInput = (anInput: Bytes, children: number[]): Bytes => {
     return Bytes.fromHexString(property.deciderAddress.data)
   } else {
     return constructInput(property.inputs[children[0]], children.slice(1))
+  }
+}
+
+/**
+ * parseHintToGetVariables parses "aaa.${a}.${b.0}" to ["a", "b.0"]
+ * @param hint
+ */
+export const parseHintToGetVariables = (hint: string): string[] => {
+  const regStr = /\${([a-zA-Z_][a-zA-Z0-9_.]*)}/
+  const matched = hint.match(new RegExp(regStr, 'g'))
+  if (matched === null) {
+    return []
+  }
+  return matched.map(i => {
+    const matched = i.match(new RegExp(regStr))
+    if (matched) {
+      return matched[1]
+    } else {
+      throw new Error('unexpected item')
+    }
+  })
+}
+
+/**
+ * parseVariable parses "aaa.0.1" to {name:"v", children: [0, 1]}
+ * @param v
+ */
+export const parseVariable = (
+  v: string
+): { name: string; children: number[] } => {
+  if (v.indexOf('.') < 0) {
+    return {
+      name: v,
+      children: []
+    }
+  }
+  const arr = v.split('.')
+  return {
+    name: arr[0],
+    children: arr.slice(1).map(c => Number(c))
   }
 }

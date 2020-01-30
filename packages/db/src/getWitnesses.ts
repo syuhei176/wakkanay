@@ -82,16 +82,8 @@ export function replaceHint(
   hint: string,
   substitutions: { [key: string]: Bytes }
 ): string {
-  const fillTemplate = function(
-    templateString: string,
-    templateVars: string[]
-  ) {
-    return new Function(
-      ...Object.keys(substitutions).concat(['return `' + templateString + '`'])
-    ).call(null, ...templateVars)
-  }
-  return fillTemplate(
-    hint,
-    Object.keys(substitutions).map(k => substitutions[k].toHexString())
+  return Object.keys(substitutions).reduce(
+    (hint, key) => hint.replace(`\${${key}}`, substitutions[key].toHexString()),
+    hint
   )
 }
