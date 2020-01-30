@@ -54,7 +54,7 @@ describe('PropertyFilter', () => {
     expect(filter.match(property)).toBeTruthy()
   })
 
-  test('match with  property when specifying part of its inputs', () => {
+  test('match with property when specifying part of its inputs', () => {
     const filter = new PropertyFilterBuilder()
       .address(ADDRESS1)
       .inputs([undefined, JsonCoder.encode(ADDRESS2)])
