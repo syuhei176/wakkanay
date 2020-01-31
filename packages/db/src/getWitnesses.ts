@@ -62,7 +62,7 @@ export async function getWitnesses(
       )
     return BigIntMath.makeRange(start.data, end.data - BigInt(1))
       .map(BigNumber.from)
-      .map(n => Bytes.fromHexString(n.toHexString()))
+      .map(ovmContext.coder.encode)
   } else {
     throw new Error(`${type} is unknown type of hint.`)
   }

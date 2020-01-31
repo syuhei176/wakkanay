@@ -91,8 +91,8 @@ describe('get witnesses', () => {
     const hint = 'range,NUMBER,0x22313022-0x22323622'
     const result = await getWitnesses(db, hint)
     expect(result.length).toBe(16)
-    expect(result[0]).toStrictEqual(Bytes.fromHexString('0x0a'))
-    expect(result[15]).toStrictEqual(Bytes.fromHexString('0x19'))
+    expect(result[0]).toStrictEqual(Bytes.fromHexString('0x22313022'))
+    expect(result[15]).toStrictEqual(Bytes.fromHexString('0x22323522'))
   })
 
   test('throw exception unknown type', async () => {

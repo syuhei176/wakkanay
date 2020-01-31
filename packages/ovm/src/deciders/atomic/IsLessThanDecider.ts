@@ -18,8 +18,8 @@ export class IsLessThanDecider implements Decider {
       }
     }
 
-    const first = BigNumber.fromHexString(inputs[0].toHexString())
-    const second = BigNumber.fromHexString(inputs[1].toHexString())
+    const first = ovmContext.coder.decode(BigNumber.default(), inputs[0])
+    const second = ovmContext.coder.decode(BigNumber.default(), inputs[1])
 
     return {
       outcome: first.data < second.data,

@@ -23,7 +23,8 @@ describe('CompiledDecider', () => {
     // Sets instance of CompiledDecider TestF
     const compiledPredicate = CompiledPredicate.fromSource(
       TestPredicateAddress,
-      testSource
+      testSource,
+      { zero: Coder.encode(BigNumber.from(0)).toHexString() }
     )
     const compiledDecider = new CompiledDecider(compiledPredicate)
     deciderManager.setDecider(TestPredicateAddress, compiledDecider)

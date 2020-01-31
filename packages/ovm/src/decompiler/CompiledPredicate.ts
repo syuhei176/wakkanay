@@ -50,14 +50,17 @@ export class CompiledPredicate {
 
   static fromSource(
     deployedAddress: Address,
-    source: string
+    source: string,
+    defaultConstantValues?: { [key: string]: string }
   ): CompiledPredicate {
     const propertyParser = new Parser()
     return new CompiledPredicate(
       deployedAddress,
-      transpile(propertyParser.parse(source), () => {
-        throw new Error('')
-      })[0],
+      transpile(
+        propertyParser.parse(source),
+        undefined,
+        defaultConstantValues
+      )[0],
       source
     )
   }
