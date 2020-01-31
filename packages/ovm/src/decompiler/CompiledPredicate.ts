@@ -58,9 +58,7 @@ export class CompiledPredicate {
       deployedAddress,
       transpile(
         propertyParser.parse(source),
-        () => {
-          throw new Error('')
-        },
+        undefined,
         defaultConstantValues
       )[0],
       source
