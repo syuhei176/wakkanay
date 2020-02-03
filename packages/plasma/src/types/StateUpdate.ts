@@ -7,8 +7,8 @@ import {
 import { Property } from '@cryptoeconomicslab/ovm'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { RangeRecord } from '@cryptoeconomicslab/db'
-
 import StateUpdateRecord from './StateUpdateRecord'
+import { Keccak256 } from '@cryptoeconomicslab/hash'
 
 /**
  * StateUpdate wrapper class
@@ -98,6 +98,10 @@ export default class StateUpdate {
     const property = new Property(record.predicateAddress, inputs)
 
     return StateUpdate.fromProperty(property)
+  }
+
+  public get hash(): Bytes {
+    return Keccak256.hash(ovmContext.coder.encode(this.property.toStruct()))
   }
 
   public toRecord(): StateUpdateRecord {
