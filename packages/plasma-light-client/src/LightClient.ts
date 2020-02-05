@@ -24,10 +24,8 @@ import {
   IERC20Contract,
   IAdjudicationContract
 } from '@cryptoeconomicslab/contract'
-import { PETHContract, DepositContract } from '@cryptoeconomicslab/eth-contract'
 import { Wallet } from '@cryptoeconomicslab/wallet'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
-import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
 import {
   DoubleLayerInclusionProof,
   DoubleLayerTreeVerifier,
@@ -38,11 +36,6 @@ import { Keccak256 } from '@cryptoeconomicslab/hash'
 import EventEmitter from 'event-emitter'
 import { StateManager, SyncManager, CheckpointManager } from './managers'
 import APIClient from './APIClient'
-
-const DEPOSIT_CONTRACT_ADDRESS = Address.from(
-  process.env.DEPOSIT_CONTRACT_ADDRESS as string
-)
-const ETH_ADDRESS = Address.from(process.env.ETH_ADDRESS as string)
 
 enum EmitterEvent {
   CHECKPOINT_FINALIZED = 'CHECKPOINT_FINALIZED',
@@ -63,7 +56,7 @@ export default class LightClient {
     private wallet: Wallet,
     private witnessDb: KeyValueStore,
     private adjudicationContract: IAdjudicationContract,
-    private depositContractFactory: (address: Address) => DepositContract,
+    private depositContractFactory: (address: Address) => IDepositContract,
     private tokenContractFactory: (address: Address) => IERC20Contract,
     private commitmentContract: ICommitmentContract,
     private stateManager: StateManager,
@@ -80,7 +73,6 @@ export default class LightClient {
       throw new Error('Ownership not found')
     }
     this.ownershipPredicate = ownershipPredicate
-    this.registerPethContract(ETH_ADDRESS, DEPOSIT_CONTRACT_ADDRESS)
   }
 
   public ownershipProperty(owner: Address): Property {
@@ -254,26 +246,8 @@ export default class LightClient {
    * @param amount amount to deposit
    * @param erc20ContractAddress ERC20 token address, undefined for ETH
    */
-  public async deposit(amount: number, erc20ContractAddress?: Address) {
+  public async deposit(amount: number, erc20ContractAddress: Address) {
     const myAddress = this.wallet.getAddress()
-
-    if (!erc20ContractAddress) {
-      const depositContract = this.getDepositContract(
-        DEPOSIT_CONTRACT_ADDRESS
-      ) as DepositContract
-      const tokenContract = this.getTokenContract(
-        DEPOSIT_CONTRACT_ADDRESS
-      ) as PETHContract
-      await tokenContract.wrap(amount.toString())
-      await tokenContract.approve(depositContract.address, Integer.from(amount))
-      await depositContract.deposit(
-        Integer.from(amount),
-        this.ownershipProperty(myAddress)
-      )
-
-      return
-    }
-
     const depositContract = this.getDepositContract(erc20ContractAddress)
     const tokenContract = this.getTokenContract(erc20ContractAddress)
     console.log('deposit: ', depositContract, tokenContract)
@@ -376,47 +350,6 @@ export default class LightClient {
     erc20ContractAddress: Address
   ): IERC20Contract | undefined {
     return this.tokenContracts.get(erc20ContractAddress.data)
-  }
-
-  private registerPethContract(
-    pethContractAddress: Address,
-    depositContractAddress: Address
-  ) {
-    const depositContract = this.depositContractFactory(depositContractAddress)
-    this.depositContracts.set(depositContractAddress.data, depositContract)
-    this.tokenContracts.set(
-      depositContractAddress.data,
-      new PETHContract(
-        pethContractAddress,
-        (this.wallet as EthWallet).getEthersWallet()
-      )
-    )
-
-    depositContract.subscribeCheckpointFinalized(
-      async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
-        const c = new Checkpoint(checkpoint[0], checkpoint[1])
-        await this.checkpointManager.insertCheckpoint(
-          depositContractAddress,
-          checkpointId,
-          c
-        )
-
-        const stateUpdate = StateUpdate.fromProperty(checkpoint[1])
-        const owner = this.getOwner(stateUpdate)
-        if (owner && owner.data === this.wallet.getAddress().data) {
-          await this.stateManager.insertVerifiedStateUpdate(
-            depositContractAddress,
-            stateUpdate
-          )
-        }
-
-        this.ee.emit(
-          EmitterEvent.CHECKPOINT_FINALIZED,
-          checkpointId,
-          checkpoint
-        )
-      }
-    )
   }
 
   /**
