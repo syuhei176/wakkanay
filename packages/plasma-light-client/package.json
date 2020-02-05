@@ -33,6 +33,7 @@
     "@cryptoeconomicslab/contract": "^0.0.12",
     "@cryptoeconomicslab/db": "^0.0.12",
     "@cryptoeconomicslab/hash": "^0.0.12",
+    "@cryptoeconomicslab/indexeddb-kvs": "^0.0.3",
     "@cryptoeconomicslab/merkle-tree": "^0.0.12",
     "@cryptoeconomicslab/ovm": "^0.0.12",
     "@cryptoeconomicslab/plasma": "^0.0.12",
@@ -47,7 +48,8 @@
     "@cryptoeconomicslab/eth-contract": "^0.0.1",
     "@cryptoeconomicslab/eth-wallet": "^0.0.1",
     "@cryptoeconomicslab/level-kvs": "^0.0.4",
-    "@cryptoeconomicslab/primitives": "^0.0.12"
+    "@cryptoeconomicslab/primitives": "^0.0.12",
+    "fake-indexeddb": "^3.0.0"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.6"
