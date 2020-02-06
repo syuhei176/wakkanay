@@ -17,7 +17,12 @@ import {
   Integer,
   Range
 } from '@cryptoeconomicslab/primitives'
-import { KeyValueStore } from '@cryptoeconomicslab/db'
+import {
+  KeyValueStore,
+  getWitnesses,
+  putWitness,
+  replaceHint
+} from '@cryptoeconomicslab/db'
 import {
   ICommitmentContract,
   IDepositContract,
@@ -208,15 +213,16 @@ export default class LightClient {
         if (res.status === 404) {
           return
         }
+        const { coder } = ovmContext
         const inclusionProof = decodeStructable(
           DoubleLayerInclusionProof,
-          ovmContext.coder,
+          coder,
           Bytes.fromHexString(res.data.data)
         )
         const leaf = new DoubleLayerTreeLeaf(
           su.depositContractAddress,
           su.range.start,
-          Keccak256.hash(ovmContext.coder.encode(su.property.toStruct()))
+          Keccak256.hash(coder.encode(su.property.toStruct()))
         )
         if (verifier.verifyInclusion(leaf, su.range, root, inclusionProof)) {
           console.info(
@@ -228,10 +234,17 @@ export default class LightClient {
           )
 
           // store inclusionProof as witness
-          await (
-            await this.witnessDb.bucket(Bytes.fromString('inclusion_proof'))
-          ).put(
-            Bytes.fromString('TODO: use su range as a key'),
+          const hint = replaceHint(
+            'proof.block${b}.range${token},RANGE,${range})',
+            {
+              b: coder.encode(blockNumber),
+              token: coder.encode(su.depositContractAddress),
+              range: coder.encode(su.range.toStruct())
+            }
+          )
+          await putWitness(
+            this.witnessDb,
+            hint,
             Bytes.fromHexString(res.data.data)
           )
           this.ee.emit(EmitterEvent.TRANSFER_COMPLETE, su)
@@ -406,20 +419,31 @@ export default class LightClient {
       const coder = ovmContext.coder
       await Promise.all(
         stateUpdates.map(async stateUpdate => {
-          const proof = await (
-            await this.witnessDb.bucket(Bytes.fromString('inclusion_proof'))
-          ).get(Bytes.fromString('TODO: use su range as a key'))
-          if (!proof)
-            throw new Error('No inclusion proof for state update is found')
-
+          const hint = replaceHint(
+            'proof.block${b}.range${token},RANGE,${range})',
+            {
+              b: coder.encode(stateUpdate.blockNumber),
+              token: coder.encode(stateUpdate.depositContractAddress),
+              range: coder.encode(stateUpdate.range.toStruct())
+            }
+          )
+          const quantified = await getWitnesses(this.witnessDb, hint)
+          if (quantified.length !== 1) {
+            throw new Error('invalid range')
+          }
+          const proof = quantified[0]
           const exitProperty = predicate.makeProperty([
             coder.encode(stateUpdate.property.toStruct()),
             proof
           ])
-          const exitId = Keccak256.hash(coder.encode(exitProperty.toStruct()))
           await this.adjudicationContract.claimProperty(exitProperty)
-          await (await this.witnessDb.bucket(Bytes.fromString('Exit'))).put(
-            exitId,
+          const exitHint = 'exit.token${token},RANGE,${range}'
+          putWitness(
+            this.witnessDb,
+            replaceHint(exitHint, {
+              token: coder.encode(stateUpdate.depositContractAddress),
+              range: coder.encode(stateUpdate.range.toStruct())
+            }),
             coder.encode(exitProperty.toStruct())
           )
         })
