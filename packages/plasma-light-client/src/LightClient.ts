@@ -2,7 +2,8 @@ import {
   StateUpdate,
   Transaction,
   TransactionReceipt,
-  Checkpoint
+  Checkpoint,
+  Exit
 } from '@cryptoeconomicslab/plasma'
 import {
   Property,
@@ -19,6 +20,7 @@ import {
 } from '@cryptoeconomicslab/primitives'
 import {
   KeyValueStore,
+  RangeDb,
   getWitnesses,
   putWitness,
   replaceHint
@@ -437,13 +439,15 @@ export default class LightClient {
             proof
           ])
           await this.adjudicationContract.claimProperty(exitProperty)
-          const exitHint = 'exit.token${token},RANGE,${range}'
-          putWitness(
-            this.witnessDb,
-            replaceHint(exitHint, {
-              token: coder.encode(stateUpdate.depositContractAddress),
-              range: coder.encode(stateUpdate.range.toStruct())
-            }),
+          const exitDb = new RangeDb(
+            await this.witnessDb.bucket(Bytes.fromString('exit'))
+          )
+          const bucket = await exitDb.bucket(
+            coder.encode(stateUpdate.depositContractAddress)
+          )
+          bucket.put(
+            stateUpdate.range.start.data,
+            stateUpdate.range.end.data,
             coder.encode(exitProperty.toStruct())
           )
         })
@@ -451,15 +455,42 @@ export default class LightClient {
     }
   }
 
-  public async finalizeExit(exitId: Bytes) {
-    // TODO: implement
-    // get exit lists
-    // if a exit with given id is finalizable,
-    // call finalize exit method on deposit contract.
+  public async finalizeExit(exit: Exit) {
+    const depositContract = this.depositContracts.get(
+      exit.stateUpdate.depositContractAddress.data
+    )
+    if (!depositContract) throw new Error('Invalid depositContractAddress')
+    await depositContract.finalizeExit(
+      exit.toProperty(this.deciderManager.getDeciderAddress('Exit')),
+      Integer.from(Number(exit.stateUpdate.range.end.raw))
+    )
 
     {
-      this.ee.emit(EmitterEvent.EXIT_FINALIZED, exitId)
+      this.ee.emit(EmitterEvent.EXIT_FINALIZED, exit.id)
     }
+  }
+
+  public async getExitlist(): Promise<Exit[]> {
+    const { coder } = ovmContext
+    const exitList = await Promise.all(
+      Object.keys(this.depositContracts).map(async addr => {
+        const exitDb = new RangeDb(
+          await this.witnessDb.bucket(Bytes.fromString('exit'))
+        )
+        const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
+        const iter = bucket.iter(BigInt(0))
+        let item = await iter.next()
+        const result: Exit[] = []
+        while (item !== null) {
+          result.push(
+            Exit.fromProperty(decodeStructable(Property, coder, item.value))
+          )
+          item = await iter.next()
+        }
+        return result
+      })
+    )
+    return exitList.flat()
   }
 
   // TODO: handling challenge game
