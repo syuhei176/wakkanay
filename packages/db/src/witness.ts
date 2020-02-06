@@ -1,6 +1,7 @@
 import { Bytes, BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import { BigIntMath } from '@cryptoeconomicslab/utils'
 import { KeyValueStore, RangeStore, RangeDb } from './'
+import { decodeStructable } from '@cryptoeconomicslab/coder'
 
 const TYPES = {
   key: 'KEY',
@@ -60,7 +61,11 @@ export async function getWitnesses(
     return result === null ? [] : [result]
   } else if (type === TYPES.range) {
     const db = await getBucketByHint(witnessDb, hint)
-    const range = Range.fromBytes(Bytes.fromHexString(param))
+    const range = decodeStructable(
+      Range,
+      ovmContext.coder,
+      Bytes.fromHexString(param)
+    )
     const result = await (db as RangeStore).get(
       range.start.data,
       range.end.data

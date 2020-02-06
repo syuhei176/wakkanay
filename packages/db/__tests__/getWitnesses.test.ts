@@ -81,8 +81,8 @@ describe('witness', () => {
       // 0x5b223235222c223135225d is Range(15, 20)
       const hint =
         'bucket5,RANGE,' +
-        new Range(BigNumber.from(15), BigNumber.from(20))
-          .toBytes()
+        ovmContext.coder
+          .encode(new Range(BigNumber.from(15), BigNumber.from(20)).toStruct())
           .toHexString()
       const result = await getWitnesses(db, hint)
       expect(result.length).toBe(1)
@@ -96,8 +96,8 @@ describe('witness', () => {
 
       const hint =
         'bucket,RANGE,' +
-        new Range(BigNumber.from(15), BigNumber.from(20))
-          .toBytes()
+        ovmContext.coder
+          .encode(new Range(BigNumber.from(15), BigNumber.from(20)).toStruct())
           .toHexString()
       const result = await getWitnesses(db, hint)
       expect(result.length).toBe(1)
