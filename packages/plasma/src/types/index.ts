@@ -7,6 +7,7 @@ import TransactionReceipt, {
 } from './TransactionReceipt'
 import DepositTransaction from './DepositTransaction'
 import Checkpoint from './Checkpoint'
+import Exit from './Exit'
 
 export {
   StateUpdate,
@@ -16,5 +17,6 @@ export {
   DepositTransaction,
   TransactionReceipt,
   TRANSACTION_STATUS,
-  Checkpoint
+  Checkpoint,
+  Exit
 }
