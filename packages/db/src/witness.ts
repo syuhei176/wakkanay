@@ -1,6 +1,36 @@
 import { Bytes, BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import { BigIntMath } from '@cryptoeconomicslab/utils'
-import { KeyValueStore, RangeDb } from './'
+import { KeyValueStore, RangeStore, RangeDb } from './'
+
+const TYPES = {
+  key: 'KEY',
+  iter: 'ITER',
+  range: 'RANGE'
+}
+
+async function getBucketByHint(
+  witnessDb: KeyValueStore,
+  hint: string
+): Promise<KeyValueStore | RangeStore> {
+  if (!isHint(Bytes.fromString(hint))) throw new Error('Invalid hint string')
+
+  const [bucket, type] = hint.split(',')
+  const bucketNames = bucket.split('.')
+  if (type === TYPES.key || type === TYPES.iter) {
+    let db = witnessDb
+    for (const b of bucketNames) {
+      db = await db.bucket(Bytes.fromString(b))
+    }
+    return db
+  } else if (type === TYPES.range) {
+    let db: RangeStore = new RangeDb(witnessDb)
+    for await (const b of bucketNames) {
+      db = await db.bucket(Bytes.fromString(b))
+    }
+    return db
+  }
+  throw new Error(`could not get bucket with given hint string: ${hint}`)
+}
 
 /**
  * get witnesses from witness db using hint.
@@ -23,30 +53,22 @@ export async function getWitnesses(
   witnessDb: KeyValueStore,
   hint: string
 ): Promise<Bytes[]> {
-  const [bucket, type, param] = hint.split(',')
-  const bucketNames = bucket.split('.')
-  let db
-  if (type === 'KEY') {
-    db = witnessDb
-    for (const b of bucketNames) {
-      db = await db.bucket(Bytes.fromString(b))
-    }
-    const result = await db.get(Bytes.fromHexString(param))
+  const [_, type, param] = hint.split(',')
+  if (type === TYPES.key) {
+    const db = await getBucketByHint(witnessDb, hint)
+    const result = await (db as KeyValueStore).get(Bytes.fromHexString(param))
     return result === null ? [] : [result]
-  } else if (type === 'RANGE') {
-    db = new RangeDb(witnessDb)
-    for await (const b of bucketNames) {
-      db = await db.bucket(Bytes.fromString(b))
-    }
+  } else if (type === TYPES.range) {
+    const db = await getBucketByHint(witnessDb, hint)
     const range = Range.fromBytes(Bytes.fromHexString(param))
-    const result = await db.get(range.start.data, range.end.data)
+    const result = await (db as RangeStore).get(
+      range.start.data,
+      range.end.data
+    )
     return result.map(r => r.value)
-  } else if (type === 'ITER') {
-    db = witnessDb
-    for (const b of bucketNames) {
-      db = await db.bucket(Bytes.fromString(b))
-    }
-    const iter = db.iter(Bytes.fromHexString(param))
+  } else if (type === TYPES.iter) {
+    const db = await getBucketByHint(witnessDb, hint)
+    const iter = (db as KeyValueStore).iter(Bytes.fromHexString(param))
     const result: Bytes[] = []
     let next = await iter.next()
     while (next) {
@@ -65,6 +87,33 @@ export async function getWitnesses(
       .map(ovmContext.coder.encode)
   } else {
     throw new Error(`${type} is unknown type of hint.`)
+  }
+}
+
+/**
+ * put witness into witnessDb based on given hint string
+ * @param witnessDb witnessDb instance to put value in
+ * @param hint hint string
+ * @param value value to store
+ */
+export async function putWitness(
+  witnessDb: KeyValueStore,
+  hint: string,
+  value: Bytes
+): Promise<void> {
+  const [_, type, param] = hint.split(',')
+  const db = await getBucketByHint(witnessDb, hint)
+  if (type === TYPES.key) {
+    await (db as KeyValueStore).put(Bytes.fromHexString(param), value)
+  } else if (type === TYPES.range) {
+    const [start, end] = param
+      .split('-')
+      .map(n =>
+        ovmContext.coder.decode(BigNumber.default(), Bytes.fromHexString(n))
+      )
+    await (db as RangeStore).put(start.data, end.data, value)
+  } else {
+    throw new Error('cannot execute put operation with given hint type')
   }
 }
 
