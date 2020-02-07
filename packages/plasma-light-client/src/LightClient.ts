@@ -2,7 +2,8 @@ import {
   StateUpdate,
   Transaction,
   TransactionReceipt,
-  Checkpoint
+  Checkpoint,
+  Exit
 } from '@cryptoeconomicslab/plasma'
 import {
   Property,
@@ -17,7 +18,13 @@ import {
   Integer,
   Range
 } from '@cryptoeconomicslab/primitives'
-import { KeyValueStore } from '@cryptoeconomicslab/db'
+import {
+  KeyValueStore,
+  RangeDb,
+  getWitnesses,
+  putWitness,
+  replaceHint
+} from '@cryptoeconomicslab/db'
 import {
   ICommitmentContract,
   IDepositContract,
@@ -208,15 +215,16 @@ export default class LightClient {
         if (res.status === 404) {
           return
         }
+        const { coder } = ovmContext
         const inclusionProof = decodeStructable(
           DoubleLayerInclusionProof,
-          ovmContext.coder,
+          coder,
           Bytes.fromHexString(res.data.data)
         )
         const leaf = new DoubleLayerTreeLeaf(
           su.depositContractAddress,
           su.range.start,
-          Keccak256.hash(ovmContext.coder.encode(su.property.toStruct()))
+          Keccak256.hash(coder.encode(su.property.toStruct()))
         )
         if (verifier.verifyInclusion(leaf, su.range, root, inclusionProof)) {
           console.info(
@@ -228,10 +236,17 @@ export default class LightClient {
           )
 
           // store inclusionProof as witness
-          await (
-            await this.witnessDb.bucket(Bytes.fromString('inclusion_proof'))
-          ).put(
-            Bytes.fromString('TODO: use su range as a key'),
+          const hint = replaceHint(
+            'proof.block${b}.range${token},RANGE,${range}',
+            {
+              b: coder.encode(blockNumber),
+              token: coder.encode(su.depositContractAddress),
+              range: coder.encode(su.range.toStruct())
+            }
+          )
+          await putWitness(
+            this.witnessDb,
+            hint,
             Bytes.fromHexString(res.data.data)
           )
           this.ee.emit(EmitterEvent.TRANSFER_COMPLETE, su)
@@ -250,9 +265,9 @@ export default class LightClient {
     const myAddress = this.wallet.getAddress()
     const depositContract = this.getDepositContract(erc20ContractAddress)
     const tokenContract = this.getTokenContract(erc20ContractAddress)
-    console.log('deposit: ', depositContract, tokenContract)
+    // console.log('deposit: ', depositContract, tokenContract)
     if (!depositContract || !tokenContract) {
-      throw new Error('Contract not found.')
+      throw new Error('Contract not found')
     }
 
     await tokenContract.approve(depositContract.address, Integer.from(amount))
@@ -406,36 +421,86 @@ export default class LightClient {
       const coder = ovmContext.coder
       await Promise.all(
         stateUpdates.map(async stateUpdate => {
-          const proof = await (
-            await this.witnessDb.bucket(Bytes.fromString('inclusion_proof'))
-          ).get(Bytes.fromString('TODO: use su range as a key'))
-          if (!proof)
-            throw new Error('No inclusion proof for state update is found')
-
+          const hint = replaceHint(
+            'proof.block${b}.range${token},RANGE,${range}',
+            {
+              b: coder.encode(stateUpdate.blockNumber),
+              token: coder.encode(stateUpdate.depositContractAddress),
+              range: coder.encode(stateUpdate.range.toStruct())
+            }
+          )
+          const quantified = await getWitnesses(this.witnessDb, hint)
+          if (quantified.length !== 1) {
+            throw new Error('invalid range')
+          }
+          const proof = quantified[0]
           const exitProperty = predicate.makeProperty([
             coder.encode(stateUpdate.property.toStruct()),
             proof
           ])
-          const exitId = Keccak256.hash(coder.encode(exitProperty.toStruct()))
           await this.adjudicationContract.claimProperty(exitProperty)
-          await (await this.witnessDb.bucket(Bytes.fromString('Exit'))).put(
-            exitId,
+          const exitDb = new RangeDb(
+            await this.witnessDb.bucket(Bytes.fromString('exit'))
+          )
+          const bucket = await exitDb.bucket(
+            coder.encode(stateUpdate.depositContractAddress)
+          )
+          bucket.put(
+            stateUpdate.range.start.data,
+            stateUpdate.range.end.data,
             coder.encode(exitProperty.toStruct())
+          )
+          await this.stateManager.removeVerifiedStateUpdate(
+            stateUpdate.depositContractAddress,
+            stateUpdate.range
+          )
+          await this.stateManager.insertExitStateUpdate(
+            stateUpdate.depositContractAddress,
+            stateUpdate
           )
         })
       )
+    } else {
+      throw new Error('Insufficient amount')
     }
   }
 
-  public async finalizeExit(exitId: Bytes) {
-    // TODO: implement
-    // get exit lists
-    // if a exit with given id is finalizable,
-    // call finalize exit method on deposit contract.
+  public async finalizeExit(exit: Exit) {
+    const depositContract = this.depositContracts.get(
+      exit.stateUpdate.depositContractAddress.data
+    )
+    if (!depositContract) throw new Error('Invalid depositContractAddress')
+    await depositContract.finalizeExit(
+      exit.toProperty(this.deciderManager.getDeciderAddress('Exit')),
+      Integer.from(Number(exit.stateUpdate.range.end.raw))
+    )
 
     {
-      this.ee.emit(EmitterEvent.EXIT_FINALIZED, exitId)
+      this.ee.emit(EmitterEvent.EXIT_FINALIZED, exit.id)
     }
+  }
+
+  public async getExitlist(): Promise<Exit[]> {
+    const { coder } = ovmContext
+    const exitDb = new RangeDb(
+      await this.witnessDb.bucket(Bytes.fromString('exit'))
+    )
+    const exitList = await Promise.all(
+      Array.from(this.depositContracts.keys()).map(async addr => {
+        const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
+        const iter = bucket.iter(BigInt(0))
+        let item = await iter.next()
+        const result: Exit[] = []
+        while (item !== null) {
+          result.push(
+            Exit.fromProperty(decodeStructable(Property, coder, item.value))
+          )
+          item = await iter.next()
+        }
+        return result
+      })
+    )
+    return Array.prototype.concat.apply([], exitList)
   }
 
   // TODO: handling challenge game

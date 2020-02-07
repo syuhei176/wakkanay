@@ -10,7 +10,8 @@ import { KeyValueStore, RangeDb } from '@cryptoeconomicslab/db'
 enum Kind {
   Verified = 'Verified',
   Unverified = 'Unverified',
-  Pending = 'Pending'
+  Pending = 'Pending',
+  Exit = 'Exit'
 }
 
 export default class StateManager {
@@ -176,6 +177,31 @@ export default class StateManager {
     await this.removeStateUpdate(Kind.Unverified, depositContractAddress, range)
   }
 
+  //
+  // Exit state update
+  //
+
+  public async getExitStateUpdates(
+    depositContractAddress: Address,
+    range: Range
+  ): Promise<StateUpdate[]> {
+    return await this.getStateUpdates(Kind.Exit, depositContractAddress, range)
+  }
+
+  public async insertExitStateUpdate(
+    depositContractAddress: Address,
+    stateUpdate: StateUpdate
+  ): Promise<void> {
+    await this.insertStateUpdate(Kind.Exit, depositContractAddress, stateUpdate)
+  }
+
+  public async removeExitStateUpdate(
+    depositContractAddress: Address,
+    range: Range
+  ): Promise<void> {
+    await this.removeStateUpdate(Kind.Exit, depositContractAddress, range)
+  }
+
   /**
    * ResolveStateUpdate
    * resolve state updates with given amount.
@@ -199,7 +225,7 @@ export default class StateManager {
 
     let next = await iter.next()
     let sum = BigInt(0)
-    while (next !== null) {
+    while (next !== null && sum !== BigInt(amount)) {
       const su = StateUpdate.fromRangeRecord(next)
       if (sum + su.amount > amount) {
         su.update({
