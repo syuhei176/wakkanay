@@ -134,15 +134,11 @@ describe('LightClient', () => {
   })
 
   describe('exit', () => {
-    test('exit calls claimProperty of adjudicationContract', async () => {
-      // let's say ownership stateupdate of range 0-20 is stored in client.
-      // exit method call yield the contract call with exitProperty with the state update
-      // and appropriate inclusion proof of it.
-      const { coder } = ovmContext
+    let su: StateUpdate
+    let proof: DoubleLayerInclusionProof
 
-      // setup
-      // store ownership stateupdate
-      const su = new StateUpdate(
+    beforeAll(() => {
+      su = new StateUpdate(
         Address.from(
           config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
         ),
@@ -151,15 +147,22 @@ describe('LightClient', () => {
         BigNumber.from(0),
         client.ownershipProperty(Address.from(client.address))
       )
+      proof = new DoubleLayerInclusionProof(
+        new IntervalTreeInclusionProof(BigNumber.from(0), 0, []),
+        new AddressTreeInclusionProof(Address.default(), 0, [])
+      )
+    })
+
+    beforeEach(async () => {
+      // let's say ownership stateupdate of range 0-20 and inclusion proof for that is stored in client.
+      const { coder } = ovmContext
+
+      // setup
+      // store ownership stateupdate
       await client['stateManager'].insertVerifiedStateUpdate(
         Address.default(),
         su
       )
-      const proof = new DoubleLayerInclusionProof(
-        new IntervalTreeInclusionProof(BigNumber.from(0), 0, []),
-        new AddressTreeInclusionProof(Address.default(), 0, [])
-      )
-
       // store inclusion proof
       const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
         b: coder.encode(su.blockNumber),
@@ -171,7 +174,10 @@ describe('LightClient', () => {
         hint,
         coder.encode(proof.toStruct())
       )
+    })
 
+    test('exit calls claimProperty of adjudicationContract', async () => {
+      const { coder } = ovmContext
       await client.exit(20, Address.default())
 
       const adjudicationContract = MockAdjudicationContract.mock.instances[0]
