@@ -222,6 +222,51 @@ describe('LightClient', () => {
       expect(adjudicationContract.claimProperty).toHaveBeenLastCalledWith(
         exitProperty
       )
+
+      const exitingStateUpdate = await client[
+        'stateManager'
+      ].getExitStateUpdates(
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(20))
+      )
+      expect(exitingStateUpdate).toEqual([su1])
+    })
+
+    test('exit with multiple range', async () => {
+      const { coder } = ovmContext
+      await client.exit(25, Address.default())
+
+      const adjudicationContract = MockAdjudicationContract.mock.instances[0]
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su1.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+      su2.update({
+        range: new Range(BigNumber.from(30), BigNumber.from(35))
+      })
+      const exitProperty2 = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su2.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+
+      expect(adjudicationContract.claimProperty).toHaveBeenCalledWith(
+        exitProperty
+      )
+      expect(adjudicationContract.claimProperty).toHaveBeenCalledWith(
+        exitProperty2
+      )
+
+      const exitingStateUpdates = await client[
+        'stateManager'
+      ].getExitStateUpdates(
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(40))
+      )
+      expect(exitingStateUpdates).toEqual([su1, su2])
     })
 
     test('exit calls fail with unsufficient amount', async () => {

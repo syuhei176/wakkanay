@@ -10,7 +10,8 @@ import { KeyValueStore, RangeDb } from '@cryptoeconomicslab/db'
 enum Kind {
   Verified = 'Verified',
   Unverified = 'Unverified',
-  Pending = 'Pending'
+  Pending = 'Pending',
+  Exit = 'Exit'
 }
 
 export default class StateManager {
@@ -174,6 +175,31 @@ export default class StateManager {
     range: Range
   ): Promise<void> {
     await this.removeStateUpdate(Kind.Unverified, depositContractAddress, range)
+  }
+
+  //
+  // Exit state update
+  //
+
+  public async getExitStateUpdates(
+    depositContractAddress: Address,
+    range: Range
+  ): Promise<StateUpdate[]> {
+    return await this.getStateUpdates(Kind.Exit, depositContractAddress, range)
+  }
+
+  public async insertExitStateUpdate(
+    depositContractAddress: Address,
+    stateUpdate: StateUpdate
+  ): Promise<void> {
+    await this.insertStateUpdate(Kind.Exit, depositContractAddress, stateUpdate)
+  }
+
+  public async removeExitStateUpdate(
+    depositContractAddress: Address,
+    range: Range
+  ): Promise<void> {
+    await this.removeStateUpdate(Kind.Exit, depositContractAddress, range)
   }
 
   /**

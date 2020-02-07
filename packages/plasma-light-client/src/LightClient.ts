@@ -450,6 +450,14 @@ export default class LightClient {
             stateUpdate.range.end.data,
             coder.encode(exitProperty.toStruct())
           )
+          await this.stateManager.removeVerifiedStateUpdate(
+            stateUpdate.depositContractAddress,
+            stateUpdate.range
+          )
+          await this.stateManager.insertExitStateUpdate(
+            stateUpdate.depositContractAddress,
+            stateUpdate
+          )
         })
       )
     } else {
