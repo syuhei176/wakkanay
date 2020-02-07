@@ -134,11 +134,12 @@ describe('LightClient', () => {
   })
 
   describe('exit', () => {
-    let su: StateUpdate
+    let su1: StateUpdate
+    let su2: StateUpdate
     let proof: DoubleLayerInclusionProof
 
     beforeAll(() => {
-      su = new StateUpdate(
+      su1 = new StateUpdate(
         Address.from(
           config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
         ),
@@ -147,6 +148,16 @@ describe('LightClient', () => {
         BigNumber.from(0),
         client.ownershipProperty(Address.from(client.address))
       )
+      su2 = new StateUpdate(
+        Address.from(
+          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+        ),
+        Address.default(),
+        new Range(BigNumber.from(30), BigNumber.from(40)),
+        BigNumber.from(1),
+        client.ownershipProperty(Address.from(client.address))
+      )
+
       proof = new DoubleLayerInclusionProof(
         new IntervalTreeInclusionProof(BigNumber.from(0), 0, []),
         new AddressTreeInclusionProof(Address.default(), 0, [])
@@ -161,17 +172,38 @@ describe('LightClient', () => {
       // store ownership stateupdate
       await client['stateManager'].insertVerifiedStateUpdate(
         Address.default(),
-        su
+        su1
+      )
+      await client['stateManager'].insertVerifiedStateUpdate(
+        Address.default(),
+        su2
       )
       // store inclusion proof
-      const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
-        b: coder.encode(su.blockNumber),
-        token: coder.encode(su.depositContractAddress),
-        range: coder.encode(su.range.toStruct())
-      })
+      const hint1 = replaceHint(
+        'proof.block${b}.range${token},RANGE,${range}',
+        {
+          b: coder.encode(su1.blockNumber),
+          token: coder.encode(su1.depositContractAddress),
+          range: coder.encode(su1.range.toStruct())
+        }
+      )
       await putWitness(
         client['witnessDb'],
-        hint,
+        hint1,
+        coder.encode(proof.toStruct())
+      )
+      const hint2 = replaceHint(
+        'proof.block${b}.range${token},RANGE,${range}',
+        {
+          b: coder.encode(su2.blockNumber),
+          token: coder.encode(su2.depositContractAddress),
+          range: coder.encode(su2.range.toStruct())
+        }
+      )
+
+      await putWitness(
+        client['witnessDb'],
+        hint2,
         coder.encode(proof.toStruct())
       )
     })
@@ -184,11 +216,17 @@ describe('LightClient', () => {
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
       ) as CompiledPredicate).makeProperty([
-        coder.encode(su.property.toStruct()),
+        coder.encode(su1.property.toStruct()),
         coder.encode(proof.toStruct())
       ])
       expect(adjudicationContract.claimProperty).toHaveBeenLastCalledWith(
         exitProperty
+      )
+    })
+
+    test('exit calls fail with unsufficient amount', async () => {
+      await expect(client.exit(31, Address.default())).rejects.toEqual(
+        new Error('Insufficient amount')
       )
     })
   })

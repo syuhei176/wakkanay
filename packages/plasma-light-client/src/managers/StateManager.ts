@@ -199,7 +199,7 @@ export default class StateManager {
 
     let next = await iter.next()
     let sum = BigInt(0)
-    while (next !== null) {
+    while (next !== null && sum !== BigInt(amount)) {
       const su = StateUpdate.fromRangeRecord(next)
       if (sum + su.amount > amount) {
         su.update({

@@ -452,6 +452,8 @@ export default class LightClient {
           )
         })
       )
+    } else {
+      throw new Error('Insufficient amount')
     }
   }
 
