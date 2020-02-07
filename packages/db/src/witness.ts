@@ -111,12 +111,12 @@ export async function putWitness(
   if (type === TYPES.key) {
     await (db as KeyValueStore).put(Bytes.fromHexString(param), value)
   } else if (type === TYPES.range) {
-    const [start, end] = param
-      .split('-')
-      .map(n =>
-        ovmContext.coder.decode(BigNumber.default(), Bytes.fromHexString(n))
-      )
-    await (db as RangeStore).put(start.data, end.data, value)
+    const range = decodeStructable(
+      Range,
+      ovmContext.coder,
+      Bytes.fromHexString(param)
+    )
+    await (db as RangeStore).put(range.start.data, range.end.data, value)
   } else {
     throw new Error('cannot execute put operation with given hint type')
   }

@@ -237,7 +237,7 @@ export default class LightClient {
 
           // store inclusionProof as witness
           const hint = replaceHint(
-            'proof.block${b}.range${token},RANGE,${range})',
+            'proof.block${b}.range${token},RANGE,${range}',
             {
               b: coder.encode(blockNumber),
               token: coder.encode(su.depositContractAddress),
@@ -422,7 +422,7 @@ export default class LightClient {
       await Promise.all(
         stateUpdates.map(async stateUpdate => {
           const hint = replaceHint(
-            'proof.block${b}.range${token},RANGE,${range})',
+            'proof.block${b}.range${token},RANGE,${range}',
             {
               b: coder.encode(stateUpdate.blockNumber),
               token: coder.encode(stateUpdate.depositContractAddress),

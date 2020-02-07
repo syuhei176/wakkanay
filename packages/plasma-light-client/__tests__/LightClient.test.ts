@@ -2,6 +2,7 @@ import LightClient from '../src/LightClient'
 import StateManager from '../src/managers/StateManager'
 import SyncManager from '../src/managers/SyncManager'
 import { setupContext } from '@cryptoeconomicslab/context'
+import { replaceHint } from '@cryptoeconomicslab/db'
 import { IndexedDbKeyValueStore } from '@cryptoeconomicslab/indexeddb-kvs'
 import 'fake-indexeddb/auto'
 
@@ -30,11 +31,24 @@ const MockCommitmentContract = (CommitmentContract as unknown) as jest.Mock<
   CommitmentContract
 >
 
-import { Address, Bytes, Integer } from '@cryptoeconomicslab/primitives'
+import {
+  Address,
+  Bytes,
+  BigNumber,
+  Integer,
+  Range
+} from '@cryptoeconomicslab/primitives'
 import { ethers } from 'ethers'
 import { CheckpointManager } from '../src/managers'
 import config from './config.local'
-import { InitilizationConfig } from '@cryptoeconomicslab/ovm'
+import { InitilizationConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
+import { StateUpdate } from '@cryptoeconomicslab/plasma'
+import { putWitness } from '@cryptoeconomicslab/db'
+import {
+  DoubleLayerInclusionProof,
+  IntervalTreeInclusionProof,
+  AddressTreeInclusionProof
+} from '@cryptoeconomicslab/merkle-tree'
 setupContext({ coder: EthCoder })
 
 async function initialize(): Promise<LightClient> {
@@ -80,6 +94,8 @@ async function initialize(): Promise<LightClient> {
   )
 }
 
+MockDepositContract.prototype.address = Address.default()
+
 describe('LightClient', () => {
   let client: LightClient
   beforeEach(async () => {
@@ -91,29 +107,83 @@ describe('LightClient', () => {
     client = await initialize()
     client.registerToken(Address.default(), Address.default())
   })
+  describe('deposit', () => {
+    test('deposit calls contract methods', async () => {
+      // setup mock values
 
-  test('deposit calls contract methods', async () => {
-    // setup mock values
-    MockDepositContract.prototype.address = Address.default()
+      await client.deposit(20, Address.default())
 
-    await client.deposit(20, Address.default())
+      const tokenContract = MockERC20Contract.mock.instances[0]
+      expect(tokenContract.approve).toHaveBeenLastCalledWith(
+        Address.default(),
+        Integer.from(20)
+      )
 
-    const tokenContract = MockERC20Contract.mock.instances[0]
-    expect(tokenContract.approve).toHaveBeenLastCalledWith(
-      Address.default(),
-      Integer.from(20)
-    )
+      const depositContract = MockDepositContract.mock.instances[0]
+      expect(depositContract.deposit).toHaveBeenLastCalledWith(
+        Integer.from(20),
+        client.ownershipProperty(Address.from(client.address))
+      )
+    })
 
-    const depositContract = MockDepositContract.mock.instances[0]
-    expect(depositContract.deposit).toHaveBeenLastCalledWith(
-      Integer.from(20),
-      client.ownershipProperty(Address.from(client.address))
-    )
+    test('deposit calls to unregistered contract should fail', async () => {
+      await expect(
+        client.deposit(20, Address.from('0x00000000000000000001'))
+      ).rejects.toEqual(new Error('Contract not found'))
+    })
   })
 
-  test('deposit calls to unregistered contract should fail', async () => {
-    await expect(
-      client.deposit(20, Address.from('0x00000000000000000001'))
-    ).rejects.toEqual(new Error('Contract not found'))
+  describe('exit', () => {
+    test('exit calls claimProperty of adjudicationContract', async () => {
+      // let's say ownership stateupdate of range 0-20 is stored in client.
+      // exit method call yield the contract call with exitProperty with the state update
+      // and appropriate inclusion proof of it.
+      const { coder } = ovmContext
+
+      // setup
+      // store ownership stateupdate
+      const su = new StateUpdate(
+        Address.from(
+          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+        ),
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(20)),
+        BigNumber.from(0),
+        client.ownershipProperty(Address.from(client.address))
+      )
+      await client['stateManager'].insertVerifiedStateUpdate(
+        Address.default(),
+        su
+      )
+      const proof = new DoubleLayerInclusionProof(
+        new IntervalTreeInclusionProof(BigNumber.from(0), 0, []),
+        new AddressTreeInclusionProof(Address.default(), 0, [])
+      )
+
+      // store inclusion proof
+      const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
+        b: coder.encode(su.blockNumber),
+        token: coder.encode(su.depositContractAddress),
+        range: coder.encode(su.range.toStruct())
+      })
+      await putWitness(
+        client['witnessDb'],
+        hint,
+        coder.encode(proof.toStruct())
+      )
+
+      await client.exit(20, Address.default())
+
+      const adjudicationContract = MockAdjudicationContract.mock.instances[0]
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+      expect(adjudicationContract.claimProperty).toHaveBeenLastCalledWith(
+        exitProperty
+      )
+    })
   })
 })
