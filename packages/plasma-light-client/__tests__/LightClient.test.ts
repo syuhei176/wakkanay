@@ -301,5 +301,23 @@ describe('LightClient', () => {
         Exit.fromProperty(exitProperty2)
       ])
     })
+
+    test('finalizeExit', async () => {
+      const { coder } = ovmContext
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su1.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+      const exit = Exit.fromProperty(exitProperty)
+      await client.finalizeExit(exit)
+
+      const depositContract = MockDepositContract.mock.instances[0]
+      expect(depositContract.finalizeExit).toHaveBeenLastCalledWith(
+        exit.toProperty(client['deciderManager'].getDeciderAddress('Exit')),
+        Integer.from(Number(exit.range.end.raw))
+      )
+    })
   })
 })
