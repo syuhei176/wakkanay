@@ -42,7 +42,7 @@ import { ethers } from 'ethers'
 import { CheckpointManager } from '../src/managers'
 import config from './config.local'
 import { InitilizationConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
-import { StateUpdate } from '@cryptoeconomicslab/plasma'
+import { StateUpdate, Exit } from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
 import {
   DoubleLayerInclusionProof,
@@ -273,6 +273,33 @@ describe('LightClient', () => {
       await expect(client.exit(31, Address.default())).rejects.toEqual(
         new Error('Insufficient amount')
       )
+    })
+
+    test('exitList', async () => {
+      await client.exit(25, Address.default())
+      const exitList = await client.getExitlist()
+
+      const { coder } = ovmContext
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su1.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+      su2.update({
+        range: new Range(BigNumber.from(30), BigNumber.from(35))
+      })
+      const exitProperty2 = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su2.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+
+      expect(exitList).toEqual([
+        Exit.fromProperty(exitProperty),
+        Exit.fromProperty(exitProperty2)
+      ])
     })
   })
 })

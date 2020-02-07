@@ -482,11 +482,11 @@ export default class LightClient {
 
   public async getExitlist(): Promise<Exit[]> {
     const { coder } = ovmContext
+    const exitDb = new RangeDb(
+      await this.witnessDb.bucket(Bytes.fromString('exit'))
+    )
     const exitList = await Promise.all(
-      Object.keys(this.depositContracts).map(async addr => {
-        const exitDb = new RangeDb(
-          await this.witnessDb.bucket(Bytes.fromString('exit'))
-        )
+      Array.from(this.depositContracts.keys()).map(async addr => {
         const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
         const iter = bucket.iter(BigInt(0))
         let item = await iter.next()
@@ -500,7 +500,7 @@ export default class LightClient {
         return result
       })
     )
-    return exitList.flat()
+    return Array.prototype.concat.apply([], exitList)
   }
 
   // TODO: handling challenge game
