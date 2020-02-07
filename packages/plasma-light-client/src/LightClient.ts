@@ -265,9 +265,9 @@ export default class LightClient {
     const myAddress = this.wallet.getAddress()
     const depositContract = this.getDepositContract(erc20ContractAddress)
     const tokenContract = this.getTokenContract(erc20ContractAddress)
-    console.log('deposit: ', depositContract, tokenContract)
+    // console.log('deposit: ', depositContract, tokenContract)
     if (!depositContract || !tokenContract) {
-      throw new Error('Contract not found.')
+      throw new Error('Contract not found')
     }
 
     await tokenContract.approve(depositContract.address, Integer.from(amount))
