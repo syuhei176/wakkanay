@@ -9,6 +9,7 @@ export default class Balance {
   ) {}
 
   public get displayValue(): string {
+    // FIXME: 10 ** this.decimals could overflow
     return `${JSBI.divide(this.value.data, JSBI.BigInt(10 ** this.decimals))} ${
       this.symbol
     }`

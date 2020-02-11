@@ -1,6 +1,10 @@
 import Codable from './Codable'
 import JSBI from 'jsbi'
 
+/**
+ * BigNumber class
+ * use JSBI as inner representation as polyfill for BigInt
+ */
 export default class BigNumber implements Codable {
   static MAX_NUMBER: BigNumber = new BigNumber(
     JSBI.subtract(
