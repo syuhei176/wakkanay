@@ -8,6 +8,7 @@ import {
   Struct,
   BigNumber
 } from '@cryptoeconomicslab/primitives'
+import JSBI from 'jsbi'
 
 describe('JsonCoder', () => {
   describe('encode', () => {
@@ -80,7 +81,9 @@ describe('JsonCoder', () => {
     })
 
     test('encode big number', () => {
-      const bigNumber = BigNumber.from(BigInt(2) ** BigInt(80))
+      const bigNumber = BigNumber.from(
+        JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(80))
+      )
 
       expect(JsonCoder.encode(bigNumber).intoString()).toBe(
         '"1208925819614629174706176"'
@@ -101,7 +104,7 @@ describe('JsonCoder', () => {
         }
       ])
 
-      expect(JsonCoder.decode(t, Bytes.fromString(b))).toStrictEqual(
+      expect(JsonCoder.decode(t, Bytes.fromString(b))).toEqual(
         Struct.from([
           {
             key: 'addr',
@@ -128,7 +131,7 @@ describe('JsonCoder', () => {
         Integer.default()
       ])
 
-      expect(JsonCoder.decode(t, Bytes.fromString(b))).toStrictEqual(
+      expect(JsonCoder.decode(t, Bytes.fromString(b))).toEqual(
         Tuple.from([
           Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2'),
           Bytes.fromString('hello'),
@@ -168,7 +171,7 @@ describe('JsonCoder', () => {
         ])
       )
 
-      expect(JsonCoder.decode(t, Bytes.fromString(b))).toStrictEqual(
+      expect(JsonCoder.decode(t, Bytes.fromString(b))).toEqual(
         List.from(factory, [
           Struct.from([
             {
@@ -194,7 +197,9 @@ describe('JsonCoder', () => {
           BigNumber.default(),
           Bytes.fromString('"1208925819614629174706176"')
         )
-      ).toStrictEqual(BigNumber.from(BigInt(2) ** BigInt(80)))
+      ).toEqual(
+        BigNumber.from(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(80)))
+      )
     })
   })
 })

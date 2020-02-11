@@ -10,6 +10,7 @@ import {
 } from '../src'
 import Coder from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
+import JSBI from 'jsbi'
 setupContext({ coder: Coder })
 
 describe('witness', () => {
@@ -76,7 +77,7 @@ describe('witness', () => {
     test('getWitness range succeed', async () => {
       const rangeDb = new RangeDb(db)
       const bukcet = await rangeDb.bucket(Bytes.fromString('bucket5'))
-      await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
+      await bukcet.put(JSBI.BigInt(15), JSBI.BigInt(20), Bytes.fromString('v'))
 
       // 0x5b223235222c223135225d is Range(15, 20)
       const hint =
@@ -92,7 +93,7 @@ describe('witness', () => {
     test('getWitness range', async () => {
       const rangeDb = new RangeDb(db)
       const bukcet = await rangeDb.bucket(Bytes.fromString('bucket'))
-      await bukcet.put(BigInt(15), BigInt(20), Bytes.fromString('v'))
+      await bukcet.put(JSBI.BigInt(15), JSBI.BigInt(20), Bytes.fromString('v'))
 
       const hint =
         'bucket,RANGE,' +

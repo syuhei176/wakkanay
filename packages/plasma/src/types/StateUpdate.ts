@@ -9,6 +9,7 @@ import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { RangeRecord } from '@cryptoeconomicslab/db'
 import StateUpdateRecord from './StateUpdateRecord'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
+import JSBI from 'jsbi'
 
 /**
  * StateUpdate wrapper class
@@ -24,8 +25,8 @@ export default class StateUpdate {
     public stateObject: Property
   ) {}
 
-  public get amount(): bigint {
-    return this.range.end.data - this.range.start.data
+  public get amount(): JSBI {
+    return JSBI.subtract(this.range.end.data, this.range.start.data)
   }
 
   public get predicateAddress(): Address {

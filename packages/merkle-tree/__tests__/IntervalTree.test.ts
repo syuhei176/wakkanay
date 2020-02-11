@@ -6,29 +6,29 @@ import {
 } from '../src'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import { Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
+import JSBI from 'jsbi'
 
 describe('IntervalTree', () => {
   const leaf0 = new IntervalTreeNode(
-    BigNumber.from(BigInt(0)),
+    BigNumber.from(JSBI.BigInt(0)),
     Keccak256.hash(Bytes.fromString('leaf0'))
   )
   const leaf1 = new IntervalTreeNode(
-    BigNumber.from(BigInt(7)),
+    BigNumber.from(JSBI.BigInt(7)),
     Keccak256.hash(Bytes.fromString('leaf1'))
   )
   const leaf2 = new IntervalTreeNode(
-    BigNumber.from(BigInt(15)),
+    BigNumber.from(JSBI.BigInt(15)),
     Keccak256.hash(Bytes.fromString('leaf2'))
   )
   const leaf3 = new IntervalTreeNode(
-    BigNumber.from(BigInt(300)),
+    BigNumber.from(JSBI.BigInt(300)),
     Keccak256.hash(Bytes.fromString('leaf3'))
   )
   const leafBigNumber = new IntervalTreeNode(
-    BigNumber.from(BigInt(72943610)),
+    BigNumber.from(JSBI.BigInt(72943610)),
     Keccak256.hash(Bytes.fromString('leaf4'))
   )
-  beforeEach(() => {})
   describe('getRoot', () => {
     it('return Merkle Root with odd number of leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
@@ -58,11 +58,11 @@ describe('IntervalTree', () => {
       const inclusionProof0 = tree.getInclusionProof(0)
       const inclusionProof1 = tree.getInclusionProof(1)
       expect(inclusionProof0).toEqual({
-        leafIndex: BigNumber.from(BigInt(0)),
+        leafIndex: BigNumber.from(JSBI.BigInt(0)),
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(7)),
+            BigNumber.from(JSBI.BigInt(7)),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
@@ -76,11 +76,11 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof1).toEqual({
-        leafIndex: BigNumber.from(BigInt(7)),
+        leafIndex: BigNumber.from(JSBI.BigInt(7)),
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(0)),
+            BigNumber.from(JSBI.BigInt(0)),
             Bytes.fromHexString(
               '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
             )
@@ -101,17 +101,17 @@ describe('IntervalTree', () => {
       const inclusionProof2 = tree.getInclusionProof(2)
       const inclusionProof3 = tree.getInclusionProof(3)
       expect(inclusionProof0).toEqual({
-        leafIndex: BigNumber.from(BigInt(0)),
+        leafIndex: BigNumber.from(JSBI.BigInt(0)),
         leafPosition: 0,
         siblings: [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(7)),
+            BigNumber.from(JSBI.BigInt(7)),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
-            BigNumber.from(BigInt(300)),
+            BigNumber.from(JSBI.BigInt(300)),
             Bytes.fromHexString(
               '0x3b93a2a95fbcfbefdd3b6604f965379833a263fb74913f970b201fb7e1d5949e'
             )
@@ -119,17 +119,17 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof1).toEqual({
-        leafIndex: BigNumber.from(BigInt(7)),
+        leafIndex: BigNumber.from(JSBI.BigInt(7)),
         leafPosition: 1,
         siblings: [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(0)),
+            BigNumber.from(JSBI.BigInt(0)),
             Bytes.fromHexString(
               '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
             )
           ),
           new IntervalTreeNode(
-            BigNumber.from(BigInt(300)),
+            BigNumber.from(JSBI.BigInt(300)),
             Bytes.fromHexString(
               '0x3b93a2a95fbcfbefdd3b6604f965379833a263fb74913f970b201fb7e1d5949e'
             )
@@ -137,17 +137,17 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof2).toEqual({
-        leafIndex: BigNumber.from(BigInt(15)),
+        leafIndex: BigNumber.from(JSBI.BigInt(15)),
         leafPosition: 2,
         siblings: [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(300)),
+            BigNumber.from(JSBI.BigInt(300)),
             Bytes.fromHexString(
               '0xfdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f3'
             )
           ),
           new IntervalTreeNode(
-            BigNumber.from(BigInt(7)),
+            BigNumber.from(JSBI.BigInt(7)),
             Bytes.fromHexString(
               '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
             )
@@ -155,17 +155,17 @@ describe('IntervalTree', () => {
         ]
       })
       expect(inclusionProof3).toEqual({
-        leafIndex: BigNumber.from(BigInt(300)),
+        leafIndex: BigNumber.from(JSBI.BigInt(300)),
         leafPosition: 3,
         siblings: [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(15)),
+            BigNumber.from(JSBI.BigInt(15)),
             Bytes.fromHexString(
               '0xba620d61dac4ddf2d7905722b259b0bd34ec4d37c5796d9a22537c54b3f972d8'
             )
           ),
           new IntervalTreeNode(
-            BigNumber.from(BigInt(7)),
+            BigNumber.from(JSBI.BigInt(7)),
             Bytes.fromHexString(
               '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
             )
@@ -223,7 +223,7 @@ describe('IntervalTree', () => {
       const result3 = verifier.verifyInclusion(
         leafBigNumber,
         leafBigNumber.start,
-        BigNumber.from(leafBigNumber.start.data + BigInt(1)),
+        BigNumber.from(JSBI.add(leafBigNumber.start.data, JSBI.BigInt(1))),
         root,
         inclusionProof3
       )
@@ -247,17 +247,17 @@ describe('IntervalTree', () => {
         '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
       const invalidInclusionProof = new IntervalTreeInclusionProof(
-        BigNumber.from(BigInt(0)),
+        BigNumber.from(JSBI.BigInt(0)),
         0,
         [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(7)),
+            BigNumber.from(JSBI.BigInt(7)),
             Bytes.fromHexString(
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
-            BigNumber.from(BigInt(0)),
+            BigNumber.from(JSBI.BigInt(0)),
             Bytes.fromHexString(
               '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
             )
@@ -279,17 +279,17 @@ describe('IntervalTree', () => {
         '0x91d07b5d34a03ce1831ff23c6528d2cbf64adc24e3321373dc616a6740b02577'
       )
       const invalidInclusionProof = new IntervalTreeInclusionProof(
-        BigNumber.from(BigInt(7)),
+        BigNumber.from(JSBI.BigInt(7)),
         1,
         [
           new IntervalTreeNode(
-            BigNumber.from(BigInt(0)),
+            BigNumber.from(JSBI.BigInt(0)),
             Bytes.fromHexString(
               '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
             )
           ),
           new IntervalTreeNode(
-            BigNumber.from(BigInt(0)),
+            BigNumber.from(JSBI.BigInt(0)),
             Bytes.fromHexString(
               '0x4670e484ff31d2ec8471b1f8a1e1cb8dc104b3a4b766ae0b7c2c604a34cb530e'
             )
@@ -310,12 +310,12 @@ describe('IntervalTree', () => {
   describe('getLeaves', () => {
     it('return leaves', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
-      const leaves = tree.getLeaves(BigInt(0), BigInt(100))
+      const leaves = tree.getLeaves(JSBI.BigInt(0), JSBI.BigInt(100))
       expect(leaves.length).toStrictEqual(3)
     })
     it('return leaves within partially', async () => {
       const tree = new IntervalTree([leaf0, leaf1, leaf2])
-      const leaves = tree.getLeaves(BigInt(5), BigInt(100))
+      const leaves = tree.getLeaves(JSBI.BigInt(5), JSBI.BigInt(100))
       expect(leaves.length).toStrictEqual(3)
     })
   })

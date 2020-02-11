@@ -17,6 +17,7 @@ import {
   CommitmentContract,
   DepositContract
 } from '@cryptoeconomicslab/eth-contract'
+import JSBI from 'jsbi'
 setupContext({
   coder: Coder
 })
@@ -87,7 +88,7 @@ describe('Aggregator integration', () => {
     // await aggregator['handleDeposit'](su(15, 20))
     // await aggregator['handleDeposit'](su(20, 30))
 
-    const result = await stateDb.get(BigInt(0), BigInt(100))
+    const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
     expect(result.length).toBe(3)
   })
 
@@ -105,7 +106,7 @@ describe('Aggregator integration', () => {
     )
     await aggregator['ingestTransaction'](transaction)
 
-    const result = await stateDb.get(BigInt(0), BigInt(100))
+    const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
     expect(result.length).toBe(2)
   })
 })

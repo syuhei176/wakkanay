@@ -1,9 +1,11 @@
-export const max = (a: bigint, b: bigint): bigint => {
-  if (a >= b) return a
+import JSBI from 'jsbi'
+
+export const max = (a: JSBI, b: JSBI): JSBI => {
+  if (JSBI.greaterThanOrEqual(a, b)) return a
   else return b
 }
-export const min = (a: bigint, b: bigint): bigint => {
-  if (a <= b) return a
+export const min = (a: JSBI, b: JSBI): JSBI => {
+  if (JSBI.lessThanOrEqual(a, b)) return a
   else return b
 }
 
@@ -13,5 +15,7 @@ export const min = (a: bigint, b: bigint): bigint => {
  * @param start start of range
  * @param end end of range
  */
-export const makeRange = (start: bigint, end: bigint) =>
-  Array.from({ length: Number(end - start) + 1 }, (v, k) => BigInt(k) + start)
+export const makeRange = (start: JSBI, end: JSBI) =>
+  Array.from({ length: Number(JSBI.subtract(end, start)) + 1 }, (v, k) =>
+    JSBI.add(JSBI.BigInt(k), start)
+  )

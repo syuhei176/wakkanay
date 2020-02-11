@@ -2,12 +2,12 @@ import LightClient from '../src/LightClient'
 import StateManager from '../src/managers/StateManager'
 import SyncManager from '../src/managers/SyncManager'
 import { setupContext } from '@cryptoeconomicslab/context'
+import JsonCoder from '@cryptoeconomicslab/coder'
 import { replaceHint } from '@cryptoeconomicslab/db'
 import { IndexedDbKeyValueStore } from '@cryptoeconomicslab/indexeddb-kvs'
 import 'fake-indexeddb/auto'
 
 import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
-import { EthCoder } from '@cryptoeconomicslab/eth-coder'
 
 import { AdjudicationContract } from '@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract'
 import { DepositContract } from '@cryptoeconomicslab/eth-contract/lib/contract/DepositContract'
@@ -49,7 +49,7 @@ import {
   IntervalTreeInclusionProof,
   AddressTreeInclusionProof
 } from '@cryptoeconomicslab/merkle-tree'
-setupContext({ coder: EthCoder })
+setupContext({ coder: JsonCoder })
 
 async function initialize(): Promise<LightClient> {
   const kvs = new IndexedDbKeyValueStore(Bytes.fromString('root'))

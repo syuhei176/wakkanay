@@ -9,6 +9,7 @@ import {
   KeyValueStore,
   Iterator as KVSIter
 } from './KeyValueStore'
+import JSBI from 'jsbi'
 
 /**
  * RangeIterator
@@ -18,8 +19,8 @@ class RangeIterator implements RangeIter {
   private kvsIter: KVSIter
   constructor(
     readonly rangeDb: RangeDb,
-    readonly lowerBound: bigint,
-    readonly upperBound?: bigint
+    readonly lowerBound: JSBI,
+    readonly upperBound?: JSBI
   ) {
     this.kvsIter = rangeDb.kvs.iter(RangeDb.createKey(lowerBound), true)
   }
@@ -28,7 +29,8 @@ class RangeIterator implements RangeIter {
     const keyValue = await this.kvsIter.next()
     if (!keyValue) return null
     const d = Range.decode(keyValue.value)
-    if (this.upperBound && d.end.data > this.upperBound) return null
+    if (this.upperBound && JSBI.greaterThan(d.end.data, this.upperBound))
+      return null
     return d
   }
 }
@@ -43,12 +45,12 @@ export class RangeDb implements RangeStore {
    * key is 32 bytes padded bytes
    * @param start is source of key
    */
-  static createKey(start: bigint) {
+  static createKey(start: JSBI) {
     return Bytes.fromHexString(start.toString(16)).padZero(32)
   }
 
-  public async get(start: bigint, end: bigint): Promise<Range[]> {
-    const iter = await this.kvs.iter(RangeDb.createKey(start), true)
+  public async get(start: JSBI, end: JSBI): Promise<Range[]> {
+    const iter = this.kvs.iter(RangeDb.createKey(start), true)
     const keyValue = await iter.next()
     if (keyValue === null) {
       return []
@@ -67,17 +69,20 @@ export class RangeDb implements RangeStore {
     return ranges
   }
 
-  public async put(start: bigint, end: bigint, value: Bytes): Promise<void> {
+  public async put(start: JSBI, end: JSBI, value: Bytes): Promise<void> {
     const inputRanges = await this.delBatch(start, end)
     const outputRanges: Range[] = []
-    if (inputRanges.length > 0 && inputRanges[0].start.data < start) {
+    if (
+      inputRanges.length > 0 &&
+      JSBI.lessThan(inputRanges[0].start.data, start)
+    ) {
       outputRanges.push(
         new Range(inputRanges[0].start, start, inputRanges[0].value)
       )
     }
     if (inputRanges.length > 0) {
       const lastRange = inputRanges[inputRanges.length - 1]
-      if (end < lastRange.end.data) {
+      if (JSBI.lessThan(end, lastRange.end.data)) {
         outputRanges.push(new Range(end, lastRange.end, lastRange.value))
       }
     }
@@ -85,7 +90,7 @@ export class RangeDb implements RangeStore {
     return this.putBatch(outputRanges)
   }
 
-  public async del(start: bigint, end: bigint): Promise<void> {
+  public async del(start: JSBI, end: JSBI): Promise<void> {
     await this.delBatch(start, end)
     return
   }
@@ -95,11 +100,11 @@ export class RangeDb implements RangeStore {
     return new RangeDb(db)
   }
 
-  public iter(lowerBound: bigint, upperBound?: bigint): RangeIterator {
+  public iter(lowerBound: JSBI, upperBound?: JSBI): RangeIterator {
     return new RangeIterator(this, lowerBound, upperBound)
   }
 
-  private async delBatch(start: bigint, end: bigint): Promise<Range[]> {
+  private async delBatch(start: JSBI, end: JSBI): Promise<Range[]> {
     const ranges = await this.get(start, end)
     const ops: BatchOperation[] = ranges.map(r => {
       return {

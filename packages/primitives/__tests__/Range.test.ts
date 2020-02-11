@@ -1,8 +1,9 @@
 import { BigNumber, Struct, Range } from '../src'
+import JSBI from 'jsbi'
 
 describe('Range', () => {
-  const start = BigNumber.from(BigInt(10))
-  const end = BigNumber.from(BigInt(12))
+  const start = BigNumber.from(JSBI.BigInt(10))
+  const end = BigNumber.from(JSBI.BigInt(12))
   describe('toStruct', () => {
     it('return struct', async () => {
       const range = new Range(start, end)

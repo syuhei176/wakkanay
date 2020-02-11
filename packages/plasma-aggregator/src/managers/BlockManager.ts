@@ -11,6 +11,7 @@ import {
 } from '@cryptoeconomicslab/primitives'
 import { RangeDb, RangeStore, KeyValueStore } from '@cryptoeconomicslab/db'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import JSBI from 'jsbi'
 
 const STATE_UPDATE_BUCKET = Bytes.fromString('queued_state_updates')
 const BLOCK_BUCKET = Bytes.fromString('block')
@@ -36,7 +37,7 @@ export default class BlockManager {
    */
   private async clearTokenBucket(addr: Address) {
     const db = await this.tokenBucket(addr)
-    await db.del(BigInt(0), BigInt(10000)) // TODO: change later
+    await db.del(JSBI.BigInt(0), JSBI.BigInt(10000)) // TODO: change later
   }
 
   /**
@@ -50,7 +51,7 @@ export default class BlockManager {
    * returns next block number
    */
   public get nextBlockNumber() {
-    return BigNumber.from(this.blockNumber.data + BigInt(1))
+    return BigNumber.from(JSBI.add(this.blockNumber.data, JSBI.BigInt(1)))
   }
 
   /**
@@ -88,7 +89,7 @@ export default class BlockManager {
     await Promise.all(
       this.tokenList.map(async token => {
         const db = await this.tokenBucket(token)
-        const stateUpdates = (await db.get(BigInt(0), BigInt(10000))) // TODO: change later
+        const stateUpdates = (await db.get(JSBI.BigInt(0), JSBI.BigInt(10000))) // TODO: change later
           .map(r =>
             StateUpdate.fromRecord(
               decodeStructable(StateUpdateRecord, ovmContext.coder, r.value),
@@ -105,13 +106,15 @@ export default class BlockManager {
     this.ready = false
 
     const block = new Block(
-      BigNumber.from(this.blockNumber.data + BigInt(1)),
+      BigNumber.from(JSBI.add(this.blockNumber.data, JSBI.BigInt(1))),
       stateUpdatesMap
     )
     this.putBlock(block)
 
     // increment blockNumber
-    this.blockNumber = BigNumber.from(this.blockNumber.data + BigInt(1))
+    this.blockNumber = BigNumber.from(
+      JSBI.add(this.blockNumber.data, JSBI.BigInt(1))
+    )
     return block
   }
 

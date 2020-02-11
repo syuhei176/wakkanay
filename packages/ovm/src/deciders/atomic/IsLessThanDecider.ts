@@ -2,6 +2,7 @@ import { Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
+import JSBI from 'jsbi'
 
 /**
  * LessThanDecider decides to true if first input is less than second input
@@ -22,7 +23,7 @@ export class IsLessThanDecider implements Decider {
     const second = ovmContext.coder.decode(BigNumber.default(), inputs[1])
 
     return {
-      outcome: first.data < second.data,
+      outcome: JSBI.lessThan(first.data, second.data),
       challenges: []
     }
   }

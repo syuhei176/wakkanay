@@ -1,5 +1,5 @@
 import Coder from '@cryptoeconomicslab/coder'
-import { Bytes, Integer, BigNumber } from '@cryptoeconomicslab/primitives'
+import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import {
   initializeDeciderManager,
   ThereExistsSuchThatDeciderAddress,
@@ -68,8 +68,8 @@ describe('ThereExistsSuchThatDecider', () => {
     const sigBucket = await deciderManager.witnessDb.bucket(
       Bytes.fromString('sig')
     )
-    const publicKey = Bytes.fromHexString(
-      '0x5640A00fAE03fa40d527C27dc28E67dF140Fd995'
+    const publicKey = ovmContext.coder.encode(
+      Address.from('0x5640A00fAE03fa40d527C27dc28E67dF140Fd995')
     )
     const message = Bytes.fromString('message')
     const signature = Bytes.fromHexString(

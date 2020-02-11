@@ -10,6 +10,7 @@ import {
   Struct
 } from '@cryptoeconomicslab/primitives'
 import { JsonDecodeError } from './Error'
+import JSBI from 'jsbi'
 
 export function encodeInner(e: Codable): any {
   if (e instanceof Integer) {
@@ -37,7 +38,7 @@ export function decodeInner(d: Codable, input: any): Codable {
   if (d instanceof Integer) {
     d.setData(input)
   } else if (d instanceof BigNumber) {
-    d.setData(BigInt(input))
+    d.setData(JSBI.BigInt(input))
   } else if (d instanceof Address) {
     d.setData(input)
   } else if (d instanceof Bytes) {

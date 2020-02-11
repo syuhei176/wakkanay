@@ -39,6 +39,7 @@ import {
   DoubleLayerTreeLeaf
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
+import JSBI from 'jsbi'
 
 import EventEmitter from 'event-emitter'
 import { StateManager, SyncManager, CheckpointManager } from './managers'
@@ -149,7 +150,7 @@ export default class LightClient {
     }
 
     while (synced.data !== blockNum.data) {
-      synced = BigNumber.from(synced.data + BigInt(1))
+      synced = BigNumber.from(JSBI.add(synced.data, JSBI.BigInt(1)))
       const root = await this.commitmentContract.getRoot(synced)
       if (!root) {
         // FIXME: check if root is default bytes32 value
@@ -199,7 +200,7 @@ export default class LightClient {
     Object.keys(this.depositContracts).forEach(async addr => {
       const pendingStateUpdates = await this.stateManager.getPendingStateUpdates(
         Address.from(addr),
-        new Range(BigNumber.from(0), BigNumber.from(BigInt(10000)))
+        new Range(BigNumber.from(0), BigNumber.from(10000))
       )
       const verifier = new DoubleLayerTreeVerifier()
       const root = await this.syncManager.getRoot(blockNumber)
@@ -304,7 +305,7 @@ export default class LightClient {
         const tx = new Transaction(
           depositContractAddress,
           su.range,
-          BigNumber.from(latestBlock.data + BigInt(5)),
+          BigNumber.from(JSBI.add(latestBlock.data, JSBI.BigInt(5))),
           property,
           this.wallet.getAddress()
         )
@@ -488,7 +489,7 @@ export default class LightClient {
     const exitList = await Promise.all(
       Array.from(this.depositContracts.keys()).map(async addr => {
         const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
-        const iter = bucket.iter(BigInt(0))
+        const iter = bucket.iter(JSBI.BigInt(0))
         let item = await iter.next()
         const result: Exit[] = []
         while (item !== null) {

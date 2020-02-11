@@ -23,13 +23,13 @@ describe('StateUpdate', () => {
 
   test('new(property)', () => {
     const stateUpdate = StateUpdate.fromProperty(stateUpdateProperty)
-    expect(stateUpdate.property).toStrictEqual(stateUpdateProperty)
-    expect(stateUpdate.depositContractAddress).toStrictEqual(Address.default())
-    expect(stateUpdate.range).toStrictEqual(
+    expect(stateUpdate.property).toEqual(stateUpdateProperty)
+    expect(stateUpdate.depositContractAddress).toEqual(Address.default())
+    expect(stateUpdate.range).toEqual(
       new Range(BigNumber.from(0), BigNumber.from(10))
     )
-    expect(stateUpdate.blockNumber).toStrictEqual(BigNumber.from(1))
-    expect(stateUpdate.stateObject).toStrictEqual(
+    expect(stateUpdate.blockNumber).toEqual(BigNumber.from(1))
+    expect(stateUpdate.stateObject).toEqual(
       new Property(Address.default(), [Bytes.fromHexString('0x01')])
     )
   })
@@ -37,7 +37,7 @@ describe('StateUpdate', () => {
   test('toRecord()', () => {
     const stateUpdate = StateUpdate.fromProperty(stateUpdateProperty)
     const record = stateUpdate.toRecord()
-    expect(record).toStrictEqual(
+    expect(record).toEqual(
       new StateUpdateRecord(
         Address.default(),
         Address.default(),
@@ -63,7 +63,7 @@ describe('StateUpdate', () => {
 
   test('range', () => {
     const stateUpdate = StateUpdate.fromProperty(stateUpdateProperty)
-    expect(stateUpdate.range).toStrictEqual(
+    expect(stateUpdate.range).toEqual(
       new Range(BigNumber.from(0), BigNumber.from(10))
     )
   })
@@ -73,7 +73,7 @@ describe('StateUpdate', () => {
     stateUpdate.update({
       range: new Range(BigNumber.from(5), BigNumber.from(10))
     })
-    expect(stateUpdate.range).toStrictEqual(
+    expect(stateUpdate.range).toEqual(
       new Range(BigNumber.from(5), BigNumber.from(10))
     )
   })

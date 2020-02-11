@@ -1,45 +1,44 @@
 import Codable from './Codable'
+import JSBI from 'jsbi'
 
 export default class BigNumber implements Codable {
   static MAX_NUMBER: BigNumber = new BigNumber(
-    BigInt(2) ** BigInt(256) - BigInt(1)
+    JSBI.subtract(
+      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(256)),
+      JSBI.BigInt(1)
+    )
   )
 
   static fromString(str: string): BigNumber {
-    return new BigNumber(BigInt(str))
+    return new BigNumber(JSBI.BigInt(str))
   }
 
   static fromHexString(hex: string): BigNumber {
     const match = hex.match(/^(0x)?([0-9a-fA-F]*)$/)
     if (hex == '0x') hex = '0x00'
     if (match) {
-      return new BigNumber(BigInt(hex))
+      return new BigNumber(JSBI.BigInt(hex))
     } else {
       throw new Error('invalid hex string')
     }
   }
 
-  static from(data: number | bigint | BigNumber): BigNumber {
-    if (typeof data == 'number') {
-      return new BigNumber(BigInt(data))
-    } else if (typeof data == 'bigint') {
-      return new BigNumber(data)
-    } else {
-      return data
-    }
+  static from(data: number | JSBI | BigNumber): BigNumber {
+    if (data instanceof BigNumber) return data
+    return new BigNumber(JSBI.BigInt(data.toString()))
   }
 
   static default(): BigNumber {
-    return new BigNumber(BigInt(0))
+    return new BigNumber(JSBI.BigInt(0))
   }
 
-  constructor(public data: bigint) {}
+  constructor(public data: JSBI) {}
 
   public get raw() {
     return this.data.toString()
   }
 
-  public setData(num: bigint) {
+  public setData(num: JSBI) {
     this.data = num
   }
 
