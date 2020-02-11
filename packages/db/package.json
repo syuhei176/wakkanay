@@ -32,7 +32,8 @@
     "@cryptoeconomicslab/coder": "^0.0.14",
     "@cryptoeconomicslab/context": "^0.0.14",
     "@cryptoeconomicslab/utils": "^0.0.14",
-    "abstract-leveldown": "^6.2.2"
+    "abstract-leveldown": "^6.2.2",
+    "jsbi": "^3.1.1"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {

@@ -39,6 +39,6 @@ describe('Block', () => {
       Coder.decode(Block.getParamType(), encoded)
     )
 
-    expect(decoded).toStrictEqual(block)
+    expect(decoded).toEqual(block)
   })
 })

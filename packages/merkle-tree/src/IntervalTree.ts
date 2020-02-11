@@ -11,6 +11,7 @@ import {
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
 import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
+import JSBI from 'jsbi'
 
 export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
   /**
@@ -75,7 +76,7 @@ export class IntervalTree extends AbstractMerkleTree<
     super(leaves, new IntervalTreeVerifier())
   }
 
-  getLeaves(start: bigint, end: bigint): number[] {
+  getLeaves(start: JSBI, end: JSBI): number[] {
     const results: number[] = []
     this.leaves.forEach((l, index) => {
       const targetStart = l.start
@@ -84,7 +85,7 @@ export class IntervalTree extends AbstractMerkleTree<
         : BigNumber.MAX_NUMBER.data
       const maxStart = BigIntMath.max(targetStart.data, start)
       const maxEnd = BigIntMath.min(targetEnd, end)
-      if (maxStart < maxEnd) {
+      if (JSBI.lessThan(maxStart, maxEnd)) {
         results.push(index)
       }
     })
@@ -106,7 +107,7 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
   IntervalTreeNode
 > {
   computeParent(a: IntervalTreeNode, b: IntervalTreeNode): IntervalTreeNode {
-    if (a.start.data > b.start.data) {
+    if (JSBI.greaterThan(a.start.data, b.start.data)) {
       throw new Error('left.start is not less than right.start.')
     }
     return new IntervalTreeNode(
@@ -125,8 +126,8 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
    * compare BigNumber
    */
   compare(a: BigNumber, b: BigNumber): number {
-    if (a.data > b.data) return 1
-    else if (a.data == b.data) return 0
+    if (JSBI.greaterThan(a.data, b.data)) return 1
+    else if (JSBI.equal(a.data, b.data)) return 0
     else return -1
   }
 }

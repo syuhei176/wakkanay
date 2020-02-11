@@ -26,7 +26,7 @@ describe('IsValidSignatureDecider', () => {
     const property = new Property(addr, [
       message,
       signature,
-      Bytes.fromHexString(Address.from(publicKey).raw),
+      Coder.encode(Address.from(publicKey)),
       Bytes.fromString('secp256k1')
     ])
 
@@ -38,7 +38,7 @@ describe('IsValidSignatureDecider', () => {
     const property = new Property(addr, [
       message,
       Bytes.fromString('hellohello'),
-      Bytes.fromHexString(Address.from(publicKey).raw),
+      Coder.encode(Address.from(publicKey)),
       Bytes.fromString('secp256k1')
     ])
 
@@ -53,7 +53,7 @@ describe('IsValidSignatureDecider', () => {
     const property = new Property(addr, [
       message,
       invalidSig,
-      Bytes.fromHexString(Address.from(publicKey).raw),
+      Coder.encode(Address.from(publicKey)),
       Bytes.fromString('secp256k1')
     ])
 
@@ -65,7 +65,7 @@ describe('IsValidSignatureDecider', () => {
     const property = new Property(addr, [
       message,
       signature,
-      Bytes.fromHexString(Address.from(publicKey).raw),
+      Coder.encode(Address.from(publicKey)),
       Bytes.fromString('ed25519')
     ])
 

@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@cryptoeconomicslab/hash": "^0.0.14",
-    "@cryptoeconomicslab/utils": "^0.0.14"
+    "@cryptoeconomicslab/utils": "^0.0.14",
+    "jsbi": "^3.1.1"
   },
   "devDependencies": {
     "@cryptoeconomicslab/coder": "^0.0.14",

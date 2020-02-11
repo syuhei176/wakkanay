@@ -1,4 +1,5 @@
 import { BigNumber } from '@cryptoeconomicslab/primitives'
+import JSBI from 'jsbi'
 
 export default class Balance {
   constructor(
@@ -8,6 +9,9 @@ export default class Balance {
   ) {}
 
   public get displayValue(): string {
-    return `${this.value.data / BigInt(10 ** this.decimals)} ${this.symbol}`
+    // FIXME: 10 ** this.decimals could overflow
+    return `${JSBI.divide(this.value.data, JSBI.BigInt(10 ** this.decimals))} ${
+      this.symbol
+    }`
   }
 }

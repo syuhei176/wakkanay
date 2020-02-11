@@ -6,6 +6,7 @@ import {
   Range
 } from '@cryptoeconomicslab/primitives'
 import { KeyValueStore, RangeDb } from '@cryptoeconomicslab/db'
+import JSBI from 'jsbi'
 
 enum Kind {
   Verified = 'Verified',
@@ -221,18 +222,21 @@ export default class StateManager {
   ): Promise<StateUpdate[] | null> {
     const db = await this.getRangeDb(Kind.Verified, depositContractAddress)
     const stateUpdates: StateUpdate[] = []
-    const iter = db.iter(BigInt(0))
+    const iter = db.iter(JSBI.BigInt(0))
 
     let next = await iter.next()
-    let sum = BigInt(0)
-    while (next !== null && sum !== BigInt(amount)) {
+    let sum = JSBI.BigInt(0)
+    while (next !== null && JSBI.notEqual(sum, JSBI.BigInt(amount))) {
       const su = StateUpdate.fromRangeRecord(next)
-      if (sum + su.amount > amount) {
+      if (JSBI.greaterThan(JSBI.add(sum, su.amount), JSBI.BigInt(amount))) {
         su.update({
           range: new Range(
             su.range.start,
             BigNumber.from(
-              su.range.start.data + (sum + su.amount - BigInt(amount))
+              JSBI.add(
+                su.range.start.data,
+                JSBI.subtract(JSBI.add(sum, su.amount), JSBI.BigInt(amount))
+              )
             )
           )
         })
@@ -241,11 +245,11 @@ export default class StateManager {
       }
 
       stateUpdates.push(su)
-      sum += su.amount
+      sum = JSBI.add(su.amount, sum)
       next = await iter.next()
     }
 
-    if (sum < amount) {
+    if (JSBI.lessThan(sum, JSBI.BigInt(amount))) {
       return null
     }
 

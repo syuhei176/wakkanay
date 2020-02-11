@@ -2,6 +2,7 @@ import { Bytes, BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import { BigIntMath } from '@cryptoeconomicslab/utils'
 import { KeyValueStore, RangeStore, RangeDb } from './'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import JSBI from 'jsbi'
 
 const TYPES = {
   key: 'KEY',
@@ -87,7 +88,10 @@ export async function getWitnesses(
       .map(n =>
         ovmContext.coder.decode(BigNumber.default(), Bytes.fromHexString(n))
       )
-    return BigIntMath.makeRange(start.data, end.data - BigInt(1))
+    return BigIntMath.makeRange(
+      start.data,
+      JSBI.subtract(end.data, JSBI.BigInt(1))
+    )
       .map(BigNumber.from)
       .map(ovmContext.coder.encode)
   } else {

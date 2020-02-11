@@ -15,8 +15,15 @@ import {
   BigNumber,
   Range
 } from '@cryptoeconomicslab/primitives'
-import { RangeDb, RangeStore, KeyValueStore } from '@cryptoeconomicslab/db'
+import {
+  RangeDb,
+  RangeStore,
+  KeyValueStore,
+  putWitness,
+  replaceHint
+} from '@cryptoeconomicslab/db'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import JSBI from 'jsbi'
 
 export default class StateManager {
   constructor(private db: RangeStore) {}
@@ -63,10 +70,9 @@ export default class StateManager {
     const contigious = prevStates.reduce(
       ({ prevEnd, result }, current) => {
         if (!result) return { prevEnd, result }
-        console.log(prevEnd.data === current.range.start.data)
         return {
           prevEnd: current.range.end,
-          result: prevEnd.data === current.range.start.data
+          result: JSBI.equal(prevEnd.data, current.range.start.data)
         }
       },
       { prevEnd: prevStates[0].range.start, result: true }
@@ -77,18 +83,36 @@ export default class StateManager {
     }
 
     // update intersected ranges
-    if (prevStates[0].range.start.data < tx.range.start.data) {
+    if (JSBI.lessThan(prevStates[0].range.start.data, tx.range.start.data)) {
       prevStates[0].update({
         range: new Range(tx.range.start, prevStates[0].range.end)
       })
     }
 
     const last = prevStates.length - 1
-    if (prevStates[last].range.end.data > tx.range.end.data) {
+    if (JSBI.greaterThan(prevStates[last].range.end.data, tx.range.end.data)) {
       prevStates[last].update({
         range: new Range(prevStates[last].range.start, tx.range.end)
       })
     }
+
+    // await putWitness(
+    //   deciderManager.witnessDb,
+    //   replaceHint('signatures,KEY,${message}', {
+    //     message: ovmContext.coder.encode(
+    //       tx.toProperty(Address.default()).toStruct()
+    //     )
+    //   }),
+    //   tx.signature
+    // )
+    // await putWitness(
+    //   deciderManager.witnessDb,
+    //   replaceHint('tx.block${blockNum}.range${addr},RANGE,${range}', {
+    //     blockNum:
+
+    //   }),
+    //   ovmContext.coder.encode(tx.toProperty(Address.default()).toStruct())
+    // )
 
     await this.storeWitness(
       deciderManager.witnessDb,
@@ -161,10 +185,10 @@ export default class StateManager {
     addr: Address,
     blockNumber?: BigNumber
   ) {
-    return (await this.db.get(BigInt(0), BigInt(10000)))
+    return (await this.db.get(JSBI.BigInt(0), JSBI.BigInt(10000)))
       .map(StateUpdate.fromRangeRecord)
       .filter(su =>
-        blockNumber ? su.blockNumber.data === blockNumber.data : true
+        blockNumber ? JSBI.equal(su.blockNumber.data, blockNumber.data) : true
       )
       .filter(su => {
         const owner = Address.from(su.stateObject.inputs[0].toHexString())
@@ -176,6 +200,7 @@ export default class StateManager {
   }
 
   /**
+   * // TODO: use putWitness to store data
    * store transaction and signature to witness database
    * @param witnessDb witness database
    * @param tx transaction data
@@ -186,10 +211,6 @@ export default class StateManager {
     prevBlockNumbers: BigNumber[],
     prevStateRanges: Range[]
   ) {
-    const encodePrimitive = (hex: string) =>
-      Bytes.fromHexString(hex)
-        .padZero(32)
-        .toHexString()
     const signaturesBucket = await witnessDb.bucket(
       Bytes.fromString('signatures')
     )
@@ -197,16 +218,16 @@ export default class StateManager {
     for await (const [index, prevBlockNumber] of prevBlockNumbers.entries()) {
       const blockBucket = await txBucket.bucket(
         Bytes.fromString(
-          'block' + encodePrimitive(prevBlockNumber.toHexString())
+          'block' + ovmContext.coder.encode(prevBlockNumber).toHexString()
         )
       )
       const rangeBucket = await blockBucket.bucket(
         Bytes.fromString(
-          'range' + encodePrimitive(tx.depositContractAddress.data)
+          'range' +
+            ovmContext.coder.encode(tx.depositContractAddress).toHexString()
         )
       )
       const rangeDb = new RangeDb(rangeBucket)
-      // TODO: tx.toProperty(TxPredicateAddress)
       const message = ovmContext.coder.encode(
         tx.toProperty(Address.default()).toStruct()
       )

@@ -17,12 +17,12 @@ import {
   CompiledPredicate,
   InitilizationConfig
 } from '@cryptoeconomicslab/ovm'
-import { EthCoder } from '@cryptoeconomicslab/eth-coder'
+import JsonCoder from '@cryptoeconomicslab/coder'
 import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
 import { setupContext } from '@cryptoeconomicslab/context'
 import config from './config.local'
 import { ethers } from 'ethers'
-setupContext({ coder: EthCoder })
+setupContext({ coder: JsonCoder })
 
 const DEPOSIT_ADDRESS = Address.default()
 const ALIS_WALLET = new EthWallet(ethers.Wallet.createRandom())
@@ -47,7 +47,7 @@ describe('StateManager', () => {
       DEPOSIT_ADDRESS,
       range,
       blockNumber,
-      ownershipPredicate.makeProperty([EthCoder.encode(address)])
+      ownershipPredicate.makeProperty([JsonCoder.encode(address)])
     )
   }
 
@@ -59,7 +59,7 @@ describe('StateManager', () => {
   beforeEach(async () => {
     const kvs = new InMemoryKeyValueStore(Bytes.fromString('test'))
     const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
-    deciderManager = new DeciderManager(witnessDb, EthCoder)
+    deciderManager = new DeciderManager(witnessDb, JsonCoder)
     deciderManager.loadJson(config as InitilizationConfig)
     ownershipPredicate = deciderManager.compiledPredicateMap.get(
       'Ownership'
@@ -134,11 +134,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(5)),
         BigNumber.from(3),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        EthCoder.encode(tx.toProperty(Address.default()).toStruct())
+        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -161,11 +161,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(3)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        EthCoder.encode(tx.toProperty(Address.default()).toStruct())
+        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -188,11 +188,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(10)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        EthCoder.encode(tx.toProperty(Address.default()).toStruct())
+        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -215,11 +215,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(2), BigNumber.from(7)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        EthCoder.encode(tx.toProperty(Address.default()).toStruct())
+        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -242,7 +242,7 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(3)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       tx.signature = Bytes.default()
@@ -260,7 +260,7 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(20), BigNumber.from(25)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       tx.signature = Bytes.default()
@@ -284,11 +284,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(15)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([EthCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        EthCoder.encode(tx.toProperty(Address.default()).toStruct())
+        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
 

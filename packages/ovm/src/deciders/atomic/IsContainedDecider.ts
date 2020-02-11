@@ -4,6 +4,7 @@ import { Decision } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { Range } from '@cryptoeconomicslab/primitives'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import JSBI from 'jsbi'
 
 /**
  * IsContainedDecider decides to true if for given two ranges,
@@ -26,8 +27,8 @@ export class IsContainedDecider implements Decider {
 
     return {
       outcome:
-        first.start.data >= second.start.data &&
-        first.end.data <= second.end.data,
+        JSBI.greaterThanOrEqual(first.start.data, second.start.data) &&
+        JSBI.lessThanOrEqual(first.end.data, second.end.data),
       challenges: []
     }
   }

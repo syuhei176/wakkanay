@@ -1,4 +1,4 @@
-import { Bytes } from '@cryptoeconomicslab/primitives'
+import { Bytes, Address } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
@@ -24,8 +24,12 @@ export class IsValidSignatureDecider implements Decider {
     const [message, signature, publicKey, verifierKey] = inputs
     const verifier = getSignatureVerifier(verifierKey.intoString())
     let result
+    const pubkey = Bytes.fromHexString(
+      ovmContext.coder.decode(Address.default(), publicKey).data
+    )
+
     try {
-      result = await verifier.verify(message, signature, publicKey)
+      result = await verifier.verify(message, signature, pubkey)
     } catch (e) {
       result = false
     }

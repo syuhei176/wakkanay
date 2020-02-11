@@ -22,6 +22,7 @@ import {
   IntervalTreeVerifier,
   IntervalTreeInclusionProof
 } from './IntervalTree'
+import JSBI from 'jsbi'
 
 export class DoubleLayerInclusionProof {
   constructor(
@@ -144,7 +145,7 @@ export class DoubleLayerTree
   getLeaf(index: number): DoubleLayerTreeLeaf {
     throw new Error('not implemented')
   }
-  getLeaves(address: Address, start: bigint, end: bigint): number[] {
+  getLeaves(address: Address, start: JSBI, end: JSBI): number[] {
     const tree = this.intervalTreeMap.get(address.data)
     if (tree) {
       return tree.getLeaves(start, end)
@@ -212,8 +213,11 @@ export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
       inclusionProof.intervalInclusionProof.siblings
     )
     if (
-      computeIntervalRootAndEnd.implicitEnd.data < range.end.data ||
-      range.start.data < leaf.start.data
+      JSBI.lessThan(
+        computeIntervalRootAndEnd.implicitEnd.data,
+        range.end.data
+      ) ||
+      JSBI.lessThan(range.start.data, leaf.start.data)
     ) {
       throw new Error('required range must not exceed the implicit range')
     }
