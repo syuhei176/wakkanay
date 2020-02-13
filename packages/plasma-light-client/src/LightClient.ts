@@ -369,21 +369,18 @@ export default class LightClient {
   }
 
   /**
-   * register new ERC20 token
-   * @param erc20ContractAddress ERC20 token address to register
-   * @param depositContractAddress deposit contract address connecting to tokenAddress above
+   * register custom token.
+   * @param erc20Contract IERC20Contract instance
+   * @param depositContract IDepositContract instance
    */
-  public registerToken(
-    erc20ContractAddress: Address,
-    depositContractAddress: Address
+  public registerCustomToken(
+    erc20Contract: IERC20Contract,
+    depositContract: IDepositContract
   ) {
-    console.log('contracts set for token:', erc20ContractAddress.data)
-    const depositContract = this.depositContractFactory(depositContractAddress)
+    console.log('contracts set for token:', erc20Contract.address.data)
+    const depositContractAddress = depositContract.address
     this.depositContracts.set(depositContractAddress.data, depositContract)
-    this.tokenContracts.set(
-      depositContractAddress.data,
-      this.tokenContractFactory(erc20ContractAddress)
-    )
+    this.tokenContracts.set(depositContractAddress.data, erc20Contract)
 
     depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
@@ -409,6 +406,20 @@ export default class LightClient {
         )
       }
     )
+  }
+
+  /**
+   * register new ERC20 token
+   * @param erc20ContractAddress ERC20 token address to register
+   * @param depositContractAddress deposit contract address connecting to tokenAddress above
+   */
+  public registerToken(
+    erc20ContractAddress: Address,
+    depositContractAddress: Address
+  ) {
+    const depositContract = this.depositContractFactory(depositContractAddress)
+    const erc20Contract = this.tokenContractFactory(erc20ContractAddress)
+    this.registerCustomToken(erc20Contract, depositContract)
   }
 
   public async exit(amount: number, depositContractAddress: Address) {
