@@ -26,7 +26,15 @@ const MockAdjudicationContract = (AdjudicationContract as unknown) as jest.Mock<
 const MockDepositContract = (DepositContract as unknown) as jest.Mock<
   DepositContract
 >
-const MockERC20Contract = (ERC20Contract as unknown) as jest.Mock<ERC20Contract>
+
+const mockApprove = jest.fn()
+const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
+  return {
+    approve: mockApprove,
+    address
+  }
+}) as jest.Mock<ERC20Contract>
+
 const MockCommitmentContract = (CommitmentContract as unknown) as jest.Mock<
   CommitmentContract
 >
@@ -113,8 +121,7 @@ describe('LightClient', () => {
 
       await client.deposit(20, Address.default())
 
-      const tokenContract = MockERC20Contract.mock.instances[0]
-      expect(tokenContract.approve).toHaveBeenLastCalledWith(
+      expect(mockApprove).toHaveBeenLastCalledWith(
         Address.default(),
         Integer.from(20)
       )
