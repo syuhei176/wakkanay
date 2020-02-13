@@ -145,11 +145,11 @@ export default class LightClient {
   private async syncStateUntill(blockNum: BigNumber): Promise<void> {
     let synced = await this.syncManager.getLatestSyncedBlockNumber()
     console.log(`sync state from ${synced} to ${blockNum}`)
-    if (synced.data > blockNum.data) {
+    if (JSBI.greaterThan(synced.data, blockNum.data)) {
       throw new Error('Synced state is greater than latest block')
     }
 
-    while (synced.data !== blockNum.data) {
+    while (JSBI.notEqual(synced.data, blockNum.data)) {
       synced = BigNumber.from(JSBI.add(synced.data, JSBI.BigInt(1)))
       const root = await this.commitmentContract.getRoot(synced)
       if (!root) {
