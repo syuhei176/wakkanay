@@ -30,9 +30,7 @@ import { decodeStructable } from '@cryptoeconomicslab/coder'
 
 import { BlockManager, StateManager } from './managers'
 import { sleep } from './utils'
-import { config } from 'dotenv'
 import cors from 'cors'
-config()
 
 const HTTP_PORT = Number(process.env.PORT || 3000)
 const BLOCK_INTERVAL = Number(process.env.BLOCK_INTERVAL || 10000)
@@ -99,7 +97,7 @@ export default class Aggregator {
    * start http server
    */
   private runHttpServer() {
-    this.httpServer.post('/send_tx', this.handlePostSendTransaction.bind(this))
+    this.httpServer.post('/send_tx', this.handleSendTransaction.bind(this))
     this.httpServer.get('/sync_state', this.handleGetSyncState.bind(this))
     this.httpServer.get('/block', this.handleGetBlock.bind(this))
     this.httpServer.get(
@@ -113,7 +111,7 @@ export default class Aggregator {
   }
 
   // TODO: what if part of the transactions are invalid?
-  private handlePostSendTransaction(req: Request, res: Response) {
+  private handleSendTransaction(req: Request, res: Response) {
     const { data } = req.body
     const transactions: string[] = Array.isArray(data) ? data : [data]
 
