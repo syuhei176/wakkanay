@@ -85,7 +85,7 @@ export default class LightClient {
 
   public ownershipProperty(owner: Address): Property {
     return this.ownershipPredicate.makeProperty([
-      Bytes.fromHexString(owner.data)
+      ovmContext.coder.encode(owner)
     ])
   }
 
