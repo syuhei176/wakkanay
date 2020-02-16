@@ -274,12 +274,6 @@ describe('StateManager', () => {
     })
 
     test('fail to update not contigious multiple ranges', async () => {
-      const ranges = await stateManager.resolveStateUpdates(
-        BigNumber.from(0),
-        BigNumber.from(15)
-      )
-      console.log(ranges)
-
       const tx = new Transaction(
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(15)),

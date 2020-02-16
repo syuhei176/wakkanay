@@ -1,9 +1,17 @@
-import Aggregator from '../src/Aggregator'
+import dotenv from 'dotenv'
+import path from 'path'
+dotenv.config({ path: path.join(__dirname, '.test.env') })
 
-import { DepositTransaction, Transaction } from '@cryptoeconomicslab/plasma'
+import Aggregator from '../src/Aggregator'
+import {
+  DepositTransaction,
+  Transaction,
+  StateUpdate,
+  TRANSACTION_STATUS
+} from '@cryptoeconomicslab/plasma'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import { RangeStore, RangeDb, KeyValueStore } from '@cryptoeconomicslab/db'
-import { Property } from '@cryptoeconomicslab/ovm'
+import { InitilizationConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
 import {
   Address,
   Bytes,
@@ -18,13 +26,18 @@ import {
   DepositContract
 } from '@cryptoeconomicslab/eth-contract'
 import JSBI from 'jsbi'
+import config from './config.local'
 setupContext({
   coder: Coder
 })
 
 import { BlockManager, StateManager } from '../src/managers'
 import * as ethers from 'ethers'
-import fs from 'fs'
+
+const ALIS_WALLET = new EthWallet(ethers.Wallet.createRandom())
+const ALIS_ADDRESS = ALIS_WALLET.getAddress()
+const BOB_WALLET = new EthWallet(ethers.Wallet.createRandom())
+const BOB_ADDRESS = BOB_WALLET.getAddress()
 
 describe('Aggregator integration', () => {
   let aggregator: Aggregator,
@@ -37,22 +50,6 @@ describe('Aggregator integration', () => {
     wallet: EthWallet,
     witnessDb: KeyValueStore,
     eventDb: KeyValueStore
-
-  const su = (s: number, e: number) =>
-    new DepositTransaction(
-      Address.default(),
-      new Property(
-        Address.default(),
-        [
-          Address.default(),
-          new Range(BigNumber.from(s), BigNumber.from(e)).toStruct(),
-          BigNumber.from(1),
-          new Property(Address.default(), [
-            Bytes.fromHexString('0x01')
-          ]).toStruct()
-        ].map(Coder.encode)
-      )
-    )
 
   beforeEach(async () => {
     kvs = new InMemoryKeyValueStore(Bytes.fromString('test-db'))
@@ -78,33 +75,56 @@ describe('Aggregator integration', () => {
       witnessDb,
       depositContractFactory,
       commitmentContractFactory,
-      JSON.parse(fs.readFileSync('config.local.json').toString())
+      config as InitilizationConfig
+    )
+    aggregator.registerToken(
+      Address.from(config.payoutContracts.DepositContract)
     )
   })
 
-  test.skip('insert state update on deposit', async () => {
-    // call method by accessor to test private method
-    // await aggregator['handleDeposit'](su(0, 10))
-    // await aggregator['handleDeposit'](su(15, 20))
-    // await aggregator['handleDeposit'](su(20, 30))
+  test('test state transition', async () => {
+    // create ownership stateupdate
+    const { decider } = aggregator
+    const { coder } = ovmContext
+    const depositContractAddress = Address.from(
+      config.payoutContracts.DepositContract
+    )
+    const ownershipPredicate = decider.compiledPredicateMap.get(
+      'Ownership'
+    ) as CompiledPredicate
+    const stateUpdate = new StateUpdate(
+      decider.getDeciderAddress('StateUpdate'),
+      depositContractAddress,
+      new Range(BigNumber.from(0), BigNumber.from(10)),
+      BigNumber.from(0),
+      ownershipPredicate.makeProperty([coder.encode(ALIS_ADDRESS)])
+    )
+    const depositTx = new DepositTransaction(
+      depositContractAddress,
+      stateUpdate.property
+    )
+    await aggregator['stateManager'].insertDepositRange(
+      depositTx,
+      BigNumber.from(0)
+    )
 
-    const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
-    expect(result.length).toBe(3)
-  })
+    const nextStateObject = ownershipPredicate.makeProperty([
+      coder.encode(BOB_ADDRESS)
+    ])
 
-  // TODO: fix ownership property
-  test.skip('test state transition', async () => {
-    // call method by accessor to test private method
-    // await aggregator['handleDeposit'](su(0, 10))
-
-    const transaction = new Transaction(
-      Address.default(),
+    const tx = new Transaction(
+      depositContractAddress,
       new Range(BigNumber.from(0), BigNumber.from(5)),
-      BigNumber.default(),
-      Property.fromStruct(Property.getParamType()), // TODO: this should be ownership property
-      Address.default()
+      BigNumber.from(5),
+      nextStateObject,
+      ALIS_ADDRESS
     )
-    await aggregator['ingestTransaction'](transaction)
+    tx.signature = await ALIS_WALLET.signMessage(
+      coder.encode(tx.toProperty(Address.default()).toStruct())
+    )
+
+    const receipt = await aggregator['ingestTransaction'](tx)
+    expect(receipt.status).toBe(TRANSACTION_STATUS.TRUE)
 
     const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
     expect(result.length).toBe(2)
