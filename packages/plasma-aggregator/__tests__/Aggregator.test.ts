@@ -82,7 +82,37 @@ describe('Aggregator integration', () => {
     )
   })
 
-  test('test state transition', async () => {
+  test('deposit', async () => {
+    // create ownership stateupdate
+    const { decider } = aggregator
+    const { coder } = ovmContext
+    const depositContractAddress = Address.from(
+      config.payoutContracts.DepositContract
+    )
+    const ownershipPredicate = decider.compiledPredicateMap.get(
+      'Ownership'
+    ) as CompiledPredicate
+    const stateUpdate = new StateUpdate(
+      decider.getDeciderAddress('StateUpdate'),
+      depositContractAddress,
+      new Range(BigNumber.from(0), BigNumber.from(10)),
+      BigNumber.from(0),
+      ownershipPredicate.makeProperty([coder.encode(ALIS_ADDRESS)])
+    )
+    const depositTx = new DepositTransaction(
+      depositContractAddress,
+      stateUpdate.property
+    )
+    await aggregator['stateManager'].insertDepositRange(
+      depositTx,
+      BigNumber.from(0)
+    )
+
+    const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
+    expect(result.length).toBe(1)
+  })
+
+  test('state transition', async () => {
     // create ownership stateupdate
     const { decider } = aggregator
     const { coder } = ovmContext
