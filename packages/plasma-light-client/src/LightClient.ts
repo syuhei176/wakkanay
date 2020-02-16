@@ -262,7 +262,8 @@ export default class LightClient {
    * @param amount amount to deposit
    * @param erc20ContractAddress ERC20 token address, undefined for ETH
    */
-  public async deposit(amount: number, erc20ContractAddress: Address) {
+  public async deposit(amount: number, addr: string) {
+    const erc20ContractAddress = Address.from(addr)
     const myAddress = this.wallet.getAddress()
     const depositContract = this.getDepositContract(erc20ContractAddress)
     const tokenContract = this.getTokenContract(erc20ContractAddress)
@@ -286,9 +287,11 @@ export default class LightClient {
    */
   public async transfer(
     amount: number,
-    depositContractAddress: Address,
-    to: Address
+    depositContractAddressString: string,
+    toAddress: string
   ) {
+    const depositContractAddress = Address.from(depositContractAddressString)
+    const to = Address.from(toAddress)
     console.log('transfer :', amount, depositContractAddress, to)
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       depositContractAddress,
@@ -414,15 +417,25 @@ export default class LightClient {
    * @param depositContractAddress deposit contract address connecting to tokenAddress above
    */
   public registerToken(
-    erc20ContractAddress: Address,
-    depositContractAddress: Address
+    erc20ContractAddress: string,
+    depositContractAddress: string
   ) {
-    const depositContract = this.depositContractFactory(depositContractAddress)
-    const erc20Contract = this.tokenContractFactory(erc20ContractAddress)
+    const depositContract = this.depositContractFactory(
+      Address.from(depositContractAddress)
+    )
+    const erc20Contract = this.tokenContractFactory(
+      Address.from(erc20ContractAddress)
+    )
     this.registerCustomToken(erc20Contract, depositContract)
   }
 
-  public async exit(amount: number, depositContractAddress: Address) {
+  /**
+   * initiate exit process
+   * @param amount amount to exit
+   * @param address deposit contract address to exit
+   */
+  public async exit(amount: number, address: string) {
+    const depositContractAddress = Address.from(address)
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       depositContractAddress,
       amount
