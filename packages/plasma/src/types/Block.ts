@@ -67,8 +67,8 @@ export default class Block {
   ): DoubleLayerInclusionProof | null {
     const leaf = this.generateLeaf(stateUpdate)
     const tree = this.getTree()
-    const i = tree.findIndex(leaf.encode())
-    if (!i) return null
+    const i = tree.findIndex(leaf.data)
+    if (i === null) return null
 
     const proof = tree.getInclusionProofByAddressAndIndex(
       stateUpdate.depositContractAddress,

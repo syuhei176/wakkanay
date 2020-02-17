@@ -41,4 +41,27 @@ describe('Block', () => {
 
     expect(decoded).toEqual(block)
   })
+
+  test('getInclusionProof', async () => {
+    const stateUpdateProperty = new Property(
+      Address.default(),
+      [
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(10)).toStruct(),
+        BigNumber.from(1),
+        new Property(Address.default(), [
+          Bytes.fromHexString('0x01')
+        ]).toStruct()
+      ].map(Coder.encode)
+    )
+
+    const map = new Map()
+    map.set(testAddr.data, [StateUpdate.fromProperty(stateUpdateProperty)])
+    const block = new Block(BigNumber.from(5), map)
+    const inclusionProof = block.getInclusionProof(
+      StateUpdate.fromProperty(stateUpdateProperty)
+    )
+
+    expect(inclusionProof).not.toBeNull()
+  })
 })
