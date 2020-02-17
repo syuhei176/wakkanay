@@ -90,7 +90,10 @@ export default class LightClient {
   }
 
   public getOwner(stateUpdate: StateUpdate): Address {
-    return Address.from(stateUpdate.stateObject.inputs[0].toHexString())
+    return ovmContext.coder.decode(
+      Address.default(),
+      stateUpdate.stateObject.inputs[0]
+    )
   }
 
   public get address(): string {

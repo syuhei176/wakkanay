@@ -328,4 +328,18 @@ describe('LightClient', () => {
       )
     })
   })
+  test('getOwner', () => {
+    const owner = client.getOwner(
+      new StateUpdate(
+        Address.from(
+          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+        ),
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(20)),
+        BigNumber.from(0),
+        client.ownershipProperty(Address.from(client.address))
+      )
+    )
+    expect(owner).toEqual(Address.from(client.address))
+  })
 })
