@@ -173,7 +173,10 @@ export default class StateManager {
         blockNumber ? JSBI.equal(su.blockNumber.data, blockNumber.data) : true
       )
       .filter(su => {
-        const owner = Address.from(su.stateObject.inputs[0].toHexString())
+        const owner = ovmContext.coder.decode(
+          Address.default(),
+          su.stateObject.inputs[0]
+        )
         return (
           su.stateObject.deciderAddress.data ==
             ownershipPredicateAddress.data && owner.data === addr.data

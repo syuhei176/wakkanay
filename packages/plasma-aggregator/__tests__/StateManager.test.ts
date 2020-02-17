@@ -295,4 +295,67 @@ describe('StateManager', () => {
       ).rejects.toEqual(new Error('InvalidTransaction'))
     })
   })
+
+  describe('queryOwnershipStateUpdates', () => {
+    test('simple get', async () => {
+      await stateManager.insertDepositRange(
+        depositTx(
+          ALIS_ADDRESS,
+          new Range(BigNumber.from(0), BigNumber.from(5)),
+          BigNumber.from(0)
+        ),
+        BigNumber.from(0)
+      )
+      await stateManager.insertDepositRange(
+        depositTx(
+          BOB_ADDRESS,
+          new Range(BigNumber.from(5), BigNumber.from(15)),
+          BigNumber.from(0)
+        ),
+        BigNumber.from(0)
+      )
+      await stateManager.insertDepositRange(
+        depositTx(
+          ALIS_ADDRESS,
+          new Range(BigNumber.from(15), BigNumber.from(20)),
+          BigNumber.from(0)
+        ),
+        BigNumber.from(0)
+      )
+      const stateUpdates = await stateManager.queryOwnershipyStateUpdates(
+        ownershipPredicate.deployedAddress,
+        ALIS_ADDRESS
+      )
+
+      expect(stateUpdates).toEqual([
+        ownershipStateUpdate(
+          ALIS_ADDRESS,
+          new Range(BigNumber.from(0), BigNumber.from(5)),
+          BigNumber.from(0)
+        ),
+        ownershipStateUpdate(
+          ALIS_ADDRESS,
+          new Range(BigNumber.from(15), BigNumber.from(20)),
+          BigNumber.from(0)
+        )
+      ])
+    })
+
+    test('with deposit address', async () => {
+      await stateManager.insertDepositRange(
+        depositTx(
+          ALIS_ADDRESS,
+          new Range(BigNumber.from(0), BigNumber.from(5)),
+          BigNumber.from(0)
+        ),
+        BigNumber.from(0)
+      )
+
+      const stateUpdates = await stateManager.queryOwnershipyStateUpdates(
+        Address.default(),
+        ALIS_ADDRESS
+      )
+      expect(stateUpdates).toEqual([])
+    })
+  })
 })
