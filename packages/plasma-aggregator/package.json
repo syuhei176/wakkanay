@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/plasma-aggregator",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "plasma aggregator",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,12 +29,12 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.17",
-    "@cryptoeconomicslab/contract": "^0.0.17",
-    "@cryptoeconomicslab/db": "^0.0.17",
-    "@cryptoeconomicslab/ovm": "^0.0.17",
-    "@cryptoeconomicslab/plasma": "^0.0.17",
-    "@cryptoeconomicslab/wallet": "^0.0.17",
+    "@cryptoeconomicslab/coder": "^0.0.18",
+    "@cryptoeconomicslab/contract": "^0.0.18",
+    "@cryptoeconomicslab/db": "^0.0.18",
+    "@cryptoeconomicslab/ovm": "^0.0.18",
+    "@cryptoeconomicslab/plasma": "^0.0.18",
+    "@cryptoeconomicslab/wallet": "^0.0.18",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "ethers": "^4.0.43",
@@ -49,7 +49,7 @@
     "@cryptoeconomicslab/eth-contract": "^0.0.1",
     "@cryptoeconomicslab/eth-wallet": "^0.0.1",
     "@cryptoeconomicslab/level-kvs": "^0.0.4",
-    "@cryptoeconomicslab/primitives": "^0.0.17"
+    "@cryptoeconomicslab/primitives": "^0.0.18"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.6"
