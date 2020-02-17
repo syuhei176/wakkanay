@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/ovm",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "ovm",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,20 +29,20 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.22",
-    "@cryptoeconomicslab/db": "^0.0.22",
+    "@cryptoeconomicslab/coder": "^0.0.23",
+    "@cryptoeconomicslab/db": "^0.0.23",
     "@cryptoeconomicslab/ovm-parser": "^0.2.5",
     "@cryptoeconomicslab/ovm-transpiler": "^0.2.7",
-    "@cryptoeconomicslab/primitives": "^0.0.22",
-    "@cryptoeconomicslab/signature": "^0.0.22",
-    "@cryptoeconomicslab/utils": "^0.0.22",
+    "@cryptoeconomicslab/primitives": "^0.0.23",
+    "@cryptoeconomicslab/signature": "^0.0.23",
+    "@cryptoeconomicslab/utils": "^0.0.23",
     "ethers": "^4.0.43",
     "jsbi": "^3.1.1"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
     "@cryptoeconomicslab/coder": "^0.0.3",
-    "@cryptoeconomicslab/context": "^0.0.22",
+    "@cryptoeconomicslab/context": "^0.0.23",
     "@cryptoeconomicslab/level-kvs": "0.0.3"
   }
 }
