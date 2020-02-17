@@ -233,8 +233,8 @@ export default class StateManager {
           range: new Range(
             su.range.start,
             BigNumber.from(
-              JSBI.add(
-                su.range.start.data,
+              JSBI.subtract(
+                su.range.end.data,
                 JSBI.subtract(JSBI.add(sum, su.amount), JSBI.BigInt(amount))
               )
             )
