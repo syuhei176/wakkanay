@@ -110,6 +110,8 @@ describe('Aggregator integration', () => {
 
     const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
     expect(result.length).toBe(1)
+    const stateUpdates = result.map(StateUpdate.fromRangeRecord)
+    expect(stateUpdates).toEqual([stateUpdate])
   })
 
   test('state transition', async () => {
@@ -158,5 +160,22 @@ describe('Aggregator integration', () => {
 
     const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
     expect(result.length).toBe(2)
+    const stateUpdates = result.map(StateUpdate.fromRangeRecord)
+    expect(stateUpdates).toEqual([
+      new StateUpdate(
+        decider.getDeciderAddress('StateUpdate'),
+        depositContractAddress,
+        new Range(BigNumber.from(0), BigNumber.from(5)),
+        BigNumber.from(1),
+        ownershipPredicate.makeProperty([coder.encode(BOB_ADDRESS)])
+      ),
+      new StateUpdate(
+        decider.getDeciderAddress('StateUpdate'),
+        depositContractAddress,
+        new Range(BigNumber.from(5), BigNumber.from(10)),
+        BigNumber.from(0),
+        ownershipPredicate.makeProperty([coder.encode(ALIS_ADDRESS)])
+      )
+    ])
   })
 })
