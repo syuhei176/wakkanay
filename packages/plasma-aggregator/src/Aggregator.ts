@@ -34,7 +34,6 @@ import cors from 'cors'
 
 const HTTP_PORT = Number(process.env.PORT || 3000)
 const BLOCK_INTERVAL = Number(process.env.BLOCK_INTERVAL || 10000)
-const DEPOSIT_CONTRACT_ADDRESS = process.env.DEPOSIT_CONTRACT_ADDRESS as string
 const COMMITMENT_CONTRACT_ADDRESS = process.env
   .COMMITMENT_CONTRACT_ADDRESS as string
 
@@ -59,9 +58,6 @@ export default class Aggregator {
     config: InitilizationConfig
   ) {
     this.decider = new DeciderManager(witnessDb, ovmContext.coder)
-    this.depositContracts.push(
-      depositContractFactory(Address.from(DEPOSIT_CONTRACT_ADDRESS))
-    )
     this.commitmentContract = commitmentContractFactory(
       Address.from(COMMITMENT_CONTRACT_ADDRESS)
     )
@@ -83,13 +79,6 @@ export default class Aggregator {
    */
   public run() {
     this.runHttpServer()
-
-    this.depositContracts.forEach(depositContract => {
-      depositContract.subscribeCheckpointFinalized(
-        this.depositHandlerFactory(depositContract.address)
-      )
-    })
-
     this.poll()
   }
 
