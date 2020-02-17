@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/plasma",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "plasma module",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -37,16 +37,16 @@
     "url": "https://github.com/cryptoeconomicslab/wakkanay/issues"
   },
   "dependencies": {
-    "@cryptoeconomicslab/db": "^0.0.21",
-    "@cryptoeconomicslab/hash": "^0.0.21",
-    "@cryptoeconomicslab/merkle-tree": "^0.0.21",
-    "@cryptoeconomicslab/ovm": "^0.0.21",
+    "@cryptoeconomicslab/db": "^0.0.22",
+    "@cryptoeconomicslab/hash": "^0.0.22",
+    "@cryptoeconomicslab/merkle-tree": "^0.0.22",
+    "@cryptoeconomicslab/ovm": "^0.0.22",
     "jsbi": "^3.1.1"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.21",
-    "@cryptoeconomicslab/context": "^0.0.21",
-    "@cryptoeconomicslab/primitives": "^0.0.21"
+    "@cryptoeconomicslab/coder": "^0.0.22",
+    "@cryptoeconomicslab/context": "^0.0.22",
+    "@cryptoeconomicslab/primitives": "^0.0.22"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.5"
