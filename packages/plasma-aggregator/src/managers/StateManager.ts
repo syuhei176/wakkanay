@@ -96,24 +96,6 @@ export default class StateManager {
       })
     }
 
-    // await putWitness(
-    //   deciderManager.witnessDb,
-    //   replaceHint('signatures,KEY,${message}', {
-    //     message: ovmContext.coder.encode(
-    //       tx.toProperty(Address.default()).toStruct()
-    //     )
-    //   }),
-    //   tx.signature
-    // )
-    // await putWitness(
-    //   deciderManager.witnessDb,
-    //   replaceHint('tx.block${blockNum}.range${addr},RANGE,${range}', {
-    //     blockNum:
-
-    //   }),
-    //   ovmContext.coder.encode(tx.toProperty(Address.default()).toStruct())
-    // )
-
     await this.storeWitness(
       deciderManager.witnessDb,
       tx,

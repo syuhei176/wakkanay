@@ -103,6 +103,7 @@ async function initialize(): Promise<LightClient> {
 }
 
 MockDepositContract.prototype.address = Address.default()
+const defaultAddress = Address.default().data
 
 describe('LightClient', () => {
   let client: LightClient
@@ -113,13 +114,13 @@ describe('LightClient', () => {
     MockERC20Contract.mockClear()
 
     client = await initialize()
-    client.registerToken(Address.default(), Address.default())
+    client.registerToken(defaultAddress, defaultAddress)
   })
   describe('deposit', () => {
     test('deposit calls contract methods', async () => {
       // setup mock values
 
-      await client.deposit(20, Address.default())
+      await client.deposit(20, defaultAddress)
 
       expect(mockApprove).toHaveBeenLastCalledWith(
         Address.default(),
@@ -135,7 +136,7 @@ describe('LightClient', () => {
 
     test('deposit calls to unregistered contract should fail', async () => {
       await expect(
-        client.deposit(20, Address.from('0x00000000000000000001'))
+        client.deposit(20, Address.from('0x00000000000000000001').data)
       ).rejects.toEqual(new Error('Contract not found'))
     })
   })
@@ -217,7 +218,7 @@ describe('LightClient', () => {
 
     test('exit calls claimProperty of adjudicationContract', async () => {
       const { coder } = ovmContext
-      await client.exit(20, Address.default())
+      await client.exit(20, defaultAddress)
 
       const adjudicationContract = MockAdjudicationContract.mock.instances[0]
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
@@ -241,7 +242,7 @@ describe('LightClient', () => {
 
     test('exit with multiple range', async () => {
       const { coder } = ovmContext
-      await client.exit(25, Address.default())
+      await client.exit(25, defaultAddress)
 
       const adjudicationContract = MockAdjudicationContract.mock.instances[0]
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
@@ -277,13 +278,13 @@ describe('LightClient', () => {
     })
 
     test('exit calls fail with unsufficient amount', async () => {
-      await expect(client.exit(31, Address.default())).rejects.toEqual(
+      await expect(client.exit(31, defaultAddress)).rejects.toEqual(
         new Error('Insufficient amount')
       )
     })
 
     test('exitList', async () => {
-      await client.exit(25, Address.default())
+      await client.exit(25, defaultAddress)
       const exitList = await client.getExitlist()
 
       const { coder } = ovmContext
