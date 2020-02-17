@@ -179,9 +179,22 @@ export default class LightClient {
           decodeStructable(Property, ovmContext.coder, Bytes.fromHexString(s))
         )
       )
+      const { coder } = ovmContext
       const promises = stateUpdates.map(async su => {
-        // TODO: insert into unverified state update.
-        // await this.stateManager.insertUnverifiedStateUpdate(
+        const inclusionProof = await APIClient.inclusionProof(su)
+        const hint = replaceHint(
+          'proof.block${b}.range${token},RANGE,${range}',
+          {
+            b: coder.encode(blockNumber),
+            token: coder.encode(su.depositContractAddress),
+            range: coder.encode(su.range.toStruct())
+          }
+        )
+        await putWitness(
+          this.witnessDb,
+          hint,
+          Bytes.fromHexString(inclusionProof.data.data)
+        )
         await this.stateManager.insertVerifiedStateUpdate(
           su.depositContractAddress,
           su
