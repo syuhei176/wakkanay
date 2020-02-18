@@ -29,7 +29,8 @@ import {
   ICommitmentContract,
   IDepositContract,
   IERC20Contract,
-  IAdjudicationContract
+  IAdjudicationContract,
+  IOwnershipPayoutContract
 } from '@cryptoeconomicslab/contract'
 import { Wallet } from '@cryptoeconomicslab/wallet'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
@@ -67,6 +68,7 @@ export default class LightClient {
     private depositContractFactory: (address: Address) => IDepositContract,
     private tokenContractFactory: (address: Address) => IERC20Contract,
     private commitmentContract: ICommitmentContract,
+    private ownershipPayoutContract: IOwnershipPayoutContract,
     private stateManager: StateManager,
     private syncManager: SyncManager,
     private checkpointManager: CheckpointManager,
@@ -506,19 +508,29 @@ export default class LightClient {
     }
   }
 
+  /**
+   * finalize exit to withdraw token from deposit contract
+   * @param exit Exit object to finalize
+   */
   public async finalizeExit(exit: Exit) {
-    const depositContract = this.depositContracts.get(
-      exit.stateUpdate.depositContractAddress.data
+    const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
+    if (!predicate) throw new Error('Exit predicate not found')
+    const exitProperty = exit.toProperty(predicate.deployedAddress)
+    const decided = await this.adjudicationContract.isDecided(
+      ovmContext.coder.encode(exitProperty.toStruct())
     )
-    if (!depositContract) throw new Error('Invalid depositContractAddress')
-    await depositContract.finalizeExit(
-      exit.toProperty(this.deciderManager.getDeciderAddress('Exit')),
-      Integer.from(Number(exit.stateUpdate.range.end.raw))
+    if (!decided) {
+      throw new Error(`Exit property is not decided: ${exit}`)
+    }
+
+    await this.ownershipPayoutContract.finalizeExit(
+      exit.stateUpdate.depositContractAddress,
+      exitProperty,
+      exit.range.start,
+      Address.from(this.address)
     )
 
-    {
-      this.ee.emit(EmitterEvent.EXIT_FINALIZED, exit.id)
-    }
+    this.ee.emit(EmitterEvent.EXIT_FINALIZED, exit.id)
   }
 
   public async getExitlist(): Promise<Exit[]> {

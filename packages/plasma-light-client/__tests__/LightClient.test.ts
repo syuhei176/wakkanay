@@ -9,19 +9,24 @@ import 'fake-indexeddb/auto'
 
 import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
 
-import { AdjudicationContract } from '@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract'
 import { DepositContract } from '@cryptoeconomicslab/eth-contract/lib/contract/DepositContract'
 import { ERC20Contract } from '@cryptoeconomicslab/eth-contract/lib/contract/ERC20Contract'
 import { CommitmentContract } from '@cryptoeconomicslab/eth-contract/lib/contract/CommitmentContract'
+import { AdjudicationContract } from '@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract'
 
 jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract')
 jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/DepositContract')
 jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/ERC20Contract')
 jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/CommitmentContract')
 
-const MockAdjudicationContract = (AdjudicationContract as unknown) as jest.Mock<
-  AdjudicationContract
->
+const mockClaimProperty = jest.fn()
+const mockIsDecided = jest.fn().mockResolvedValue(true)
+const MockAdjudicationContract = jest.fn().mockImplementation(() => {
+  return {
+    isDecided: mockIsDecided,
+    claimProperty: mockClaimProperty
+  }
+}) as jest.Mock<AdjudicationContract>
 
 const MockDepositContract = (DepositContract as unknown) as jest.Mock<
   DepositContract
@@ -38,6 +43,13 @@ const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
 const MockCommitmentContract = (CommitmentContract as unknown) as jest.Mock<
   CommitmentContract
 >
+
+const mockFinalizeExit = jest.fn()
+const MockOwnershipPayoutContract = jest.fn().mockImplementation(() => {
+  return {
+    finalizeExit: mockFinalizeExit
+  }
+})
 
 import {
   Address,
@@ -88,6 +100,8 @@ async function initialize(): Promise<LightClient> {
     wallet.getEthersWallet()
   )
 
+  const ownershipPayoutContract = new MockOwnershipPayoutContract()
+
   return new LightClient(
     wallet,
     witnessDb,
@@ -95,6 +109,7 @@ async function initialize(): Promise<LightClient> {
     depositContractFactory,
     tokenContractFactory,
     commitmentContract,
+    ownershipPayoutContract,
     stateManager,
     syncManager,
     checkpointManager,
@@ -220,16 +235,13 @@ describe('LightClient', () => {
       const { coder } = ovmContext
       await client.exit(20, defaultAddress)
 
-      const adjudicationContract = MockAdjudicationContract.mock.instances[0]
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
       ) as CompiledPredicate).makeProperty([
         coder.encode(su1.property.toStruct()),
         coder.encode(proof.toStruct())
       ])
-      expect(adjudicationContract.claimProperty).toHaveBeenLastCalledWith(
-        exitProperty
-      )
+      expect(mockClaimProperty).toHaveBeenLastCalledWith(exitProperty)
 
       const exitingStateUpdate = await client[
         'stateManager'
@@ -244,7 +256,6 @@ describe('LightClient', () => {
       const { coder } = ovmContext
       await client.exit(25, defaultAddress)
 
-      const adjudicationContract = MockAdjudicationContract.mock.instances[0]
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
       ) as CompiledPredicate).makeProperty([
@@ -261,12 +272,8 @@ describe('LightClient', () => {
         coder.encode(proof.toStruct())
       ])
 
-      expect(adjudicationContract.claimProperty).toHaveBeenCalledWith(
-        exitProperty
-      )
-      expect(adjudicationContract.claimProperty).toHaveBeenCalledWith(
-        exitProperty2
-      )
+      expect(mockClaimProperty).toHaveBeenCalledWith(exitProperty)
+      expect(mockClaimProperty).toHaveBeenCalledWith(exitProperty2)
 
       const exitingStateUpdates = await client[
         'stateManager'
@@ -321,10 +328,11 @@ describe('LightClient', () => {
       const exit = Exit.fromProperty(exitProperty)
       await client.finalizeExit(exit)
 
-      const depositContract = MockDepositContract.mock.instances[0]
-      expect(depositContract.finalizeExit).toHaveBeenLastCalledWith(
+      expect(mockFinalizeExit).toHaveBeenLastCalledWith(
+        exit.stateUpdate.depositContractAddress,
         exit.toProperty(client['deciderManager'].getDeciderAddress('Exit')),
-        Integer.from(Number(exit.range.end.raw))
+        exit.range.start,
+        Address.from(client.address)
       )
     })
   })
