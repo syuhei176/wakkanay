@@ -6,11 +6,11 @@ const API_HOST: string = process.env.AGGREGATOR_HOST
 const APIClient = {
   syncState: (address: string, blockNumber: BigNumber) =>
     axios.get(
-      `${API_HOST}/sync_state?address=${address}&blockNumber=${blockNumber.data}`
+      `${API_HOST}/sync_state?address=${address}&blockNumber=${blockNumber.data.toString()}`
     ),
   inclusionProof: (su: StateUpdate) =>
     axios.get(
-      `${API_HOST}/inclusion_proof?blockNumber=${su.blockNumber.toString()}&stateUpdate=${ovmContext.coder
+      `${API_HOST}/inclusion_proof?blockNumber=${su.blockNumber.data.toString()}&stateUpdate=${ovmContext.coder
         .encode(su.property.toStruct())
         .toHexString()}`
     ),
