@@ -2,15 +2,14 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
-import { keccak256, Arrayish } from 'ethers/utils'
+import { Hash, Keccak256 } from '@cryptoeconomicslab/hash'
 
 const verifyHashPreimage = (
   hash: Bytes,
   preimage: Bytes,
-  hashF: (s: Arrayish) => string = keccak256
+  hashF: Hash = Keccak256
 ): boolean => {
-  const hashString = hash.intoString()
-  return hashF(preimage.data) === hashString
+  return hashF.hash(preimage).equals(hash)
 }
 
 /**

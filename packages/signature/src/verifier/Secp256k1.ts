@@ -1,10 +1,7 @@
-import {
-  splitSignature,
-  recoverAddress,
-  arrayify,
-  keccak256,
-  hexZeroPad
-} from 'ethers/utils'
+import { keccak256 } from 'ethers/utils/keccak256'
+import { recoverAddress } from 'ethers/utils/secp256k1'
+import { arrayify, splitSignature, hexZeroPad } from 'ethers/utils/bytes'
+
 import SignatureVerifier from './SignatureVerifier'
 import { Bytes } from '@cryptoeconomicslab/primitives'
 

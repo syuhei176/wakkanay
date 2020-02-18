@@ -1,4 +1,6 @@
-import { joinSignature, arrayify, keccak256, SigningKey } from 'ethers/utils'
+import { keccak256 } from 'ethers/utils/keccak256'
+import { SigningKey } from 'ethers/utils/signing-key'
+import { joinSignature, arrayify } from 'ethers/utils/bytes'
 import { Bytes } from '@cryptoeconomicslab/primitives'
 import Signer from './Signer'
 

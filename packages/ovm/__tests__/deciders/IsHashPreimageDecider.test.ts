@@ -1,5 +1,5 @@
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
-import { keccak256 } from 'ethers/utils'
+import { Keccak256 } from '@cryptoeconomicslab/hash'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import { DeciderManager, IsHashPreimageDecider, Property } from '../../src'
 import Coder from '@cryptoeconomicslab/coder'
@@ -13,7 +13,7 @@ describe('IsHashPreimageDecider', () => {
   deciderManager.setDecider(addr, new IsHashPreimageDecider())
 
   const preimage = Bytes.fromString('plasma is awesome!!')
-  const hash = Bytes.fromString(keccak256(preimage.data))
+  const hash = Keccak256.hash(preimage)
 
   test('valid hash preimage', async () => {
     const property = new Property(addr, [hash, preimage])
