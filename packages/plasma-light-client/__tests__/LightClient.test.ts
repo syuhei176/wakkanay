@@ -335,7 +335,23 @@ describe('LightClient', () => {
         Address.from(client.address)
       )
     })
+
+    test('fail to finalizeExit property is not decided', async () => {
+      mockIsDecided.mockResolvedValueOnce(false)
+      const { coder } = ovmContext
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su1.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+      const exit = Exit.fromProperty(exitProperty)
+      await expect(client.finalizeExit(exit)).rejects.toEqual(
+        new Error(`Exit property is not decided: ${exit}`)
+      )
+    })
   })
+
   test('getOwner', () => {
     const owner = client.getOwner(
       new StateUpdate(
