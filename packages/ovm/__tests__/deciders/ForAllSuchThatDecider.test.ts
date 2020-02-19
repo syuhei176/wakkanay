@@ -39,7 +39,10 @@ describe('ForAllsuchThatDecider', () => {
       trueProperty
     ])
     const decision = await deciderManager.decide(property)
-    expect(decision.outcome).toEqual(true)
+    expect(decision).toStrictEqual({
+      outcome: true,
+      challenges: []
+    })
   })
 
   it('decide for all n such that n < 10: false', async () => {
@@ -53,13 +56,15 @@ describe('ForAllsuchThatDecider', () => {
       falseProperty
     ])
     const decision = await deciderManager.decide(property)
-    expect(decision.outcome).toEqual(false)
-    expect(decision.challenges[0].challengeInput).toEqual(
-      Coder.encode(BigNumber.from(0))
-    )
-    expect(decision.challenges[0].property.deciderAddress).toEqual(
-      NotDeciderAddress
-    )
+    expect(decision).toStrictEqual({
+      outcome: false,
+      challenges: [
+        {
+          property: new Property(NotDeciderAddress, [falseProperty]),
+          challengeInput: Coder.encode(BigNumber.from(0))
+        }
+      ]
+    })
   })
 
   it('decide for all n such that n < 2: n < 5', async () => {
@@ -73,7 +78,10 @@ describe('ForAllsuchThatDecider', () => {
       placeholderedProperty
     ])
     const decision = await deciderManager.decide(property)
-    expect(decision.outcome).toEqual(true)
+    expect(decision).toStrictEqual({
+      outcome: true,
+      challenges: []
+    })
   })
 
   it('decide for all n such that n < 10: n < 5', async () => {
@@ -87,11 +95,16 @@ describe('ForAllsuchThatDecider', () => {
       placeholderedProperty
     ])
     const decision = await deciderManager.decide(property)
-    expect(decision.outcome).toEqual(false)
-    // challengeInput is 5 because 5 < 5 is false
-    expect(decision.challenges[0].challengeInput).toEqual(
-      Coder.encode(BigNumber.from(5))
-    )
+    expect(decision).toStrictEqual({
+      outcome: false,
+      challenges: [
+        {
+          property: new Property(NotDeciderAddress, [placeholderedProperty]),
+          // challengeInput is 5 because 5 < 5 is false
+          challengeInput: Coder.encode(BigNumber.from(5))
+        }
+      ]
+    })
   })
 
   it('fail to decide because of invalid hint data', async () => {
