@@ -39,9 +39,9 @@ export class ThereExistsSuchThatDecider implements Decider {
     return {
       outcome: decisions.some(d => d.outcome),
       challenges: [],
-      debugInfo: decisions
+      traceInfo: decisions
         .find(d => d.outcome === false)
-        ?.debugInfo?.addDebugInfo('ThereExistsSuchThat')
+        ?.traceInfo?.addTraceInfo('ThereExistsSuchThat')
     }
   }
 }

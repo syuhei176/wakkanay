@@ -5,7 +5,7 @@ import {
   Struct,
   BigNumber
 } from '@cryptoeconomicslab/primitives'
-import { DebugInfo } from './Debugger'
+import { TraceInfo } from './Tracer'
 
 export interface Challenge {
   property: Property
@@ -15,7 +15,7 @@ export interface Challenge {
 export interface Decision {
   outcome: boolean
   challenges: Challenge[]
-  debugInfo?: DebugInfo
+  traceInfo?: TraceInfo
 }
 
 export class Property {

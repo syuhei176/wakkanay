@@ -49,7 +49,7 @@ export class ForAllSuchThatDecider implements Decider {
         return {
           outcome: false,
           challenges: [challenge].concat(decision.challenges),
-          debugInfo: decision.debugInfo?.addForAllSuchThatDebugInfo(q)
+          traceInfo: decision.traceInfo?.addForAllSuchThatTraceInfo(q)
         }
       })
     )

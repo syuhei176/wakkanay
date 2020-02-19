@@ -3,7 +3,7 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { decodeProperty } from '../../helpers'
-import { DebugInfo } from '../../Debugger'
+import { TraceInfo } from '../../Tracer'
 
 /**
  * AndDecider recieves multiple inputs and returns logical and of those decision.
@@ -21,7 +21,7 @@ export class AndDecider implements Decider {
       return {
         outcome: false,
         challenges: [],
-        debugInfo: DebugInfo.exception('And connective has an invalid child.')
+        traceInfo: TraceInfo.exception('And connective has an invalid child.')
       }
     }
 
@@ -41,7 +41,7 @@ export class AndDecider implements Decider {
         return {
           outcome: false,
           challenges: [challenge].concat(decision.challenges),
-          debugInfo: decision.debugInfo?.addAndDebugInfo(index)
+          traceInfo: decision.traceInfo?.addAndTraceInfo(index)
         }
       })
     )

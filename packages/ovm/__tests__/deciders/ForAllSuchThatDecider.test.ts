@@ -63,7 +63,7 @@ describe('ForAllsuchThatDecider', () => {
         challengeInput: Coder.encode(BigNumber.from(0))
       }
     ])
-    expect(decision.debugInfo?.toString()).toEqual(
+    expect(decision.traceInfo?.toString()).toEqual(
       'ForAllSuchThat:0x223022,SampleDecider:[]'
     )
   })
@@ -104,7 +104,7 @@ describe('ForAllsuchThatDecider', () => {
         challengeInput: Coder.encode(BigNumber.from(5))
       }
     ])
-    expect(decision.debugInfo?.toString()).toEqual(
+    expect(decision.traceInfo?.toString()).toEqual(
       'ForAllSuchThat:0x223522,LessThanDecider:[0x223522,0x223522]'
     )
   })

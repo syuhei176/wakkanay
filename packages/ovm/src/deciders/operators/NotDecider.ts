@@ -25,8 +25,8 @@ export class NotDecider implements Decider {
           challengeInput: null
         }
       ],
-      debugInfo: decision.outcome
-        ? decision.debugInfo?.addDebugInfo('Not')
+      traceInfo: decision.outcome
+        ? decision.traceInfo?.addTraceInfo('Not')
         : undefined
     }
   }

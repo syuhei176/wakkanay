@@ -8,7 +8,7 @@ import {
   Decision
 } from '../../src'
 import { setupContext } from '@cryptoeconomicslab/context'
-import { DebugInfo } from '../../src/Debugger'
+import { TraceInfo } from '../../src/Tracer'
 setupContext({ coder: JsonCoder })
 
 const BoolDeciderAddress = Address.from(
@@ -38,7 +38,7 @@ export class MockDeciderManager implements DeciderManagerInterface {
         property.inputs.length > 0 &&
         property.inputs[0].intoString() === 'true',
       challenges: [],
-      debugInfo: DebugInfo.create('Bool', property.inputs)
+      traceInfo: TraceInfo.create('Bool', property.inputs)
     }
   }
   getDeciderAddress(operator: LogicalConnective | AtomicPredicate): Address {
