@@ -35,14 +35,15 @@
     "@cryptoeconomicslab/ovm-transpiler": "^0.2.7",
     "@cryptoeconomicslab/primitives": "^0.0.26",
     "@cryptoeconomicslab/signature": "^0.0.26",
+    "@cryptoeconomicslab/hash": "^0.0.26",
     "@cryptoeconomicslab/utils": "^0.0.26",
-    "ethers": "^4.0.43",
     "jsbi": "^3.1.1"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
     "@cryptoeconomicslab/coder": "^0.0.3",
     "@cryptoeconomicslab/context": "^0.0.26",
-    "@cryptoeconomicslab/level-kvs": "0.0.3"
+    "@cryptoeconomicslab/level-kvs": "0.0.3",
+    "ethers": "^4.0.43"
   }
 }
