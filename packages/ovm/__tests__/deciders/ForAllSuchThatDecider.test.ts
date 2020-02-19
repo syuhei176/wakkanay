@@ -56,15 +56,16 @@ describe('ForAllsuchThatDecider', () => {
       falseProperty
     ])
     const decision = await deciderManager.decide(property)
-    expect(decision).toStrictEqual({
-      outcome: false,
-      challenges: [
-        {
-          property: new Property(NotDeciderAddress, [falseProperty]),
-          challengeInput: Coder.encode(BigNumber.from(0))
-        }
-      ]
-    })
+    expect(decision.outcome).toBeFalsy()
+    expect(decision.challenges).toStrictEqual([
+      {
+        property: new Property(NotDeciderAddress, [falseProperty]),
+        challengeInput: Coder.encode(BigNumber.from(0))
+      }
+    ])
+    expect(decision.debugInfo?.toString()).toEqual(
+      'ForAllSuchThat:0x223022,Bool:[]'
+    )
   })
 
   it('decide for all n such that n < 2: n < 5', async () => {
@@ -95,16 +96,17 @@ describe('ForAllsuchThatDecider', () => {
       placeholderedProperty
     ])
     const decision = await deciderManager.decide(property)
-    expect(decision).toStrictEqual({
-      outcome: false,
-      challenges: [
-        {
-          property: new Property(NotDeciderAddress, [placeholderedProperty]),
-          // challengeInput is 5 because 5 < 5 is false
-          challengeInput: Coder.encode(BigNumber.from(5))
-        }
-      ]
-    })
+    expect(decision.outcome).toBeFalsy()
+    expect(decision.challenges).toStrictEqual([
+      {
+        property: new Property(NotDeciderAddress, [placeholderedProperty]),
+        // challengeInput is 5 because 5 < 5 is false
+        challengeInput: Coder.encode(BigNumber.from(5))
+      }
+    ])
+    expect(decision.debugInfo?.toString()).toEqual(
+      'ForAllSuchThat:0x223522,LessThan:[0x223522,0x223522]'
+    )
   })
 
   it('fail to decide because of invalid hint data', async () => {

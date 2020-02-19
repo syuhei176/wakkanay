@@ -3,6 +3,7 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import JSBI from 'jsbi'
+import { DebugInfo } from '../../Debugger'
 
 /**
  * LessThanDecider decides to true if first input is less than second input

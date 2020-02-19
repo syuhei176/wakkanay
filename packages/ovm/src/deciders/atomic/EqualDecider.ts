@@ -2,6 +2,7 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
+import { DebugInfo } from '../../Debugger'
 
 /**
  * EqualDecider decides if given two inputs are equal
@@ -20,7 +21,8 @@ export class EqualDecider implements Decider {
 
     return {
       outcome: inputs[0].equals(inputs[1]),
-      challenges: []
+      challenges: [],
+      debugInfo: DebugInfo.create('Equal', inputs)
     }
   }
 }

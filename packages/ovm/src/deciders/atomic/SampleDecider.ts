@@ -2,6 +2,7 @@ import { Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
+import { DebugInfo } from '../../Debugger'
 
 /**
  * SampleDecider decide depending on first input.
@@ -14,7 +15,8 @@ export class SampleDecider implements Decider {
   ): Promise<Decision> {
     return {
       outcome: !!inputs[0],
-      challenges: []
+      challenges: [],
+      debugInfo: DebugInfo.create('Bool', inputs)
     }
   }
 }
@@ -29,7 +31,8 @@ export class LessThanDecider implements Decider {
     const n = BigNumber.fromHexString(inputs[1].toHexString())
     return {
       outcome: upperBound.data > n.data,
-      challenges: []
+      challenges: [],
+      debugInfo: DebugInfo.create('LessThan', inputs)
     }
   }
 }
