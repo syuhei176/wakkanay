@@ -2,6 +2,7 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
+import { NormalDebugInfo } from '../../Debugger'
 
 /**
  * NotDecider recieves one input and returns logical negation of its decision.
@@ -24,7 +25,10 @@ export class NotDecider implements Decider {
           property: property,
           challengeInput: null
         }
-      ]
+      ],
+      debugInfo: decision.outcome
+        ? decision.debugInfo?.addDecisionDebugInfo(new NormalDebugInfo('Not'))
+        : undefined
     }
   }
 }

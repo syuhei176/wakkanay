@@ -5,6 +5,12 @@ abstract class DecisionDebugInfo {
   abstract toString(): string
 }
 
+export class NormalDebugInfo extends DecisionDebugInfo {
+  toString(): string {
+    return this.predicateName
+  }
+}
+
 export class QuantifierDecisionDebugInfo extends DecisionDebugInfo {
   constructor(readonly predicateName: string, readonly variable: Bytes) {
     super(predicateName)
@@ -14,9 +20,9 @@ export class QuantifierDecisionDebugInfo extends DecisionDebugInfo {
   }
 }
 
-export class AndOrDecisionDebugInfo extends DecisionDebugInfo {
-  constructor(readonly predicateName: string, readonly index: number) {
-    super(predicateName)
+export class AndDecisionDebugInfo extends DecisionDebugInfo {
+  constructor(readonly index: number) {
+    super('And')
   }
   toString(): string {
     return this.predicateName + ':' + this.index

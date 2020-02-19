@@ -3,6 +3,7 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, LogicalConnective } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { encodeProperty, decodeProperty } from '../../helpers'
+import { NormalDebugInfo } from '../../Debugger'
 
 export class OrDecider implements Decider {
   public async decide(
@@ -49,7 +50,10 @@ export class OrDecider implements Decider {
 
     return {
       outcome: false,
-      challenges: [challenge]
+      challenges: [challenge],
+      debugInfo: decisions[0].debugInfo?.addDecisionDebugInfo(
+        new NormalDebugInfo('Or')
+      )
     }
   }
 }

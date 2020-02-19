@@ -50,6 +50,7 @@ describe('AndDecider', () => {
         property: new Property(NotDeciderAddress, [falseProperty])
       }
     ])
+    expect(decision.debugInfo?.toString()).toEqual('And:1,Bool:[]')
   })
   it('decide and(false, true)', async () => {
     const andDecider = new AndDecider()
@@ -65,5 +66,6 @@ describe('AndDecider', () => {
         property: new Property(NotDeciderAddress, [falseProperty])
       }
     ])
+    expect(decision.debugInfo?.toString()).toEqual('And:0,Bool:[]')
   })
 })
