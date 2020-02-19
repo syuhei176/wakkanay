@@ -5,22 +5,22 @@ abstract class DecisionDebugInfo {
   abstract toString(): string
 }
 
-export class NormalDebugInfo extends DecisionDebugInfo {
+class NormalDebugInfo extends DecisionDebugInfo {
   toString(): string {
     return this.predicateName
   }
 }
 
-export class QuantifierDecisionDebugInfo extends DecisionDebugInfo {
-  constructor(readonly predicateName: string, readonly variable: Bytes) {
-    super(predicateName)
+class ForAllSuchThatDecisionDebugInfo extends DecisionDebugInfo {
+  constructor(readonly variable: Bytes) {
+    super('ForAllSuchThat')
   }
   toString(): string {
     return this.predicateName + ':' + this.variable.toHexString()
   }
 }
 
-export class AndDecisionDebugInfo extends DecisionDebugInfo {
+class AndDecisionDebugInfo extends DecisionDebugInfo {
   constructor(readonly index: number) {
     super('And')
   }
@@ -29,7 +29,7 @@ export class AndDecisionDebugInfo extends DecisionDebugInfo {
   }
 }
 
-export class AtomicPropositionDecisionDebugInfo extends DecisionDebugInfo {
+class AtomicPropositionDebugInfo extends DecisionDebugInfo {
   constructor(readonly predicateName: string, readonly inputs: Bytes[]) {
     super(predicateName)
   }
@@ -51,8 +51,24 @@ export class DebugInfo {
    */
   constructor(readonly decisionDebugInfos: DecisionDebugInfo[]) {}
 
-  addDecisionDebugInfo(newDecisionDebugInfo: DecisionDebugInfo): DebugInfo {
+  private addDecisionDebugInfo(
+    newDecisionDebugInfo: DecisionDebugInfo
+  ): DebugInfo {
     return new DebugInfo([newDecisionDebugInfo].concat(this.decisionDebugInfos))
+  }
+
+  addForAllSuchThatDebugInfo(variable: Bytes): DebugInfo {
+    return this.addDecisionDebugInfo(
+      new ForAllSuchThatDecisionDebugInfo(variable)
+    )
+  }
+
+  addAndDebugInfo(index: number): DebugInfo {
+    return this.addDecisionDebugInfo(new AndDecisionDebugInfo(index))
+  }
+
+  addDebugInfo(predicateName: string): DebugInfo {
+    return this.addDecisionDebugInfo(new NormalDebugInfo(predicateName))
   }
 
   toString(splitter?: string): string {
@@ -63,7 +79,11 @@ export class DebugInfo {
 
   static create(predicateName: string, inputs: Bytes[]) {
     return new DebugInfo([
-      new AtomicPropositionDecisionDebugInfo(predicateName, inputs)
+      new AtomicPropositionDebugInfo(predicateName, inputs)
     ])
+  }
+
+  static exception(message: string) {
+    return new DebugInfo([new NormalDebugInfo(message)])
   }
 }

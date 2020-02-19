@@ -3,7 +3,6 @@ import { getWitnesses, isHint, replaceHint } from '@cryptoeconomicslab/db'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
-import { QuantifierDecisionDebugInfo } from '../../Debugger'
 
 /**
  * ForDecider check quantifier and property.
@@ -50,9 +49,7 @@ export class ForAllSuchThatDecider implements Decider {
         return {
           outcome: false,
           challenges: [challenge].concat(decision.challenges),
-          debugInfo: decision.debugInfo?.addDecisionDebugInfo(
-            new QuantifierDecisionDebugInfo('ForAllSuchThat', q)
-          )
+          debugInfo: decision.debugInfo?.addForAllSuchThatDebugInfo(q)
         }
       })
     )

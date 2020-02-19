@@ -64,7 +64,7 @@ describe('ForAllsuchThatDecider', () => {
       }
     ])
     expect(decision.debugInfo?.toString()).toEqual(
-      'ForAllSuchThat:0x223022,Bool:[]'
+      'ForAllSuchThat:0x223022,SampleDecider:[]'
     )
   })
 
@@ -105,7 +105,7 @@ describe('ForAllsuchThatDecider', () => {
       }
     ])
     expect(decision.debugInfo?.toString()).toEqual(
-      'ForAllSuchThat:0x223522,LessThan:[0x223522,0x223522]'
+      'ForAllSuchThat:0x223522,LessThanDecider:[0x223522,0x223522]'
     )
   })
 

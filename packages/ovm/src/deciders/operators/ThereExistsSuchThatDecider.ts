@@ -3,7 +3,6 @@ import { getWitnesses, isHint, replaceHint } from '@cryptoeconomicslab/db'
 import { Decider } from '../../interfaces/Decider'
 import { DeciderManager } from '../../DeciderManager'
 import { Property } from '../../types'
-import { NormalDebugInfo } from '../../Debugger'
 
 /**
  * ThereExists decides property to true if any quantified value fulfill proposition.
@@ -42,9 +41,7 @@ export class ThereExistsSuchThatDecider implements Decider {
       challenges: [],
       debugInfo: decisions
         .find(d => d.outcome === false)
-        ?.debugInfo?.addDecisionDebugInfo(
-          new NormalDebugInfo('ThereExistsSuchThat')
-        )
+        ?.debugInfo?.addDebugInfo('ThereExistsSuchThat')
     }
   }
 }

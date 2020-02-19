@@ -3,7 +3,7 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { decodeProperty } from '../../helpers'
-import { AndDecisionDebugInfo } from '../../Debugger'
+import { DebugInfo } from '../../Debugger'
 
 /**
  * AndDecider recieves multiple inputs and returns logical and of those decision.
@@ -20,33 +20,30 @@ export class AndDecider implements Decider {
     } catch (e) {
       return {
         outcome: false,
-        challenges: []
+        challenges: [],
+        debugInfo: DebugInfo.exception('And connective has an invalid child.')
       }
     }
 
     const decisions = await Promise.all(
-      properties.map(
-        async (p: Property, index: number): Promise<Decision | null> => {
-          const decision = await manager.decide(p)
-          if (decision.outcome) {
-            return null
-          }
-          const challenge: Challenge = {
-            property: new Property(
-              manager.getDeciderAddress(LogicalConnective.Not),
-              [ovmContext.coder.encode(p.toStruct())]
-            ),
-            challengeInput: ovmContext.coder.encode(Integer.from(index))
-          }
-          return {
-            outcome: false,
-            challenges: [challenge].concat(decision.challenges),
-            debugInfo: decision.debugInfo?.addDecisionDebugInfo(
-              new AndDecisionDebugInfo(index)
-            )
-          }
+      properties.map(async (p: Property, index: number) => {
+        const decision = await manager.decide(p)
+        if (decision.outcome) {
+          return null
         }
-      )
+        const challenge: Challenge = {
+          property: new Property(
+            manager.getDeciderAddress(LogicalConnective.Not),
+            [ovmContext.coder.encode(p.toStruct())]
+          ),
+          challengeInput: ovmContext.coder.encode(Integer.from(index))
+        }
+        return {
+          outcome: false,
+          challenges: [challenge].concat(decision.challenges),
+          debugInfo: decision.debugInfo?.addAndDebugInfo(index)
+        }
+      })
     )
     const filteredDecisions = decisions.filter(r => !!r)
     if (filteredDecisions[0]) {
