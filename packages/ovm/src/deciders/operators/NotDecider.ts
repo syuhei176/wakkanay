@@ -2,6 +2,7 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
+import { TraceInfoCreator } from '../../Tracer'
 
 /**
  * NotDecider recieves one input and returns logical negation of its decision.
@@ -24,7 +25,11 @@ export class NotDecider implements Decider {
           property: property,
           challengeInput: null
         }
-      ]
+      ],
+      traceInfo:
+        decision.outcome && decision.traceInfo
+          ? TraceInfoCreator.createNot(decision.traceInfo)
+          : undefined
     }
   }
 }

@@ -3,6 +3,7 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, LogicalConnective } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
 import { encodeProperty, decodeProperty } from '../../helpers'
+import { TraceInfo, TraceInfoCreator } from '../../Tracer'
 
 export class OrDecider implements Decider {
   public async decide(
@@ -15,7 +16,10 @@ export class OrDecider implements Decider {
     } catch (e) {
       return {
         outcome: false,
-        challenges: []
+        challenges: [],
+        traceInfo: TraceInfoCreator.exception(
+          'Or connective has an invalid child.'
+        )
       }
     }
 
@@ -49,7 +53,10 @@ export class OrDecider implements Decider {
 
     return {
       outcome: false,
-      challenges: [challenge]
+      challenges: [challenge],
+      traceInfo: TraceInfoCreator.createOr(
+        decisions.map(d => d.traceInfo).filter(t => !!t) as TraceInfo[]
+      )
     }
   }
 }
