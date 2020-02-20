@@ -198,6 +198,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
       Bytes.fromString('TestA'),
       Coder.encode(BigNumber.from(301))
     ])
+    const b = BigNumber.from(302)
 
     it('create atomic proposition call with normal input', async () => {
       expect(
@@ -238,10 +239,10 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
           {
             compiledProperty,
             predicateTable: deciderManager.shortnameMap,
-            constantTable: { b: Coder.encode(BigNumber.from(302)) }
+            constantTable: { b: Coder.encode(b) }
           }
         )
-      ).toEqual(encodeBoolDecider(Coder.encode(BigNumber.from(302))))
+      ).toEqual(encodeBoolDecider(Coder.encode(b)))
     })
 
     it('create atomic proposition call with self input', async () => {
@@ -258,6 +259,38 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
       ).toEqual(
         encodeBoolDecider(Bytes.fromHexString(TestPredicateAddress.data))
       )
+    })
+
+    it('create InputPredicateCall with extra inputs', () => {
+      const compiledPredicate = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        'def test(a, b) := Bool(a) and a(b)'
+      )
+      const definition = compiledPredicate.compiled.contracts[0]
+      const predicateCall = definition.inputs[1] as AtomicProposition
+      const a = new Property(TestPredicateAddress, [
+        Bytes.fromString('TestA'),
+        Coder.encode(BigNumber.from(301))
+      ])
+      const compiledProperty = new Property(TestPredicateAddress, [
+        Bytes.fromString('TestA'),
+        Coder.encode(a.toStruct()),
+        Coder.encode(b)
+      ])
+      const aWithB = new Property(TestPredicateAddress, [
+        Bytes.fromString('TestA'),
+        Coder.encode(BigNumber.from(301)),
+        Coder.encode(b)
+      ])
+      // expectedProperty is a(b)
+      const expectedProperty = Coder.encode(aWithB.toStruct())
+      expect(
+        createAtomicPropositionCall(predicateCall, definition, {
+          compiledProperty,
+          predicateTable: deciderManager.shortnameMap,
+          constantTable: {}
+        })
+      ).toEqual(expectedProperty)
     })
   })
 

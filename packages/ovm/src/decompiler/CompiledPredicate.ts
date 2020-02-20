@@ -147,6 +147,12 @@ export class CompiledPredicate {
   }
 }
 
+/**
+ * Make actual atomic proposition call from inputs of CompiledProperty
+ * @param input definition of AtomicProposition
+ * @param def definition of CompiledPredicate
+ * @param context Context object which has an instance of CompiledPredicate
+ */
 export const createAtomicPropositionCall = (
   input: AtomicProposition,
   def: IntermediateCompiledPredicate,
