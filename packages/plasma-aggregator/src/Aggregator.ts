@@ -184,7 +184,7 @@ export default class Aggregator {
         }
 
         res.send({
-          data: ovmContext.coder.encode(block.toStruct())
+          data: ovmContext.coder.encode(block.toStruct()).toHexString()
         })
         res.status(200).end()
       })
