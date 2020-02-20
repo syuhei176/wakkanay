@@ -516,11 +516,14 @@ export default class LightClient {
     const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
     if (!predicate) throw new Error('Exit predicate not found')
     const exitProperty = exit.toProperty(predicate.deployedAddress)
-    const decided = await this.adjudicationContract.isDecided(
-      ovmContext.coder.encode(exitProperty.toStruct())
-    )
+    const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
-      throw new Error(`Exit property is not decided: ${exit}`)
+      // TODO: who should decideClaim to true?
+      try {
+        await this.adjudicationContract.decideClaimToTrue(exit.id)
+      } catch (e) {
+        throw new Error(`Exit property is not decided: ${exit}`)
+      }
     }
 
     await this.ownershipPayoutContract.finalizeExit(
