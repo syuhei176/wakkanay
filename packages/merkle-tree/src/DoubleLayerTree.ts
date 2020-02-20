@@ -33,32 +33,32 @@ export class DoubleLayerInclusionProof {
   public toStruct(): Struct {
     return new Struct([
       {
-        key: 'intervalInclusionProof',
-        value: this.intervalInclusionProof.toStruct()
-      },
-      {
         key: 'addressInclusionProof',
         value: this.addressInclusionProof.toStruct()
+      },
+      {
+        key: 'intervalInclusionProof',
+        value: this.intervalInclusionProof.toStruct()
       }
     ])
   }
 
   public static fromStruct(s: Struct): DoubleLayerInclusionProof {
     return new DoubleLayerInclusionProof(
-      IntervalTreeInclusionProof.fromStruct(s.data[0].value as Struct),
-      AddressTreeInclusionProof.fromStruct(s.data[1].value as Struct)
+      IntervalTreeInclusionProof.fromStruct(s.data[1].value as Struct),
+      AddressTreeInclusionProof.fromStruct(s.data[0].value as Struct)
     )
   }
 
   public static getParamType(): Struct {
     return new Struct([
       {
-        key: 'intervalInclusionProof',
-        value: IntervalTreeInclusionProof.getParamType()
-      },
-      {
         key: 'addressInclusionProof',
         value: AddressTreeInclusionProof.getParamType()
+      },
+      {
+        key: 'intervalInclusionProof',
+        value: IntervalTreeInclusionProof.getParamType()
       }
     ])
   }
