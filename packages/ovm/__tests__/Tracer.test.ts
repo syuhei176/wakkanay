@@ -1,23 +1,26 @@
 import { Bytes } from '@cryptoeconomicslab/primitives'
-import { TraceInfo } from '../src/Tracer'
+import { TraceInfoCreator } from '../src/Tracer'
 
 describe('Tracer', () => {
   describe('TraceInfo', () => {
-    const traceInfo = TraceInfo.create('Bool', [Bytes.fromHexString('0x01')])
+    const traceInfo = TraceInfoCreator.create('Bool', [
+      Bytes.fromHexString('0x01')
+    ])
 
     test('addTraceInfo', async () => {
-      const newTraceInfo = traceInfo.addTraceInfo('Not')
+      const newTraceInfo = TraceInfoCreator.createNot(traceInfo)
       expect(newTraceInfo.toString()).toEqual('Not,Bool:[0x01]')
     })
 
     test('addAndTraceInfo', async () => {
-      const newTraceInfo = traceInfo.addAndTraceInfo(0)
+      const newTraceInfo = TraceInfoCreator.createAnd(0, traceInfo)
       expect(newTraceInfo.toString()).toEqual('And:0,Bool:[0x01]')
     })
 
     test('addForAllSuchThatTraceInfo', async () => {
-      const newTraceInfo = traceInfo.addForAllSuchThatTraceInfo(
-        Bytes.fromHexString('0x01')
+      const newTraceInfo = TraceInfoCreator.createFor(
+        Bytes.fromHexString('0x01'),
+        traceInfo
       )
       expect(newTraceInfo.toString()).toEqual('ForAllSuchThat:0x01,Bool:[0x01]')
     })

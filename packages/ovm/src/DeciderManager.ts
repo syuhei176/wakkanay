@@ -5,7 +5,7 @@ import { Decider } from './interfaces/Decider'
 import { Property, Decision, FreeVariable } from './types'
 import { initialize, InitilizationConfig } from './load'
 import { CompiledPredicate } from './decompiler'
-import { TraceInfo } from './Tracer'
+import { TraceInfoCreator } from './Tracer'
 
 export interface DeciderManagerInterface {
   readonly coder: Coder
@@ -105,7 +105,10 @@ export class DeciderManager implements DeciderManagerInterface {
       const decision = await decider.decide(this, inputs, substitutions)
       if (decision.outcome === false && decision.traceInfo === undefined) {
         // Set debug info for atomic predicates
-        decision.traceInfo = TraceInfo.create(decider.constructor.name, inputs)
+        decision.traceInfo = TraceInfoCreator.create(
+          decider.constructor.name,
+          inputs
+        )
       }
       return decision
     } else {

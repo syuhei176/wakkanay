@@ -3,6 +3,7 @@ import { getWitnesses, isHint, replaceHint } from '@cryptoeconomicslab/db'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
+import { TraceInfoCreator } from '../../Tracer'
 
 /**
  * ForDecider check quantifier and property.
@@ -49,7 +50,9 @@ export class ForAllSuchThatDecider implements Decider {
         return {
           outcome: false,
           challenges: [challenge].concat(decision.challenges),
-          traceInfo: decision.traceInfo?.addForAllSuchThatTraceInfo(q)
+          traceInfo: decision.traceInfo
+            ? TraceInfoCreator.createFor(q, decision.traceInfo)
+            : undefined
         }
       })
     )
