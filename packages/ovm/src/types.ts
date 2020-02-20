@@ -15,6 +15,8 @@ export interface Challenge {
 export interface Decision {
   outcome: boolean
   challenges: Challenge[]
+  // traceInfo is the snapshot when false decision is made.
+  // If outcome is true, traceInfo is undefined.
   traceInfo?: TraceInfo
 }
 

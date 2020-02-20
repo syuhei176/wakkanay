@@ -73,7 +73,7 @@ describe('CompiledDecider', () => {
       property.inputs,
       {}
     )
-
+    // Check the snapshot of decider
     expect(decision.traceInfo?.toJson()).toEqual({
       predicateName: 'ForAllSuchThat',
       variable: '0x223022',
