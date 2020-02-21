@@ -529,7 +529,7 @@ export default class LightClient {
     await this.ownershipPayoutContract.finalizeExit(
       exit.stateUpdate.depositContractAddress,
       exitProperty,
-      exit.range.start,
+      exit.range.end,
       Address.from(this.address)
     )
 
