@@ -14,15 +14,19 @@ setupContext({
   coder: Coder
 })
 
-const stateUpdateProperty = new Property(
-  Address.default(),
-  [
+const su = (start: number, end: number) => {
+  return new Property(
     Address.default(),
-    new Range(BigNumber.from(0), BigNumber.from(10)).toStruct(),
-    BigNumber.from(1),
-    new Property(Address.default(), [Bytes.fromHexString('0x01')]).toStruct()
-  ].map(Coder.encode)
-)
+    [
+      Address.default(),
+      new Range(BigNumber.from(start), BigNumber.from(end)).toStruct(),
+      BigNumber.from(1),
+      new Property(Address.default(), [Bytes.fromHexString('0x01')]).toStruct()
+    ].map(Coder.encode)
+  )
+}
+
+const stateUpdateProperty = su(0, 10)
 
 describe('BlockManager', () => {
   let blockManager: BlockManager, kvs: InMemoryKeyValueStore

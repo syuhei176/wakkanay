@@ -42,7 +42,10 @@ export default class BlockManager {
    */
   private async clearTokenBucket(addr: Address) {
     const db = await this.tokenBucket(addr)
-    await db.del(JSBI.BigInt(0), JSBI.BigInt(10000)) // TODO: change later
+    await db.del(
+      JSBI.BigInt(0),
+      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(256))
+    )
   }
 
   /**
