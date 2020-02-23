@@ -331,7 +331,7 @@ describe('LightClient', () => {
       expect(mockFinalizeExit).toHaveBeenLastCalledWith(
         exit.stateUpdate.depositContractAddress,
         exit.toProperty(client['deciderManager'].getDeciderAddress('Exit')),
-        exit.range.start,
+        exit.range.end,
         Address.from(client.address)
       )
     })
