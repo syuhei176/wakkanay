@@ -14,15 +14,19 @@ setupContext({
   coder: Coder
 })
 
-const stateUpdateProperty = new Property(
-  Address.default(),
-  [
+const su = (start: number, end: number) => {
+  return new Property(
     Address.default(),
-    new Range(BigNumber.from(0), BigNumber.from(10)).toStruct(),
-    BigNumber.from(1),
-    new Property(Address.default(), [Bytes.fromHexString('0x01')]).toStruct()
-  ].map(Coder.encode)
-)
+    [
+      Address.default(),
+      new Range(BigNumber.from(start), BigNumber.from(end)).toStruct(),
+      BigNumber.from(1),
+      new Property(Address.default(), [Bytes.fromHexString('0x01')]).toStruct()
+    ].map(Coder.encode)
+  )
+}
+
+const stateUpdateProperty = su(0, 10)
 
 describe('BlockManager', () => {
   let blockManager: BlockManager, kvs: InMemoryKeyValueStore
@@ -30,6 +34,7 @@ describe('BlockManager', () => {
   beforeEach(async () => {
     kvs = new InMemoryKeyValueStore(Bytes.fromString('block_manager'))
     blockManager = new BlockManager(kvs)
+    blockManager.registerToken(Address.default())
   })
 
   test('get and put block', async () => {
@@ -69,5 +74,18 @@ describe('BlockManager', () => {
     expect(blockManager.currentBlockNumber).toEqual(BigNumber.from(0))
     await blockManager.generateNextBlock()
     expect(blockManager.currentBlockNumber).toEqual(BigNumber.from(1))
+  })
+
+  test('generateBlock', async () => {
+    await blockManager.enqueuePendingStateUpdate(
+      StateUpdate.fromProperty(stateUpdateProperty)
+    )
+    const block = await blockManager.generateNextBlock()
+    const map = new Map<string, StateUpdate[]>()
+    map.set(Address.default().data, [
+      StateUpdate.fromProperty(stateUpdateProperty)
+    ])
+    const expected = new Block(BigNumber.from(1), map)
+    expect(block).toEqual(expected)
   })
 })

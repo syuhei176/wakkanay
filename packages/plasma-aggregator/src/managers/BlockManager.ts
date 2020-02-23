@@ -9,7 +9,12 @@ import {
   BigNumber,
   Range
 } from '@cryptoeconomicslab/primitives'
-import { RangeDb, RangeStore, KeyValueStore } from '@cryptoeconomicslab/db'
+import {
+  RangeDb,
+  RangeStore,
+  KeyValueStore,
+  RangeRecord
+} from '@cryptoeconomicslab/db'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
 import JSBI from 'jsbi'
 
@@ -37,7 +42,10 @@ export default class BlockManager {
    */
   private async clearTokenBucket(addr: Address) {
     const db = await this.tokenBucket(addr)
-    await db.del(JSBI.BigInt(0), JSBI.BigInt(10000)) // TODO: change later
+    await db.del(
+      JSBI.BigInt(0),
+      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(256))
+    )
   }
 
   /**
@@ -89,21 +97,25 @@ export default class BlockManager {
     await Promise.all(
       this.tokenList.map(async token => {
         const db = await this.tokenBucket(token)
-        const stateUpdates = (await db.get(JSBI.BigInt(0), JSBI.BigInt(10000))) // TODO: change later
-          .map(r =>
-            StateUpdate.fromRecord(
-              decodeStructable(StateUpdateRecord, ovmContext.coder, r.value),
-              new Range(r.start, r.end)
-            )
+        const stateUpdateRanges: RangeRecord[] = []
+        const cursor = db.iter(JSBI.BigInt(0))
+        let su = await cursor.next()
+        while (su !== null) {
+          stateUpdateRanges.push(su)
+          su = await cursor.next()
+        }
+
+        const stateUpdates = stateUpdateRanges.map(r =>
+          StateUpdate.fromRecord(
+            decodeStructable(StateUpdateRecord, ovmContext.coder, r.value),
+            new Range(r.start, r.end)
           )
+        )
         stateUpdatesMap.set(token.data, stateUpdates)
 
         await this.clearTokenBucket(token)
       })
     )
-
-    // set next block submission is not ready
-    this.ready = false
 
     const block = new Block(
       BigNumber.from(JSBI.add(this.blockNumber.data, JSBI.BigInt(1))),
@@ -115,6 +127,9 @@ export default class BlockManager {
     this.blockNumber = BigNumber.from(
       JSBI.add(this.blockNumber.data, JSBI.BigInt(1))
     )
+
+    // set next block submission is not ready
+    this.ready = false
     return block
   }
 
