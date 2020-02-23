@@ -30,6 +30,7 @@ describe('BlockManager', () => {
   beforeEach(async () => {
     kvs = new InMemoryKeyValueStore(Bytes.fromString('block_manager'))
     blockManager = new BlockManager(kvs)
+    blockManager.registerToken(Address.default())
   })
 
   test('get and put block', async () => {
@@ -69,5 +70,18 @@ describe('BlockManager', () => {
     expect(blockManager.currentBlockNumber).toEqual(BigNumber.from(0))
     await blockManager.generateNextBlock()
     expect(blockManager.currentBlockNumber).toEqual(BigNumber.from(1))
+  })
+
+  test('generateBlock', async () => {
+    await blockManager.enqueuePendingStateUpdate(
+      StateUpdate.fromProperty(stateUpdateProperty)
+    )
+    const block = await blockManager.generateNextBlock()
+    const map = new Map<string, StateUpdate[]>()
+    map.set(Address.default().data, [
+      StateUpdate.fromProperty(stateUpdateProperty)
+    ])
+    const expected = new Block(BigNumber.from(1), map)
+    expect(block).toEqual(expected)
   })
 })
