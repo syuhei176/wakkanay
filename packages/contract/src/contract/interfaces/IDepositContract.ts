@@ -32,4 +32,8 @@ export interface IDepositContract {
    * subscribe to exit finalized event
    */
   subscribeExitFinalized(handler: (exitId: Bytes) => void): void
+
+  subscribeDepositedRangeUpdated(
+    handler: (prevDepositedRange: Range, nextDepositedRanges: Range[]) => void
+  ): void
 }
