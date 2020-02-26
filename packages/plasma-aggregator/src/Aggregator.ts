@@ -55,7 +55,8 @@ export default class Aggregator {
     private witnessDb: KeyValueStore,
     private depositContractFactory: (address: Address) => IDepositContract,
     commitmentContractFactory: (address: Address) => ICommitmentContract,
-    config: InitilizationConfig
+    config: InitilizationConfig,
+    private isSubmitter: boolean = false
   ) {
     this.decider = new DeciderManager(witnessDb, ovmContext.coder)
     this.commitmentContract = commitmentContractFactory(
@@ -79,7 +80,15 @@ export default class Aggregator {
    */
   public run() {
     this.runHttpServer()
-    this.poll()
+    if (this.isSubmitter) {
+      this.poll()
+    } else {
+      this.commitmentContract.subscribeBlockSubmitted(
+        (blockNumber: BigNumber, _) => {
+          this.blockManager.setBlockNumber(blockNumber)
+        }
+      )
+    }
   }
 
   /**
@@ -230,8 +239,8 @@ export default class Aggregator {
    */
   private async poll() {
     await sleep(BLOCK_INTERVAL)
-    if (this.blockManager.isReady) {
-      const block = await this.blockManager.generateNextBlock()
+    const block = await this.blockManager.generateNextBlock()
+    if (block) {
       this.submitBlock(block)
     }
     await this.poll()

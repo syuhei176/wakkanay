@@ -57,16 +57,6 @@ describe('BlockManager', () => {
     expect(res).toBeNull()
   })
 
-  test('generateBlock clear isReady', async () => {
-    expect(blockManager.isReady).toBeFalsy()
-    await blockManager.enqueuePendingStateUpdate(
-      StateUpdate.fromProperty(stateUpdateProperty)
-    )
-    expect(blockManager.isReady).toBeTruthy()
-    await blockManager.generateNextBlock()
-    expect(blockManager.isReady).toBeFalsy()
-  })
-
   test('generateBlock increment block number', async () => {
     await blockManager.enqueuePendingStateUpdate(
       StateUpdate.fromProperty(stateUpdateProperty)
