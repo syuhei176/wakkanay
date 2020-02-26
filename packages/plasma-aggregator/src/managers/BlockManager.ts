@@ -24,7 +24,6 @@ const BLOCK_BUCKET = Bytes.fromString('block')
 export default class BlockManager {
   private blockNumber: BigNumber
   private tokenList: Address[]
-  private ready = false
 
   constructor(private kvs: KeyValueStore) {
     this.blockNumber = BigNumber.from(0)
@@ -48,6 +47,10 @@ export default class BlockManager {
     )
   }
 
+  public setBlockNumber(blockNumber: BigNumber) {
+    this.blockNumber = blockNumber
+  }
+
   /**
    * returns current block number
    */
@@ -63,14 +66,6 @@ export default class BlockManager {
   }
 
   /**
-   * represents if block manager is ready to submit next block
-   * which is false right after a block is submitted.
-   */
-  public get isReady(): boolean {
-    return this.ready
-  }
-
-  /**
    * append state update for next block
    * @param su state update to be appended for next block submission
    */
@@ -83,18 +78,15 @@ export default class BlockManager {
       end.data,
       ovmContext.coder.encode(su.toRecord().toStruct())
     )
-    this.ready = true
   }
 
   /**
    * create next block with pending state updates in block
    * store new block and clear all pending updates in block db.
    */
-  public async generateNextBlock(): Promise<Block> {
-    if (!this.isReady)
-      throw new Error('No state updates to generate next block')
+  public async generateNextBlock(): Promise<Block | undefined> {
     const stateUpdatesMap = new Map()
-    await Promise.all(
+    const sus = await Promise.all(
       this.tokenList.map(async token => {
         const db = await this.tokenBucket(token)
         const stateUpdateRanges: RangeRecord[] = []
@@ -104,6 +96,7 @@ export default class BlockManager {
           stateUpdateRanges.push(su)
           su = await cursor.next()
         }
+        if (stateUpdateRanges.length === 0) return []
 
         const stateUpdates = stateUpdateRanges.map(r =>
           StateUpdate.fromRecord(
@@ -114,8 +107,11 @@ export default class BlockManager {
         stateUpdatesMap.set(token.data, stateUpdates)
 
         await this.clearTokenBucket(token)
+        return stateUpdateRanges
       })
     )
+
+    if (sus.every(arr => arr.length === 0)) return
 
     const block = new Block(
       BigNumber.from(JSBI.add(this.blockNumber.data, JSBI.BigInt(1))),
@@ -128,8 +124,6 @@ export default class BlockManager {
       JSBI.add(this.blockNumber.data, JSBI.BigInt(1))
     )
 
-    // set next block submission is not ready
-    this.ready = false
     return block
   }
 
