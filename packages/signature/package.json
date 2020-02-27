@@ -31,7 +31,7 @@
   "dependencies": {
     "bs58check": "^2.1.2",
     "ethers": "^4.0.43",
-    "libsodium-wrappers-sumo": "^0.7.6"
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.32",

@@ -1,5 +1,5 @@
-import sodiumsumo from 'libsodium-wrappers-sumo'
 import base58 from 'bs58check'
+import tweetnacl from 'tweetnacl'
 import SignatureVerifier from './SignatureVerifier'
 import { Bytes } from '@cryptoeconomicslab/primitives'
 
@@ -9,7 +9,6 @@ export const ed25519Verifier: SignatureVerifier = {
     const msg = Buffer.from(message.toHexString())
     const pk = base58.decode(publicKey.intoString()).slice(4)
 
-    await sodiumsumo.ready
-    return sodiumsumo.crypto_sign_verify_detached(sig, msg, pk)
+    return tweetnacl.sign.detached.verify(msg, sig, pk)
   }
 }
