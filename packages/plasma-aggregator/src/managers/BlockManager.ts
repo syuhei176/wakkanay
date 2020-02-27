@@ -98,14 +98,15 @@ export default class BlockManager {
    * create next block with pending state updates in block
    * store new block and clear all pending updates in block db.
    */
-  public async generateNextBlock(): Promise<Block> {
+  public async generateNextBlock(): Promise<Block | undefined> {
     const blockNumber = await this.getCurrentBlockNumber()
-    await this.setBlockNumber(
-      BigNumber.from(JSBI.add(JSBI.BigInt(1), blockNumber.data))
+    const nextBlockNumber = BigNumber.from(
+      JSBI.add(JSBI.BigInt(1), blockNumber.data)
     )
+    await this.setBlockNumber(nextBlockNumber)
 
     const stateUpdatesMap = new Map()
-    await Promise.all(
+    const sus = await Promise.all(
       this.tokenList.map(async token => {
         const db = await this.tokenBucket(blockNumber, token)
         const stateUpdateRanges: RangeRecord[] = []
@@ -129,6 +130,13 @@ export default class BlockManager {
         return stateUpdateRanges
       })
     )
+
+    // In case no stateUpdates have been enqueued,
+    // revert blockNumber to prevNumber. move su to prev bucket in case
+    if (sus.every(arr => arr.length === 0)) {
+      await this.setBlockNumber(blockNumber)
+      return
+    }
 
     const block = new Block(
       BigNumber.from(JSBI.add(blockNumber.data, JSBI.BigInt(1))),
