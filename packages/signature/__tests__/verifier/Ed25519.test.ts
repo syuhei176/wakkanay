@@ -31,6 +31,6 @@ describe('ed25519Verifier', () => {
   it('throw exception with empty signature', async () => {
     await expect(
       ed25519Verifier.verify(message, emptySignature, publicKey)
-    ).rejects.toEqual(new Error('invalid signature length'))
+    ).rejects.toEqual(new Error('bad signature size'))
   })
 })
