@@ -236,7 +236,7 @@ export default class Aggregator {
     await sleep(BLOCK_INTERVAL)
     const block = await this.blockManager.generateNextBlock()
     if (block) {
-      this.submitBlock(block)
+      await this.submitBlock(block)
     }
     await this.poll()
   }
