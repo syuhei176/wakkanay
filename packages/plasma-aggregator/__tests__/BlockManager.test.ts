@@ -61,9 +61,11 @@ describe('BlockManager', () => {
     await blockManager.enqueuePendingStateUpdate(
       StateUpdate.fromProperty(stateUpdateProperty)
     )
-    expect(blockManager.currentBlockNumber).toEqual(BigNumber.from(0))
+    let currentBlockNumber = await blockManager.getCurrentBlockNumber()
+    expect(currentBlockNumber).toEqual(BigNumber.from(0))
     await blockManager.generateNextBlock()
-    expect(blockManager.currentBlockNumber).toEqual(BigNumber.from(1))
+    currentBlockNumber = await blockManager.getCurrentBlockNumber()
+    expect(currentBlockNumber).toEqual(BigNumber.from(1))
   })
 
   test('generateBlock', async () => {

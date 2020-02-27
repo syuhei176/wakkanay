@@ -82,12 +82,6 @@ export default class Aggregator {
     this.runHttpServer()
     if (this.isSubmitter) {
       this.poll()
-    } else {
-      this.commitmentContract.subscribeBlockSubmitted(
-        (blockNumber: BigNumber, _) => {
-          this.blockManager.setBlockNumber(blockNumber)
-        }
-      )
     }
   }
 
@@ -109,9 +103,10 @@ export default class Aggregator {
   }
 
   // TODO: what if part of the transactions are invalid?
-  private handleSendTransaction(req: Request, res: Response) {
+  private async handleSendTransaction(req: Request, res: Response) {
     const { data } = req.body
     const transactions: string[] = Array.isArray(data) ? data : [data]
+    const nextBlockNumber = await this.blockManager.getNextBlockNumber()
 
     Promise.all(
       transactions.map(async d => {
@@ -127,7 +122,7 @@ export default class Aggregator {
           // return null transaction receipt with status is FALSE when error occur while decoding.
           return new TransactionReceipt(
             TRANSACTION_STATUS.FALSE,
-            this.blockManager.nextBlockNumber,
+            nextBlockNumber,
             [],
             new Range(BigNumber.default(), BigNumber.default()),
             Address.default(),
@@ -241,7 +236,7 @@ export default class Aggregator {
     await sleep(BLOCK_INTERVAL)
     const block = await this.blockManager.generateNextBlock()
     if (block) {
-      this.submitBlock(block)
+      await this.submitBlock(block)
     }
     await this.poll()
   }
@@ -265,6 +260,7 @@ export default class Aggregator {
     tx: Transaction
   ): Promise<TransactionReceipt> {
     console.log('transaction received: ', tx.range, tx.depositContractAddress)
+    const nextBlockNumber = await this.blockManager.getNextBlockNumber()
     const stateUpdates = await this.stateManager.resolveStateUpdates(
       tx.range.start,
       tx.range.end
@@ -272,14 +268,14 @@ export default class Aggregator {
     try {
       const nextState = await this.stateManager.executeStateTransition(
         tx,
-        this.blockManager.nextBlockNumber,
+        nextBlockNumber,
         this.decider
       )
 
       await this.blockManager.enqueuePendingStateUpdate(nextState)
       return new TransactionReceipt(
         TRANSACTION_STATUS.TRUE,
-        this.blockManager.nextBlockNumber,
+        nextBlockNumber,
         stateUpdates.map(su => su.blockNumber),
         tx.range,
         tx.depositContractAddress,
@@ -289,7 +285,7 @@ export default class Aggregator {
     } catch (e) {
       return new TransactionReceipt(
         TRANSACTION_STATUS.FALSE,
-        this.blockManager.nextBlockNumber,
+        nextBlockNumber,
         stateUpdates.map(su => su.blockNumber),
         tx.range,
         tx.depositContractAddress,
@@ -306,11 +302,11 @@ export default class Aggregator {
   private depositHandlerFactory(
     depositContractAddress: Address
   ): (checkpointId: Bytes, checkpoint: [Range, Property]) => void {
-    return (checkpointId: Bytes, checkpoint: [Range, Property]) => {
+    return async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
+      const blockNumber = await this.blockManager.getCurrentBlockNumber()
       const stateUpdate = checkpoint[1]
       stateUpdate.inputs[1] = ovmContext.coder.encode(checkpoint[0].toStruct())
       const tx = new DepositTransaction(depositContractAddress, stateUpdate)
-      const blockNumber = this.blockManager.currentBlockNumber
       this.stateManager.insertDepositRange(tx, blockNumber)
     }
   }

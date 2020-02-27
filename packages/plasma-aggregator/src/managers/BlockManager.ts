@@ -22,47 +22,57 @@ const STATE_UPDATE_BUCKET = Bytes.fromString('queued_state_updates')
 const BLOCK_BUCKET = Bytes.fromString('block')
 
 export default class BlockManager {
-  private blockNumber: BigNumber
   private tokenList: Address[]
 
   constructor(private kvs: KeyValueStore) {
-    this.blockNumber = BigNumber.from(0)
     this.tokenList = []
   }
 
-  private async tokenBucket(addr: Address): Promise<RangeStore> {
+  private async tokenBucket(
+    blockNumber: BigNumber,
+    addr: Address
+  ): Promise<RangeStore> {
     const rangeDb = new RangeDb(await this.kvs.bucket(STATE_UPDATE_BUCKET))
-    return await rangeDb.bucket(Bytes.fromString(addr.data))
+    const blockBucket = await rangeDb.bucket(
+      ovmContext.coder.encode(blockNumber)
+    )
+    return await blockBucket.bucket(Bytes.fromString(addr.data))
   }
 
   /**
    * remove all state updates of given token address
    * @param addr token address which state updates belongs to, will be deleted
    */
-  private async clearTokenBucket(addr: Address) {
-    const db = await this.tokenBucket(addr)
+  private async clearTokenBucket(blockNumber: BigNumber, addr: Address) {
+    const db = await this.tokenBucket(blockNumber, addr)
     await db.del(
       JSBI.BigInt(0),
       JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(256))
     )
   }
 
-  public setBlockNumber(blockNumber: BigNumber) {
-    this.blockNumber = blockNumber
-  }
-
   /**
    * returns current block number
    */
-  public get currentBlockNumber() {
-    return this.blockNumber
+  public async getCurrentBlockNumber(): Promise<BigNumber> {
+    const data = await this.kvs.get(Bytes.fromString('blockNumber'))
+    if (!data) return BigNumber.from(0)
+    return ovmContext.coder.decode(BigNumber.default(), data)
   }
 
   /**
    * returns next block number
    */
-  public get nextBlockNumber() {
-    return BigNumber.from(JSBI.add(this.blockNumber.data, JSBI.BigInt(1)))
+  public async getNextBlockNumber(): Promise<BigNumber> {
+    const currentBlock = await this.getCurrentBlockNumber()
+    return BigNumber.from(JSBI.add(currentBlock.data, JSBI.BigInt(1)))
+  }
+
+  private async setBlockNumber(blockNumber: BigNumber): Promise<void> {
+    await this.kvs.put(
+      Bytes.fromString('blockNumber'),
+      ovmContext.coder.encode(blockNumber)
+    )
   }
 
   /**
@@ -71,8 +81,12 @@ export default class BlockManager {
    */
   public async enqueuePendingStateUpdate(su: StateUpdate) {
     console.log('enqueue state update', su)
+    const blockNumber = await this.getCurrentBlockNumber()
     const { start, end } = su.range
-    const bucket = await this.tokenBucket(su.depositContractAddress)
+    const bucket = await this.tokenBucket(
+      blockNumber,
+      su.depositContractAddress
+    )
     await bucket.put(
       start.data,
       end.data,
@@ -84,11 +98,16 @@ export default class BlockManager {
    * create next block with pending state updates in block
    * store new block and clear all pending updates in block db.
    */
-  public async generateNextBlock(): Promise<Block | undefined> {
+  public async generateNextBlock(): Promise<Block> {
+    const blockNumber = await this.getCurrentBlockNumber()
+    await this.setBlockNumber(
+      BigNumber.from(JSBI.add(JSBI.BigInt(1), blockNumber.data))
+    )
+
     const stateUpdatesMap = new Map()
-    const sus = await Promise.all(
+    await Promise.all(
       this.tokenList.map(async token => {
-        const db = await this.tokenBucket(token)
+        const db = await this.tokenBucket(blockNumber, token)
         const stateUpdateRanges: RangeRecord[] = []
         const cursor = db.iter(JSBI.BigInt(0))
         let su = await cursor.next()
@@ -106,23 +125,16 @@ export default class BlockManager {
         )
         stateUpdatesMap.set(token.data, stateUpdates)
 
-        await this.clearTokenBucket(token)
+        await this.clearTokenBucket(blockNumber, token)
         return stateUpdateRanges
       })
     )
 
-    if (sus.every(arr => arr.length === 0)) return
-
     const block = new Block(
-      BigNumber.from(JSBI.add(this.blockNumber.data, JSBI.BigInt(1))),
+      BigNumber.from(JSBI.add(blockNumber.data, JSBI.BigInt(1))),
       stateUpdatesMap
     )
     this.putBlock(block)
-
-    // increment blockNumber
-    this.blockNumber = BigNumber.from(
-      JSBI.add(this.blockNumber.data, JSBI.BigInt(1))
-    )
 
     return block
   }
