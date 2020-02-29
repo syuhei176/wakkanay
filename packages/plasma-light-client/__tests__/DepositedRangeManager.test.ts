@@ -31,7 +31,7 @@ describe('DepositedRangeManager', () => {
     )
     const bucket = await depositedRangeManager['getBucket'](Address.default())
     const ranges = await bucket.get(JSBI.BigInt(0), JSBI.BigInt(100))
-    expect(ranges).toEqual([
+    expect(ranges).toStrictEqual([
       new RangeRecord(
         BigNumber.from(0),
         BigNumber.from(100),
@@ -51,7 +51,7 @@ describe('DepositedRangeManager', () => {
     )
     const bucket = await depositedRangeManager['getBucket'](Address.default())
     const ranges = await bucket.get(JSBI.BigInt(0), JSBI.BigInt(100))
-    expect(ranges).toEqual([
+    expect(ranges).toStrictEqual([
       new RangeRecord(
         BigNumber.from(0),
         BigNumber.from(100),
@@ -71,7 +71,7 @@ describe('DepositedRangeManager', () => {
     )
     const bucket = await depositedRangeManager['getBucket'](Address.default())
     const ranges = await bucket.get(JSBI.BigInt(0), JSBI.BigInt(100))
-    expect(ranges).toEqual([
+    expect(ranges).toStrictEqual([
       new RangeRecord(
         BigNumber.from(0),
         BigNumber.from(30),
@@ -94,6 +94,6 @@ describe('DepositedRangeManager', () => {
       Address.default(),
       new Range(BigNumber.from(7), BigNumber.from(20))
     )
-    expect(depositedRangeId).toEqual(BigNumber.from(100))
+    expect(depositedRangeId).toStrictEqual(BigNumber.from(100))
   })
 })

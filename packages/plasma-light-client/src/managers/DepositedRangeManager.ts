@@ -1,6 +1,6 @@
 import { RangeStore } from '@cryptoeconomicslab/db'
 import { Address, Range, BigNumber } from '@cryptoeconomicslab/primitives'
-import JSBI from '@cryptoeconomicslab/primitives/node_modules/jsbi'
+import JSBI from 'jsbi'
 
 /**
  * DepositedRangeManager
