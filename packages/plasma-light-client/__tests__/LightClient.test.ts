@@ -1,9 +1,10 @@
 import LightClient from '../src/LightClient'
 import StateManager from '../src/managers/StateManager'
 import SyncManager from '../src/managers/SyncManager'
+import DepositedRangeManager from '../src/managers/DepositedRangeManager'
 import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
-import { replaceHint } from '@cryptoeconomicslab/db'
+import { replaceHint, RangeDb, KeyValueStore } from '@cryptoeconomicslab/db'
 import { IndexedDbKeyValueStore } from '@cryptoeconomicslab/indexeddb-kvs'
 import 'fake-indexeddb/auto'
 
@@ -28,9 +29,18 @@ const MockAdjudicationContract = jest.fn().mockImplementation(() => {
   }
 }) as jest.Mock<AdjudicationContract>
 
-const MockDepositContract = (DepositContract as unknown) as jest.Mock<
-  DepositContract
->
+const mockDeposit = jest.fn()
+
+const MockDepositContract = jest
+  .fn()
+  .mockImplementation((addr: Address, eventDb: KeyValueStore, wallet) => {
+    return {
+      address: addr,
+      deposit: mockDeposit,
+      subscribeDepositedRangeUpdated: jest.fn(),
+      subscribeCheckpointFinalized: jest.fn()
+    }
+  })
 
 const mockApprove = jest.fn()
 const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
@@ -77,9 +87,13 @@ async function initialize(): Promise<LightClient> {
   const stateDb = await kvs.bucket(Bytes.fromString('state'))
   const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
   const checkpointDb = await kvs.bucket(Bytes.fromString('checkpoint'))
+  const depositedRangeDb = await kvs.bucket(Bytes.fromString('depositedRange'))
   const syncManager = new SyncManager(syncDb)
   const stateManager = new StateManager(stateDb)
   const checkpointManager = new CheckpointManager(checkpointDb)
+  const depositedRangeManager = new DepositedRangeManager(
+    new RangeDb(depositedRangeDb)
+  )
   const wallet = new EthWallet(ethers.Wallet.createRandom())
   const eventDb = await kvs.bucket(Bytes.fromString('event'))
 
@@ -113,6 +127,7 @@ async function initialize(): Promise<LightClient> {
     stateManager,
     syncManager,
     checkpointManager,
+    depositedRangeManager,
     config as InitilizationConfig
   )
 }
@@ -142,8 +157,7 @@ describe('LightClient', () => {
         Integer.from(20)
       )
 
-      const depositContract = MockDepositContract.mock.instances[0]
-      expect(depositContract.deposit).toHaveBeenLastCalledWith(
+      expect(mockDeposit).toHaveBeenLastCalledWith(
         Integer.from(20),
         client.ownershipProperty(Address.from(client.address))
       )

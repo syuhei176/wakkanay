@@ -43,7 +43,12 @@ import { Keccak256 } from '@cryptoeconomicslab/hash'
 import JSBI from 'jsbi'
 
 import EventEmitter from 'event-emitter'
-import { StateManager, SyncManager, CheckpointManager } from './managers'
+import {
+  StateManager,
+  SyncManager,
+  CheckpointManager,
+  DepositedRangeManager
+} from './managers'
 import APIClient from './APIClient'
 
 enum EmitterEvent {
@@ -72,6 +77,7 @@ export default class LightClient {
     private stateManager: StateManager,
     private syncManager: SyncManager,
     private checkpointManager: CheckpointManager,
+    private depositedRangeManager: DepositedRangeManager,
     config: InitilizationConfig
   ) {
     this.deciderManager = new DeciderManager(witnessDb, ovmContext.coder)
@@ -402,6 +408,17 @@ export default class LightClient {
     const depositContractAddress = depositContract.address
     this.depositContracts.set(depositContractAddress.data, depositContract)
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
+
+    depositContract.subscribeDepositedRangeUpdated(
+      async (prevRange: Range, nextRanges: Range[]) => {
+        console.log('new deposited range detected: ', nextRanges)
+        await this.depositedRangeManager.updateRange(
+          depositContractAddress,
+          prevRange,
+          nextRanges
+        )
+      }
+    )
 
     depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
