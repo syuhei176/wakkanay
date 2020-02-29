@@ -33,7 +33,7 @@ export interface IDepositContract {
    */
   subscribeExitFinalized(handler: (exitId: Bytes) => void): void
 
-  subscribeDepositedRangeUpdated(
-    handler: (prevDepositedRange: Range, nextDepositedRanges: Range[]) => void
-  ): void
+  subscribeDepositedRangeExtended(handler: (range: Range) => void): void
+
+  subscribeDepositedRangeRemoved(handler: (range: Range) => void): void
 }
