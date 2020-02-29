@@ -43,7 +43,12 @@ import { Keccak256 } from '@cryptoeconomicslab/hash'
 import JSBI from 'jsbi'
 
 import EventEmitter from 'event-emitter'
-import { StateManager, SyncManager, CheckpointManager } from './managers'
+import {
+  StateManager,
+  SyncManager,
+  CheckpointManager,
+  DepositedRangeManager
+} from './managers'
 import APIClient from './APIClient'
 
 enum EmitterEvent {
@@ -72,6 +77,7 @@ export default class LightClient {
     private stateManager: StateManager,
     private syncManager: SyncManager,
     private checkpointManager: CheckpointManager,
+    private depositedRangeManager: DepositedRangeManager,
     config: InitilizationConfig
   ) {
     this.deciderManager = new DeciderManager(witnessDb, ovmContext.coder)
@@ -403,6 +409,20 @@ export default class LightClient {
     this.depositContracts.set(depositContractAddress.data, depositContract)
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
 
+    depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
+      await this.depositedRangeManager.extendRange(
+        depositContractAddress,
+        range
+      )
+    })
+
+    depositContract.subscribeDepositedRangeRemoved(async (range: Range) => {
+      await this.depositedRangeManager.removeRange(
+        depositContractAddress,
+        range
+      )
+    })
+
     depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
         const c = new Checkpoint(checkpoint[0], checkpoint[1])
@@ -526,10 +546,15 @@ export default class LightClient {
       }
     }
 
+    const depositedRangeId = await this.depositedRangeManager.getDepositedRangeId(
+      exit.stateUpdate.depositContractAddress,
+      exit.range
+    )
+
     await this.ownershipPayoutContract.finalizeExit(
       exit.stateUpdate.depositContractAddress,
       exitProperty,
-      exit.range.end,
+      depositedRangeId,
       Address.from(this.address)
     )
 

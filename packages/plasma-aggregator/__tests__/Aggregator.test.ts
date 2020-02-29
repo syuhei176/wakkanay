@@ -21,10 +21,7 @@ import {
 import Coder from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
 import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
-import {
-  CommitmentContract,
-  DepositContract
-} from '@cryptoeconomicslab/eth-contract'
+import { CommitmentContract } from '@cryptoeconomicslab/eth-contract'
 import JSBI from 'jsbi'
 import config from './config.local'
 setupContext({
@@ -33,6 +30,20 @@ setupContext({
 
 import { BlockManager, StateManager } from '../src/managers'
 import * as ethers from 'ethers'
+
+const mockDeposit = jest.fn()
+
+const MockDepositContract = jest
+  .fn()
+  .mockImplementation((addr: Address, eventDb: KeyValueStore, wallet) => {
+    return {
+      address: addr,
+      deposit: mockDeposit,
+      subscribeDepositedRangeExtended: jest.fn(),
+      subscribeDepositedRangeRemoved: jest.fn(),
+      subscribeCheckpointFinalized: jest.fn()
+    }
+  })
 
 const ALIS_WALLET = new EthWallet(ethers.Wallet.createRandom())
 const ALIS_ADDRESS = ALIS_WALLET.getAddress()
@@ -63,7 +74,7 @@ describe('Aggregator integration', () => {
     wallet = new EthWallet(ethers.Wallet.createRandom())
 
     function depositContractFactory(address: Address) {
-      return new DepositContract(address, eventDb, wallet.getEthersWallet())
+      return new MockDepositContract(address, eventDb, wallet.getEthersWallet())
     }
     function commitmentContractFactory(address: Address) {
       return new CommitmentContract(address, eventDb, wallet.getEthersWallet())
