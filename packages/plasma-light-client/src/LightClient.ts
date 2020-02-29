@@ -409,16 +409,19 @@ export default class LightClient {
     this.depositContracts.set(depositContractAddress.data, depositContract)
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
 
-    depositContract.subscribeDepositedRangeUpdated(
-      async (prevRange: Range, nextRanges: Range[]) => {
-        console.log('new deposited range detected: ', nextRanges)
-        await this.depositedRangeManager.updateRange(
-          depositContractAddress,
-          prevRange,
-          nextRanges
-        )
-      }
-    )
+    depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
+      await this.depositedRangeManager.extendRange(
+        depositContractAddress,
+        range
+      )
+    })
+
+    depositContract.subscribeDepositedRangeRemoved(async (range: Range) => {
+      await this.depositedRangeManager.removeRange(
+        depositContractAddress,
+        range
+      )
+    })
 
     depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
@@ -543,10 +546,15 @@ export default class LightClient {
       }
     }
 
+    const depositedRangeId = await this.depositedRangeManager.getDepositedRangeId(
+      exit.stateUpdate.depositContractAddress,
+      exit.range
+    )
+
     await this.ownershipPayoutContract.finalizeExit(
       exit.stateUpdate.depositContractAddress,
       exitProperty,
-      exit.range.end,
+      depositedRangeId,
       Address.from(this.address)
     )
 

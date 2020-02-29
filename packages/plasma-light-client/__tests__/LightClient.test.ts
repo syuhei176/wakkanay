@@ -10,7 +10,6 @@ import 'fake-indexeddb/auto'
 
 import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
 
-import { DepositContract } from '@cryptoeconomicslab/eth-contract/lib/contract/DepositContract'
 import { ERC20Contract } from '@cryptoeconomicslab/eth-contract/lib/contract/ERC20Contract'
 import { CommitmentContract } from '@cryptoeconomicslab/eth-contract/lib/contract/CommitmentContract'
 import { AdjudicationContract } from '@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract'
@@ -37,7 +36,8 @@ const MockDepositContract = jest
     return {
       address: addr,
       deposit: mockDeposit,
-      subscribeDepositedRangeUpdated: jest.fn(),
+      subscribeDepositedRangeExtended: jest.fn(),
+      subscribeDepositedRangeRemoved: jest.fn(),
       subscribeCheckpointFinalized: jest.fn()
     }
   })
@@ -332,6 +332,12 @@ describe('LightClient', () => {
     })
 
     test('finalizeExit', async () => {
+      // setup depositedRangeId
+      await client['depositedRangeManager'].extendRange(
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(50))
+      )
+
       const { coder } = ovmContext
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -345,7 +351,7 @@ describe('LightClient', () => {
       expect(mockFinalizeExit).toHaveBeenLastCalledWith(
         exit.stateUpdate.depositContractAddress,
         exit.toProperty(client['deciderManager'].getDeciderAddress('Exit')),
-        exit.range.end,
+        BigNumber.from(50),
         Address.from(client.address)
       )
     })
