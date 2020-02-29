@@ -96,4 +96,21 @@ describe('DepositedRangeManager', () => {
     )
     expect(depositedRangeId).toStrictEqual(BigNumber.from(100))
   })
+
+  test('fail to getDepositedRangeId with multiple ranges detected', async () => {
+    await depositedRangeManager.extendRange(
+      Address.default(),
+      new Range(BigNumber.from(0), BigNumber.from(100))
+    )
+    await depositedRangeManager.removeRange(
+      Address.default(),
+      new Range(BigNumber.from(40), BigNumber.from(50))
+    )
+    await expect(
+      depositedRangeManager.getDepositedRangeId(
+        Address.default(),
+        new Range(BigNumber.from(35), BigNumber.from(55))
+      )
+    ).rejects.toEqual(new Error('Multiple ranges detected'))
+  })
 })
