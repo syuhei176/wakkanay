@@ -45,20 +45,28 @@ describe('APIClient', () => {
   })
 
   describe('sendTransaction', () => {
+    const apiClient = new APIClient('http://test.com')
+    const tx = new Transaction(
+      Address.default(),
+      new Range(BigNumber.from(0), BigNumber.from(10)),
+      BigNumber.default(),
+      new Property(Address.default(), []),
+      Address.default()
+    )
     test('call sendTransaction', async () => {
-      const apiClient = new APIClient('http://test.com')
-      await apiClient.sendTransaction(
-        new Transaction(
-          Address.default(),
-          new Range(BigNumber.from(0), BigNumber.from(10)),
-          BigNumber.default(),
-          new Property(Address.default(), []),
-          Address.default()
-        )
-      )
+      await apiClient.sendTransaction(tx)
       expect(axios.post).toHaveBeenCalledWith('http://test.com/send_tx', {
         data:
           '0x5b22307830303030303030303030303030303030303030303030303030303030303030303030303030303030222c5b2230222c223130225d2c2230222c5b22307830303030303030303030303030303030303030303030303030303030303030303030303030303030222c5b5d5d2c22307830303030303030303030303030303030303030303030303030303030303030303030303030303030222c223078225d'
+      })
+    })
+
+    test('call sendTransaction with transactions', async () => {
+      await apiClient.sendTransaction([tx])
+      expect(axios.post).toHaveBeenCalledWith('http://test.com/send_tx', {
+        data: [
+          '0x5b22307830303030303030303030303030303030303030303030303030303030303030303030303030303030222c5b2230222c223130225d2c2230222c5b22307830303030303030303030303030303030303030303030303030303030303030303030303030303030222c5b5d5d2c22307830303030303030303030303030303030303030303030303030303030303030303030303030303030222c223078225d'
+        ]
       })
     })
   })
