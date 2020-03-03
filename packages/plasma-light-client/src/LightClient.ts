@@ -58,6 +58,10 @@ enum EmitterEvent {
   EXIT_FINALIZED = 'EXIT_FINALIZED'
 }
 
+interface LightClientOptions {
+  aggregatorEndpoint: string
+}
+
 export default class LightClient {
   private depositContracts: Map<string, IDepositContract> = new Map()
   private tokenContracts: Map<string, IERC20Contract> = new Map()
@@ -65,6 +69,7 @@ export default class LightClient {
   private ee = EventEmitter()
   private ownershipPredicate: CompiledPredicate
   private deciderManager: DeciderManager
+  private apiClient: APIClient
 
   constructor(
     private wallet: Wallet,
@@ -78,7 +83,10 @@ export default class LightClient {
     private syncManager: SyncManager,
     private checkpointManager: CheckpointManager,
     private depositedRangeManager: DepositedRangeManager,
-    config: InitilizationConfig
+    config: InitilizationConfig,
+    private options: LightClientOptions = {
+      aggregatorEndpoint: 'http://localhost:3000'
+    }
   ) {
     this.deciderManager = new DeciderManager(witnessDb, ovmContext.coder)
     this.deciderManager.loadJson(config)
@@ -89,6 +97,7 @@ export default class LightClient {
       throw new Error('Ownership not found')
     }
     this.ownershipPredicate = ownershipPredicate
+    this.apiClient = new APIClient(options.aggregatorEndpoint)
   }
 
   public ownershipProperty(owner: Address): Property {
@@ -181,7 +190,7 @@ export default class LightClient {
     this._syncing = true
     console.log(`syncing state: ${blockNumber}`)
     try {
-      const res = await APIClient.syncState(this.address, blockNumber)
+      const res = await this.apiClient.syncState(this.address, blockNumber)
       const stateUpdates: StateUpdate[] = res.data.map((s: string) =>
         StateUpdate.fromProperty(
           decodeStructable(Property, ovmContext.coder, Bytes.fromHexString(s))
@@ -189,7 +198,7 @@ export default class LightClient {
       )
       const { coder } = ovmContext
       const promises = stateUpdates.map(async su => {
-        const inclusionProof = await APIClient.inclusionProof(su)
+        const inclusionProof = await this.apiClient.inclusionProof(su)
         const hint = replaceHint(
           'proof.block${b}.range${token},RANGE,${range}',
           {
@@ -236,7 +245,7 @@ export default class LightClient {
         console.info(
           `Verify pended state update: (${su.range.start.data.toString()}, ${su.range.end.data.toString()})`
         )
-        const res = await APIClient.inclusionProof(su)
+        const res = await this.apiClient.inclusionProof(su)
         if (res.status === 404) {
           return
         }
@@ -344,7 +353,7 @@ export default class LightClient {
       })
     )
 
-    const res = await APIClient.sendTransaction(transactions)
+    const res = await this.apiClient.sendTransaction(transactions)
 
     if (Array.isArray(res.data)) {
       const receipts = res.data.map(d => {
