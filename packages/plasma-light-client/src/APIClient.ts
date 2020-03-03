@@ -2,7 +2,7 @@ import axios from 'axios'
 import { BigNumber } from '@cryptoeconomicslab/primitives'
 import { StateUpdate, Transaction } from '@cryptoeconomicslab/plasma'
 
-export class APIClient {
+class APIClient {
   constructor(readonly endpoint: string) {}
 
   syncState(address: string, blockNumber: BigNumber) {
