@@ -2,13 +2,16 @@ import { ed25519Verifier } from '../../src/verifier'
 import { Bytes } from '@cryptoeconomicslab/primitives'
 
 describe('ed25519Verifier', () => {
+  // This is publicKey of KeyStore from conceiljs
+  // TezosMessageUtils.writePublicKey(txWallet.publicKey)
   const publicKey = Bytes.fromHexString(
-    '0x6564706b7575474a34737348334e356b376f76776b42653136703872565831584c454e695a344641617972637755663973434b586e47'
+    '0x00a5d9062611ca949bc96970f9324b6519f214fa8181aeffde8c0fa32c2f31270c'
   )
   const message = Bytes.fromString('message')
   const signature = Bytes.fromHexString(
-    '0x677292276737c789d826e6e46fbcca4c768da3992074a68ab13d9e25e112c2075685c7a974fe0ab875bc8ac98f1cb3f2b0e053785f07ba608298b9e3389cf404'
+    '0xb7baa7cc67e64f3ca9f677292d04fc766b0503805946b832e3d85acea62c608cce953639a39776b15802850ac94ff8a2012c34377387ab0322093341b9d1bd07'
   )
+
   const invalidSignature = Bytes.fromHexString(
     '0x011e58abd9fd95dfd8535f8aecc54a0dbd0cba924b0ee964487436e5ec3a38e16d174470801904d00245455e22f195685da02152f677ef8df78c931b494a220f'
   )
