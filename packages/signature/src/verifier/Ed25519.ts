@@ -4,6 +4,7 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 
 export const ed25519Verifier: SignatureVerifier = {
   verify: async (message: Bytes, signature: Bytes, publicKey: Bytes) => {
+    // Tezos PublicKey has 0x00 prefix. Please see http://tezos-wiki.jp/wiki/index.php?title=List_of_address_prefixes
     const publicKeyHeaderAndBody = publicKey.split(1)
     const [sig, msg, pk] = [
       signature,
