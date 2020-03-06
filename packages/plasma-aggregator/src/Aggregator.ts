@@ -3,7 +3,7 @@ import {
   CompiledPredicate,
   DeciderManager,
   Property,
-  InitilizationConfig
+  DeciderConfig
 } from '@cryptoeconomicslab/ovm'
 import {
   Address,
@@ -55,7 +55,7 @@ export default class Aggregator {
     private witnessDb: KeyValueStore,
     private depositContractFactory: (address: Address) => IDepositContract,
     commitmentContractFactory: (address: Address) => ICommitmentContract,
-    config: InitilizationConfig,
+    config: DeciderConfig,
     private isSubmitter: boolean = false
   ) {
     this.decider = new DeciderManager(witnessDb, ovmContext.coder)

@@ -11,7 +11,7 @@ import {
 } from '@cryptoeconomicslab/plasma'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import { RangeStore, RangeDb, KeyValueStore } from '@cryptoeconomicslab/db'
-import { InitilizationConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
+import { DeciderConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
 import {
   Address,
   Bytes,
@@ -86,7 +86,7 @@ describe('Aggregator integration', () => {
       witnessDb,
       depositContractFactory,
       commitmentContractFactory,
-      config as InitilizationConfig
+      config as DeciderConfig
     )
     aggregator.registerToken(
       Address.from(config.payoutContracts.DepositContract)

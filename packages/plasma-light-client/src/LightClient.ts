@@ -9,7 +9,7 @@ import {
   Property,
   CompiledPredicate,
   DeciderManager,
-  InitilizationConfig
+  DeciderConfig
 } from '@cryptoeconomicslab/ovm'
 import {
   Address,
@@ -66,7 +66,7 @@ interface LightClientOptions {
   tokenContractFactory: (address: Address) => IERC20Contract
   commitmentContract: ICommitmentContract
   ownershipPayoutContract: IOwnershipPayoutContract
-  config: InitilizationConfig
+  deciderConfig: DeciderConfig
   aggregatorEndpoint?: string
 }
 
@@ -91,11 +91,11 @@ export default class LightClient {
     private syncManager: SyncManager,
     private checkpointManager: CheckpointManager,
     private depositedRangeManager: DepositedRangeManager,
-    config: InitilizationConfig,
+    deciderConfig: DeciderConfig,
     private aggregatorEndpoint: string = 'http://localhost:3000'
   ) {
     this.deciderManager = new DeciderManager(witnessDb, ovmContext.coder)
-    this.deciderManager.loadJson(config)
+    this.deciderManager.loadJson(deciderConfig)
     const ownershipPredicate = this.deciderManager.compiledPredicateMap.get(
       'Ownership'
     )
@@ -130,7 +130,7 @@ export default class LightClient {
       new SyncManager(syncDb),
       new CheckpointManager(checkpointDb),
       new DepositedRangeManager(new RangeDb(depositedRangeDb)),
-      options.config,
+      options.deciderConfig,
       options.aggregatorEndpoint
     )
   }

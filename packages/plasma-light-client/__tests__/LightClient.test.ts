@@ -70,8 +70,8 @@ import {
 } from '@cryptoeconomicslab/primitives'
 import { ethers } from 'ethers'
 import { CheckpointManager } from '../src/managers'
-import config from './config.local'
-import { InitilizationConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
+import deciderConfig from './config.local'
+import { DeciderConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
 import { StateUpdate, Exit } from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
 import {
@@ -112,7 +112,7 @@ async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
     tokenContractFactory,
     commitmentContract,
     ownershipPayoutContract,
-    config: config as InitilizationConfig,
+    deciderConfig: deciderConfig as DeciderConfig,
     aggregatorEndpoint
   })
 }
@@ -182,7 +182,8 @@ describe('LightClient', () => {
     beforeAll(() => {
       su1 = new StateUpdate(
         Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
         ),
         Address.default(),
         new Range(BigNumber.from(0), BigNumber.from(20)),
@@ -191,7 +192,8 @@ describe('LightClient', () => {
       )
       su2 = new StateUpdate(
         Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
         ),
         Address.default(),
         new Range(BigNumber.from(30), BigNumber.from(40)),
@@ -380,7 +382,8 @@ describe('LightClient', () => {
     const owner = client.getOwner(
       new StateUpdate(
         Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
         ),
         Address.default(),
         new Range(BigNumber.from(0), BigNumber.from(20)),

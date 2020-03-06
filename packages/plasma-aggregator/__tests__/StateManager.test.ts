@@ -15,7 +15,7 @@ import {
 import {
   DeciderManager,
   CompiledPredicate,
-  InitilizationConfig
+  DeciderConfig
 } from '@cryptoeconomicslab/ovm'
 import JsonCoder from '@cryptoeconomicslab/coder'
 import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
@@ -60,7 +60,7 @@ describe('StateManager', () => {
     const kvs = new InMemoryKeyValueStore(Bytes.fromString('test'))
     const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
     deciderManager = new DeciderManager(witnessDb, JsonCoder)
-    deciderManager.loadJson(config as InitilizationConfig)
+    deciderManager.loadJson(config as DeciderConfig)
     ownershipPredicate = deciderManager.compiledPredicateMap.get(
       'Ownership'
     ) as CompiledPredicate

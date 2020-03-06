@@ -46,7 +46,7 @@ export interface CompiledPredicateConfig {
   source: TranspilerCompiledPredicate[]
 }
 
-export interface InitilizationConfig {
+export interface DeciderConfig {
   logicalConnectiveAddressTable: {
     [key: string]: string
   }
@@ -59,7 +59,7 @@ export interface InitilizationConfig {
 
 export function initialize(
   deciderManager: DeciderManager,
-  config: InitilizationConfig
+  config: DeciderConfig
 ) {
   initializeDeciders(
     deciderManager,
