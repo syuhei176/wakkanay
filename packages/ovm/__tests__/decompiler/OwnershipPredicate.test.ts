@@ -95,7 +95,7 @@ describe('OwnershipPredicate', () => {
     const challengeProperty = new Property(
       deciderManager.getDeciderAddress('ForAllSuchThat'),
       [
-        Bytes.fromString('signatures,KEY,${tx}'),
+        Bytes.fromString(replaceHint('signatures,KEY,${tx}', { tx: MESSAGE })),
         Bytes.fromString('v0'),
         Coder.encode(
           new Property(deciderManager.getDeciderAddress('Not'), [
