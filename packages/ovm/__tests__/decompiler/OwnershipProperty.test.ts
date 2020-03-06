@@ -3,7 +3,9 @@ import {
   CompiledDecider,
   Property,
   DeciderManager,
-  FreeVariable
+  FreeVariable,
+  AtomicPredicate,
+  LogicalConnective
 } from '../../src'
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
@@ -23,7 +25,7 @@ const OWNERSHIP_SOURCE = `
 const MESSAGE = Bytes.fromString('message')
 const SECP256K1 = Bytes.fromHexString('0x736563703235366b31')
 
-describe('OwnershipPredicate', () => {
+describe('OwnershipProperty', () => {
   let wallet: Wallet,
     aliceAddress: Address,
     signer: Secp256k1Signer,
@@ -93,24 +95,29 @@ describe('OwnershipPredicate', () => {
     )
 
     const challengeProperty = new Property(
-      deciderManager.getDeciderAddress('ForAllSuchThat'),
+      deciderManager.getDeciderAddress(LogicalConnective.ForAllSuchThat),
       [
         Bytes.fromString(replaceHint('signatures,KEY,${tx}', { tx: MESSAGE })),
         Bytes.fromString('v0'),
         Coder.encode(
-          new Property(deciderManager.getDeciderAddress('Not'), [
-            Coder.encode(
-              new Property(
-                deciderManager.getDeciderAddress('IsValidSignature'),
-                [
-                  MESSAGE,
-                  FreeVariable.from('v0'),
-                  Coder.encode(aliceAddress),
-                  SECP256K1
-                ]
-              ).toStruct()
-            )
-          ]).toStruct()
+          new Property(
+            deciderManager.getDeciderAddress(LogicalConnective.Not),
+            [
+              Coder.encode(
+                new Property(
+                  deciderManager.getDeciderAddress(
+                    AtomicPredicate.IsValidSignature
+                  ),
+                  [
+                    MESSAGE,
+                    FreeVariable.from('v0'),
+                    Coder.encode(aliceAddress),
+                    SECP256K1
+                  ]
+                ).toStruct()
+              )
+            ]
+          ).toStruct()
         )
       ]
     )
