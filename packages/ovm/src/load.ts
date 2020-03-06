@@ -55,6 +55,12 @@ export interface DeciderConfig {
   }
   deployedPredicateTable: { [key: string]: CompiledPredicateConfig }
   constantVariableTable: { [key: string]: string }
+  adjudicationContract: string
+  commitmentContract: string
+  payoutContracts: {
+    [key: string]: string
+  }
+  PlasmaETH: string
 }
 
 export function initialize(
