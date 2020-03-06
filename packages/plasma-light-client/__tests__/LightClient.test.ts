@@ -81,7 +81,7 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 setupContext({ coder: JsonCoder })
 
-async function initialize(): Promise<LightClient> {
+async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
   const kvs = new IndexedDbKeyValueStore(Bytes.fromString('root'))
   const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
   const wallet = new EthWallet(ethers.Wallet.createRandom())
@@ -112,7 +112,8 @@ async function initialize(): Promise<LightClient> {
     tokenContractFactory,
     commitmentContract,
     ownershipPayoutContract,
-    config: config as InitilizationConfig
+    config: config as InitilizationConfig,
+    aggregatorEndpoint
   })
 }
 
@@ -140,6 +141,12 @@ describe('LightClient', () => {
       expect(client['depositedRangeManager']).toBeInstanceOf(
         DepositedRangeManager
       )
+      expect(client['aggregatorEndpoint']).toEqual('http://localhost:3000')
+    })
+    test('initialize with aggregatorEndpoint', async () => {
+      const aggregatorEndpoint = 'http://test.com'
+      const client = await initialize(aggregatorEndpoint)
+      expect(client['aggregatorEndpoint']).toEqual(aggregatorEndpoint)
     })
   })
 
