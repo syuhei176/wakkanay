@@ -112,8 +112,10 @@ export enum AtomicPredicate {
   Equal = 'Equal',
   Bool = 'Bool',
   LessThan = 'LessThan',
+  GreaterThan = 'GreaterThan',
   IsSameAmount = 'IsSameAmount',
-  IsContained = 'IsContained'
+  IsContained = 'IsContained',
+  IsHashPreimage = 'IsHashPreimage'
 }
 
 export type LogicalConnectiveStrings = keyof typeof LogicalConnective

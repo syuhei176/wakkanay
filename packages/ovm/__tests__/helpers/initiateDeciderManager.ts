@@ -102,7 +102,11 @@ export function initializeDeciderManager() {
     new ForAllSuchThatDecider(),
     LogicalConnective.ForAllSuchThat
   )
-  deciderManager.setDecider(GreaterThanDeciderAddress, new GreaterThanDecider())
+  deciderManager.setDecider(
+    GreaterThanDeciderAddress,
+    new GreaterThanDecider(),
+    AtomicPredicate.GreaterThan
+  )
   deciderManager.setDecider(
     ThereExistsSuchThatDeciderAddress,
     new ThereExistsSuchThatDecider(),
@@ -110,15 +114,13 @@ export function initializeDeciderManager() {
   )
   deciderManager.setDecider(
     IsHashPreimageDeciderAddress,
-    new IsHashPreimageDecider()
-  )
-  deciderManager.setDecider(
-    IsHashPreimageDeciderAddress,
-    new IsHashPreimageDecider()
+    new IsHashPreimageDecider(),
+    AtomicPredicate.IsHashPreimage
   )
   deciderManager.setDecider(
     IsValidSignatureDeciderAddress,
-    new IsValidSignatureDecider()
+    new IsValidSignatureDecider(),
+    AtomicPredicate.IsValidSignature
   )
   deciderManager.setDecider(
     EqualDeciderAddress,
