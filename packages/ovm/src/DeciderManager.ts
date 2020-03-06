@@ -3,7 +3,7 @@ import { KeyValueStore } from '@cryptoeconomicslab/db'
 import JsonCoder, { Coder } from '@cryptoeconomicslab/coder'
 import { Decider } from './interfaces/Decider'
 import { Property, Decision, FreeVariable } from './types'
-import { initialize, InitilizationConfig } from './load'
+import { initialize, DeciderConfig } from './load'
 import { CompiledPredicate } from './decompiler'
 import { TraceInfoCreator } from './Tracer'
 
@@ -35,7 +35,7 @@ export class DeciderManager implements DeciderManagerInterface {
    * load JSON file to initialize DeciderManager
    * @param config
    */
-  loadJson(config: InitilizationConfig) {
+  loadJson(config: DeciderConfig) {
     initialize(this, config)
   }
 

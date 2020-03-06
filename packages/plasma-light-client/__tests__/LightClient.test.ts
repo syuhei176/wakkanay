@@ -70,8 +70,8 @@ import {
 } from '@cryptoeconomicslab/primitives'
 import { ethers } from 'ethers'
 import { CheckpointManager } from '../src/managers'
-import config from './config.local'
-import { InitilizationConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
+import deciderConfig from './config.local'
+import { DeciderConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
 import { StateUpdate, Exit } from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
 import {
@@ -81,22 +81,11 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 setupContext({ coder: JsonCoder })
 
-async function initialize(): Promise<LightClient> {
+async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
   const kvs = new IndexedDbKeyValueStore(Bytes.fromString('root'))
-  const syncDb = await kvs.bucket(Bytes.fromString('sync'))
-  const stateDb = await kvs.bucket(Bytes.fromString('state'))
   const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
-  const checkpointDb = await kvs.bucket(Bytes.fromString('checkpoint'))
-  const depositedRangeDb = await kvs.bucket(Bytes.fromString('depositedRange'))
-  const syncManager = new SyncManager(syncDb)
-  const stateManager = new StateManager(stateDb)
-  const checkpointManager = new CheckpointManager(checkpointDb)
-  const depositedRangeManager = new DepositedRangeManager(
-    new RangeDb(depositedRangeDb)
-  )
   const wallet = new EthWallet(ethers.Wallet.createRandom())
   const eventDb = await kvs.bucket(Bytes.fromString('event'))
-
   const adjudicationContract = new MockAdjudicationContract(
     Address.from('0x8f0483125FCb9aaAEFA9209D8E9d7b9C8B9Fb90F'),
     eventDb,
@@ -113,10 +102,9 @@ async function initialize(): Promise<LightClient> {
     eventDb,
     wallet.getEthersWallet()
   )
-
   const ownershipPayoutContract = new MockOwnershipPayoutContract()
 
-  return new LightClient(
+  return await LightClient.initilize({
     wallet,
     witnessDb,
     adjudicationContract,
@@ -124,12 +112,9 @@ async function initialize(): Promise<LightClient> {
     tokenContractFactory,
     commitmentContract,
     ownershipPayoutContract,
-    stateManager,
-    syncManager,
-    checkpointManager,
-    depositedRangeManager,
-    config as InitilizationConfig
-  )
+    deciderConfig: deciderConfig as DeciderConfig,
+    aggregatorEndpoint
+  })
 }
 
 MockDepositContract.prototype.address = Address.default()
@@ -146,6 +131,25 @@ describe('LightClient', () => {
     client = await initialize()
     client.registerToken(defaultAddress, defaultAddress)
   })
+
+  describe('initialize', () => {
+    test('suceed to initialize', async () => {
+      const client = await initialize()
+      expect(client['stateManager']).toBeInstanceOf(StateManager)
+      expect(client['syncManager']).toBeInstanceOf(SyncManager)
+      expect(client['checkpointManager']).toBeInstanceOf(CheckpointManager)
+      expect(client['depositedRangeManager']).toBeInstanceOf(
+        DepositedRangeManager
+      )
+      expect(client['aggregatorEndpoint']).toEqual('http://localhost:3000')
+    })
+    test('initialize with aggregatorEndpoint', async () => {
+      const aggregatorEndpoint = 'http://test.com'
+      const client = await initialize(aggregatorEndpoint)
+      expect(client['aggregatorEndpoint']).toEqual(aggregatorEndpoint)
+    })
+  })
+
   describe('deposit', () => {
     test('deposit calls contract methods', async () => {
       // setup mock values
@@ -178,7 +182,8 @@ describe('LightClient', () => {
     beforeAll(() => {
       su1 = new StateUpdate(
         Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
         ),
         Address.default(),
         new Range(BigNumber.from(0), BigNumber.from(20)),
@@ -187,7 +192,8 @@ describe('LightClient', () => {
       )
       su2 = new StateUpdate(
         Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
         ),
         Address.default(),
         new Range(BigNumber.from(30), BigNumber.from(40)),
@@ -376,7 +382,8 @@ describe('LightClient', () => {
     const owner = client.getOwner(
       new StateUpdate(
         Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
         ),
         Address.default(),
         new Range(BigNumber.from(0), BigNumber.from(20)),
