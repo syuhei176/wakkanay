@@ -29,7 +29,6 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "bs58check": "^2.1.2",
     "ethers": "^4.0.43",
     "tweetnacl": "^1.0.3"
   },
