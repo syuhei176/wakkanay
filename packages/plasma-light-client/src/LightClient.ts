@@ -59,7 +59,15 @@ enum EmitterEvent {
 }
 
 interface LightClientOptions {
-  aggregatorEndpoint: string
+  wallet: Wallet
+  witnessDb: KeyValueStore
+  adjudicationContract: IAdjudicationContract
+  depositContractFactory: (address: Address) => IDepositContract
+  tokenContractFactory: (address: Address) => IERC20Contract
+  commitmentContract: ICommitmentContract
+  ownershipPayoutContract: IOwnershipPayoutContract
+  config: InitilizationConfig
+  aggregatorEndpoint?: string
 }
 
 export default class LightClient {
@@ -84,9 +92,7 @@ export default class LightClient {
     private checkpointManager: CheckpointManager,
     private depositedRangeManager: DepositedRangeManager,
     config: InitilizationConfig,
-    private options: LightClientOptions = {
-      aggregatorEndpoint: 'http://localhost:3000'
-    }
+    private aggregatorEndpoint: string = 'http://localhost:3000'
   ) {
     this.deciderManager = new DeciderManager(witnessDb, ovmContext.coder)
     this.deciderManager.loadJson(config)
@@ -97,7 +103,36 @@ export default class LightClient {
       throw new Error('Ownership not found')
     }
     this.ownershipPredicate = ownershipPredicate
-    this.apiClient = new APIClient(options.aggregatorEndpoint)
+    this.apiClient = new APIClient(this.aggregatorEndpoint)
+  }
+
+  /**
+   * Initialize Plasma Light Client by options
+   * @param options LightClientOptions to instantiate LightClient
+   */
+  static async initilize(options: LightClientOptions): Promise<LightClient> {
+    const witnessDb = options.witnessDb
+    const stateDb = await witnessDb.bucket(Bytes.fromString('state'))
+    const syncDb = await witnessDb.bucket(Bytes.fromString('sync'))
+    const checkpointDb = await witnessDb.bucket(Bytes.fromString('checkpoint'))
+    const depositedRangeDb = await witnessDb.bucket(
+      Bytes.fromString('depositedRange')
+    )
+    return new LightClient(
+      options.wallet,
+      options.witnessDb,
+      options.adjudicationContract,
+      options.depositContractFactory,
+      options.tokenContractFactory,
+      options.commitmentContract,
+      options.ownershipPayoutContract,
+      new StateManager(stateDb),
+      new SyncManager(syncDb),
+      new CheckpointManager(checkpointDb),
+      new DepositedRangeManager(new RangeDb(depositedRangeDb)),
+      options.config,
+      options.aggregatorEndpoint
+    )
   }
 
   public ownershipProperty(owner: Address): Property {

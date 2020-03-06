@@ -83,20 +83,9 @@ setupContext({ coder: JsonCoder })
 
 async function initialize(): Promise<LightClient> {
   const kvs = new IndexedDbKeyValueStore(Bytes.fromString('root'))
-  const syncDb = await kvs.bucket(Bytes.fromString('sync'))
-  const stateDb = await kvs.bucket(Bytes.fromString('state'))
   const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
-  const checkpointDb = await kvs.bucket(Bytes.fromString('checkpoint'))
-  const depositedRangeDb = await kvs.bucket(Bytes.fromString('depositedRange'))
-  const syncManager = new SyncManager(syncDb)
-  const stateManager = new StateManager(stateDb)
-  const checkpointManager = new CheckpointManager(checkpointDb)
-  const depositedRangeManager = new DepositedRangeManager(
-    new RangeDb(depositedRangeDb)
-  )
   const wallet = new EthWallet(ethers.Wallet.createRandom())
   const eventDb = await kvs.bucket(Bytes.fromString('event'))
-
   const adjudicationContract = new MockAdjudicationContract(
     Address.from('0x8f0483125FCb9aaAEFA9209D8E9d7b9C8B9Fb90F'),
     eventDb,
@@ -113,10 +102,9 @@ async function initialize(): Promise<LightClient> {
     eventDb,
     wallet.getEthersWallet()
   )
-
   const ownershipPayoutContract = new MockOwnershipPayoutContract()
 
-  return new LightClient(
+  return await LightClient.initilize({
     wallet,
     witnessDb,
     adjudicationContract,
@@ -124,12 +112,8 @@ async function initialize(): Promise<LightClient> {
     tokenContractFactory,
     commitmentContract,
     ownershipPayoutContract,
-    stateManager,
-    syncManager,
-    checkpointManager,
-    depositedRangeManager,
-    config as InitilizationConfig
-  )
+    config: config as InitilizationConfig
+  })
 }
 
 MockDepositContract.prototype.address = Address.default()
@@ -146,6 +130,19 @@ describe('LightClient', () => {
     client = await initialize()
     client.registerToken(defaultAddress, defaultAddress)
   })
+
+  describe('initialize', () => {
+    test('suceed to initialize', async () => {
+      const client = await initialize()
+      expect(client['stateManager']).toBeInstanceOf(StateManager)
+      expect(client['syncManager']).toBeInstanceOf(SyncManager)
+      expect(client['checkpointManager']).toBeInstanceOf(CheckpointManager)
+      expect(client['depositedRangeManager']).toBeInstanceOf(
+        DepositedRangeManager
+      )
+    })
+  })
+
   describe('deposit', () => {
     test('deposit calls contract methods', async () => {
       // setup mock values
