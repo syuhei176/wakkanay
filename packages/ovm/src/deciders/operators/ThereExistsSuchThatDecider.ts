@@ -7,6 +7,7 @@ import { TraceInfoCreator } from '../../Tracer'
 
 /**
  * ThereExists decides property to true if any quantified value fulfill proposition.
+ * inputs: Array<Bytes> [HintString, variableName, Property]
  */
 export class ThereExistsSuchThatDecider implements Decider {
   public async decide(

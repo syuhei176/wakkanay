@@ -7,6 +7,7 @@ import { TraceInfoCreator } from '../../Tracer'
 
 /**
  * ForDecider check quantifier and property.
+ * inputs:Array<Bytes> [HintString, variableName, Property]
  */
 export class ForAllSuchThatDecider implements Decider {
   public async decide(

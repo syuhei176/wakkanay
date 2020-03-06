@@ -7,7 +7,7 @@ import { getSignatureVerifier } from '@cryptoeconomicslab/signature'
 /**
  * IsHashPreimageDecider decide if given message is validly signed with given publicKey
  * with given signature algorithm.
- * inputs are tuple of four elements. (message, signature, publicKey, algorithm)
+ * inputs: Array<Bytes> [message, signature, publicKey, algorithm]
  */
 export class IsValidSignatureDecider implements Decider {
   public async decide(
