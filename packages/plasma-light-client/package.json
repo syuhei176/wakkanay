@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/plasma-light-client",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "light-client",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,27 +29,27 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.35",
-    "@cryptoeconomicslab/contract": "^0.0.35",
-    "@cryptoeconomicslab/db": "^0.0.35",
-    "@cryptoeconomicslab/hash": "^0.0.35",
+    "@cryptoeconomicslab/coder": "^0.0.36",
+    "@cryptoeconomicslab/contract": "^0.0.36",
+    "@cryptoeconomicslab/db": "^0.0.36",
+    "@cryptoeconomicslab/hash": "^0.0.36",
     "@cryptoeconomicslab/indexeddb-kvs": "^0.0.3",
-    "@cryptoeconomicslab/merkle-tree": "^0.0.35",
-    "@cryptoeconomicslab/ovm": "^0.0.35",
-    "@cryptoeconomicslab/plasma": "^0.0.35",
-    "@cryptoeconomicslab/wallet": "^0.0.35",
+    "@cryptoeconomicslab/merkle-tree": "^0.0.36",
+    "@cryptoeconomicslab/ovm": "^0.0.36",
+    "@cryptoeconomicslab/plasma": "^0.0.36",
+    "@cryptoeconomicslab/wallet": "^0.0.36",
     "axios": "^0.19.2",
     "event-emitter": "^0.3.5",
     "jsbi": "^3.1.1"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
-    "@cryptoeconomicslab/context": "^0.0.35",
+    "@cryptoeconomicslab/context": "^0.0.36",
     "@cryptoeconomicslab/eth-coder": "^0.0.1",
     "@cryptoeconomicslab/eth-contract": "^0.0.1",
     "@cryptoeconomicslab/eth-wallet": "^0.0.1",
     "@cryptoeconomicslab/level-kvs": "^0.0.4",
-    "@cryptoeconomicslab/primitives": "^0.0.35",
+    "@cryptoeconomicslab/primitives": "^0.0.36",
     "ethers": "^4.0.43",
     "fake-indexeddb": "^3.0.0"
   },

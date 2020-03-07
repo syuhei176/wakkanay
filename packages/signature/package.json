@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/signature",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "signatures and verifiers",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -33,7 +33,7 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/primitives": "^0.0.35",
+    "@cryptoeconomicslab/primitives": "^0.0.36",
     "@types/libsodium-wrappers-sumo": "^0.7.3"
   },
   "peerDependencies": {
