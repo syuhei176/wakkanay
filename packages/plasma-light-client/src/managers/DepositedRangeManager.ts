@@ -69,7 +69,8 @@ export default class DepositedRangeManager {
   ): Promise<BigNumber> {
     const bucket = await this.getBucket(depositContractAddress)
     const ranges = await bucket.get(range.start.data, range.end.data)
-    if (ranges.length !== 1) throw new Error('Multiple ranges detected')
+    if (ranges.length > 1) throw new Error('Multiple ranges detected')
+    if (ranges.length === 0) throw new Error('No range detected')
     return ranges[0].end
   }
 }
