@@ -1,6 +1,15 @@
 import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
-import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
-import { CompiledDecider, CompiledPredicate, Property } from '../../src'
+import {
+  initializeDeciderManager,
+  ForAllSuchThatDeciderAddress
+} from '../helpers/initiateDeciderManager'
+import {
+  CompiledDecider,
+  CompiledPredicate,
+  Property,
+  LogicalConnective,
+  FreeVariable
+} from '../../src'
 import Coder from '@cryptoeconomicslab/coder'
 import { testSource } from './TestSource'
 import { setupContext } from '@cryptoeconomicslab/context'
@@ -42,7 +51,7 @@ describe('CompiledDecider', () => {
     })
   })
 
-  test('false decision', async () => {
+  test('false decision for ForAll', async () => {
     const source = `@library
     @quantifier("range,NUMBER,\${zero}-\${upper_bound}")
     def LessThan(n, upper_bound) :=
@@ -73,6 +82,59 @@ describe('CompiledDecider', () => {
       property.inputs,
       {}
     )
+
+    const notAddress = deciderManager.getDeciderAddress(LogicalConnective.Not)
+
+    const challengeProperty = new Property(notAddress, [
+      Coder.encode(
+        new Property(TestPredicateAddress, [
+          Bytes.fromString('TestFO'),
+          FreeVariable.from('b'),
+          Coder.encode(BigNumber.from(10)),
+          Coder.encode(BigNumber.from(5))
+        ]).toStruct()
+      )
+    ])
+
+    const challengeProperty2 = new Property(
+      deciderManager.getDeciderAddress(LogicalConnective.And),
+      [
+        Coder.encode(
+          new Property(notAddress, [
+            Coder.encode(
+              new Property(TestPredicateAddress, [
+                Bytes.fromString('TestFO1N'),
+                Coder.encode(BigNumber.from(0)),
+                Coder.encode(BigNumber.from(10))
+              ]).toStruct()
+            )
+          ]).toStruct()
+        ),
+        Coder.encode(
+          new Property(notAddress, [
+            Coder.encode(
+              new Property(TestPredicateAddress, [
+                Bytes.fromString('TestFO2A'),
+                Coder.encode(BigNumber.from(5)),
+                Coder.encode(BigNumber.from(0))
+              ]).toStruct()
+            )
+          ]).toStruct()
+        )
+      ]
+    )
+
+    expect(decision.challenges).toStrictEqual([
+      {
+        challengeInput: Coder.encode(BigNumber.from(0)),
+        property: challengeProperty
+      },
+      {
+        challengeInput: null,
+        property: challengeProperty2
+      }
+    ])
+
     // Check the snapshot of decider
     expect(decision.traceInfo?.toJson()).toEqual({
       predicateName: 'ForAllSuchThat',
@@ -95,6 +157,77 @@ describe('CompiledDecider', () => {
             }
           }
         ]
+      }
+    })
+  })
+
+  test('false decision for ThereExists', async () => {
+    const source = `@library
+    @quantifier("range,NUMBER,\${zero}-\${upper_bound}")
+    def LessThan(n, upper_bound) :=
+      IsLessThan(n, upper_bound)
+        
+    def test(a, c) := LessThan(a).any(b -> Equal(c, b))
+    `
+    // An instance of compiled predicate "TestF(TestF, 10, 5)".
+    const property = new Property(TestPredicateAddress, [
+      Bytes.fromString('TestT'),
+      Coder.encode(BigNumber.from(5)),
+      Coder.encode(BigNumber.from(10))
+    ])
+
+    // Sets instance of CompiledDecider TestF
+    const compiledPredicate = CompiledPredicate.fromSource(
+      TestPredicateAddress,
+      source,
+      { zero: Coder.encode(BigNumber.from(0)).toHexString() }
+    )
+    const compiledDecider = new CompiledDecider(compiledPredicate)
+    deciderManager.setDecider(TestPredicateAddress, compiledDecider)
+
+    // TestF calls TestFA during deciding
+    const decision = await compiledDecider.decide(
+      deciderManager,
+      property.inputs,
+      {}
+    )
+
+    const notAddress = deciderManager.getDeciderAddress(LogicalConnective.Not)
+
+    const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
+      Bytes.fromString('range,NUMBER,0x223022-0x223522'),
+      Bytes.fromString('b'),
+      Coder.encode(
+        new Property(notAddress, [
+          Coder.encode(
+            new Property(TestPredicateAddress, [
+              Bytes.fromString('TestTA'),
+              FreeVariable.from('b'),
+              Coder.encode(BigNumber.from(5)),
+              Coder.encode(BigNumber.from(10))
+            ]).toStruct()
+          )
+        ]).toStruct()
+      )
+    ])
+
+    expect(decision.challenges).toStrictEqual([
+      {
+        challengeInput: null,
+        property: challengeProperty
+      }
+    ])
+
+    // Check the snapshot of decider
+    expect(decision.traceInfo?.toJson()).toEqual({
+      predicateName: 'ThereExistsSuchThat',
+      child: {
+        predicateName: 'And',
+        index: 1,
+        child: {
+          predicateName: 'EqualDecider',
+          inputs: ['0x22313022', '0x223022']
+        }
       }
     })
   })
