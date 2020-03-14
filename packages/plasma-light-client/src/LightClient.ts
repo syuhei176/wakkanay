@@ -156,6 +156,7 @@ export default class LightClient {
     })
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
+    this.watchAdjudicationContract()
   }
 
   /**
@@ -593,7 +594,30 @@ export default class LightClient {
     return Array.prototype.concat.apply([], exitList)
   }
 
-  // TODO: handling challenge game
+  private watchAdjudicationContract() {
+    this.adjudicationContract.subscribeNewPropertyClaimed(
+      async (gameId, property, createdBlock) => {
+        console.log('property is claimed', gameId, property, createdBlock)
+        if (
+          property.deciderAddress.data ===
+          this.deciderManager.getDeciderAddress('Exit').data
+        ) {
+          console.log('claim is exit claim')
+          const exit = Exit.fromProperty(property)
+          const { range, depositContractAddress } = exit.stateUpdate
+          const stateUpdates = await this.stateManager.getVerifiedStateUpdates(
+            depositContractAddress,
+            range
+          )
+          if (stateUpdates.length > 0) {
+            // TODO: challenge
+            const decision = await this.deciderManager.decide(property)
+            this.adjudicationContract.challenge(gameId, [], gameId)
+          }
+        }
+      }
+    )
+  }
 
   //
   // Events subscriptions
