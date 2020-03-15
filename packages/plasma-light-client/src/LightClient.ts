@@ -550,6 +550,7 @@ export default class LightClient {
     const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
       // TODO: who should decideClaim to true?
+      // TODO: check if challenge period is over
       try {
         await this.adjudicationContract.decideClaimToTrue(exit.id)
       } catch (e) {
