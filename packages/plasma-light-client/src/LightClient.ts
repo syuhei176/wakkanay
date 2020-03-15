@@ -16,7 +16,8 @@ import {
   Bytes,
   BigNumber,
   Integer,
-  Range
+  Range,
+  List
 } from '@cryptoeconomicslab/primitives'
 import {
   KeyValueStore,
@@ -610,9 +611,20 @@ export default class LightClient {
             range
           )
           if (stateUpdates.length > 0) {
-            // TODO: challenge
             const decision = await this.deciderManager.decide(property)
-            this.adjudicationContract.challenge(gameId, [], gameId)
+            if (!decision.outcome && decision.challenges.length > 0) {
+              const challenge = decision.challenges[0]
+              const challengingGameId = Keccak256.hash(
+                ovmContext.coder.encode(challenge.property.toStruct())
+              )
+              this.adjudicationContract.challenge(
+                gameId,
+                challenge.challengeInput
+                  ? List.from(Bytes, [challenge.challengeInput])
+                  : List.from(Bytes, []),
+                challengingGameId
+              )
+            }
           }
         }
       }
