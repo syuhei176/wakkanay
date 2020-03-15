@@ -603,9 +603,11 @@ export default class LightClient {
           property.deciderAddress.data ===
           this.deciderManager.getDeciderAddress('Exit').data
         ) {
-          console.log('claim is exit claim')
+          console.log('Exit property claimed')
           const exit = Exit.fromProperty(property)
           const { range, depositContractAddress } = exit.stateUpdate
+
+          // TODO: implement general way to check if client should challenge claimed property.
           const stateUpdates = await this.stateManager.getVerifiedStateUpdates(
             depositContractAddress,
             range
