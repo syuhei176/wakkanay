@@ -122,6 +122,10 @@ export default class LightClient {
     return this.syncing
   }
 
+  private async getClaimDb(): Promise<KeyValueStore> {
+    return await this.witnessDb.bucket(Bytes.fromString('claimedProperty'))
+  }
+
   /**
    * get balance method
    * returns array of {tokenAddress: string, amount: number}
@@ -519,10 +523,11 @@ export default class LightClient {
           const bucket = await exitDb.bucket(
             coder.encode(stateUpdate.depositContractAddress)
           )
+          const propertyBytes = coder.encode(exitProperty.toStruct())
           bucket.put(
             stateUpdate.range.start.data,
             stateUpdate.range.end.data,
-            coder.encode(exitProperty.toStruct())
+            propertyBytes
           )
           await this.stateManager.removeVerifiedStateUpdate(
             stateUpdate.depositContractAddress,
@@ -532,6 +537,9 @@ export default class LightClient {
             stateUpdate.depositContractAddress,
             stateUpdate
           )
+          const id = Keccak256.hash(propertyBytes)
+          const propertyDb = await this.getClaimDb()
+          propertyDb.put(id, propertyBytes)
         })
       )
     } else {
@@ -549,10 +557,12 @@ export default class LightClient {
     const exitProperty = exit.toProperty(predicate.deployedAddress)
     const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
-      // TODO: who should decideClaim to true?
       // TODO: check if challenge period is over
       try {
         await this.adjudicationContract.decideClaimToTrue(exit.id)
+        // remove property from undecided db
+        const db = await this.getClaimDb()
+        await db.del(exit.id)
       } catch (e) {
         throw new Error(`Exit property is not decided: ${exit}`)
       }
