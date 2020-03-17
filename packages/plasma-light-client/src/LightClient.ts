@@ -668,6 +668,13 @@ export default class LightClient {
         }
       }
     )
+
+    this.adjudicationContract.subscribeClaimDecided(
+      async (gameId, decision) => {
+        const db = await this.getClaimDb()
+        await db.del(gameId)
+      }
+    )
   }
 
   //
