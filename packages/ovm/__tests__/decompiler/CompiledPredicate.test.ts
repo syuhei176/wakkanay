@@ -292,6 +292,30 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
         })
       ).toEqual(expectedProperty)
     })
+
+    it('creating InputPredicateCall does not support ConstantInput as extra', () => {
+      const compiledPredicate = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        'def test(a) := Bool(a) and a($Constant)'
+      )
+      const definition = compiledPredicate.compiled.contracts[0]
+      const predicateCall = definition.inputs[1] as AtomicProposition
+      const a = new Property(TestPredicateAddress, [
+        Bytes.fromString('TestA'),
+        Coder.encode(BigNumber.from(301))
+      ])
+      const compiledProperty = new Property(TestPredicateAddress, [
+        Bytes.fromString('TestA'),
+        Coder.encode(a.toStruct())
+      ])
+      expect(() => {
+        createAtomicPropositionCall(predicateCall, definition, {
+          compiledProperty,
+          predicateTable: deciderManager.shortnameMap,
+          constantTable: { Constant: Bytes.default() }
+        })
+      }).toThrowError("It doesn't support ConstantInput in InputPredicateCall")
+    })
   })
 
   describe('constructInput', () => {
