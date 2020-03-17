@@ -162,12 +162,12 @@ export default class LightClient {
   }
 
   /**
-   * get balance method
-   * returns array of {tokenAddress: string, amount: number}
+   * Get current balance of tokens in plasma.
+   * All ERC20 tokens including Peth registered by `registerCustomToken` method or `registerToken` method are included.
    */
   public async getBalance(): Promise<
     Array<{
-      tokenAddress: string
+      depositContractAddress: string
       amount: number
     }>
   > {
@@ -178,7 +178,7 @@ export default class LightClient {
         new Range(BigNumber.from(0), BigNumber.from(10000)) // TODO: get all stateUpdate method
       )
       return {
-        tokenAddress: addr,
+        depositContractAddress: addr,
         amount: data.reduce((p, s) => p + Number(s.amount), 0)
       }
     })
@@ -332,21 +332,22 @@ export default class LightClient {
   }
 
   /**
-   * Deposit given amount of given ERC20Contract's token to corresponding deposit contract.
+   * Deposit given amount of token to corresponding deposit contract.
+   * this method calls `approve` method of ERC20 contract and `deposit` method
+   * of Deposit contract.
    * @param amount amount to deposit
-   * @param erc20ContractAddress ERC20 token address, undefined for ETH
+   * @param depositContractAddress deposit contract address to deposit into
    */
-  public async deposit(amount: number, addr: string) {
-    const erc20ContractAddress = Address.from(addr)
+  public async deposit(amount: number, depositContractAddress: string) {
+    const addr = Address.from(depositContractAddress)
     const myAddress = this.wallet.getAddress()
-    const depositContract = this.getDepositContract(erc20ContractAddress)
-    const tokenContract = this.getTokenContract(erc20ContractAddress)
-    // console.log('deposit: ', depositContract, tokenContract)
-    if (!depositContract || !tokenContract) {
+    const depositContract = this.getDepositContract(addr)
+    const erc20Contract = this.getERC20TokenContract(addr)
+    if (!depositContract || !erc20Contract) {
       throw new Error('Contract not found')
     }
 
-    await tokenContract.approve(depositContract.address, Integer.from(amount))
+    await erc20Contract.approve(depositContract.address, Integer.from(amount))
     await depositContract.deposit(
       Integer.from(amount),
       this.ownershipProperty(myAddress)
@@ -427,26 +428,28 @@ export default class LightClient {
 
   /**
    * given ERC20 deposit contract address, returns corresponding deposit contract.
-   * @param erc20ContractAddress ERC20 contract address
+   * @param depositContractAddress deposit contract address
    */
   private getDepositContract(
-    erc20ContractAddress: Address
+    depositContractAddress: Address
   ): IDepositContract | undefined {
-    return this.depositContracts.get(erc20ContractAddress.data)
+    return this.depositContracts.get(depositContractAddress.data)
   }
 
   /**
-   * given ERC20 deposit contract address, returns ERC20 contract instance.
-   * @param erc20ContractAddress ERC20 contract address
+   * given deposit contract address, returns ERC20 contract instance.
+   * @param depositContractAddress corresponding deposit contract address
    */
-  private getTokenContract(
-    erc20ContractAddress: Address
+  private getERC20TokenContract(
+    depositContractAddress: Address
   ): IERC20Contract | undefined {
-    return this.tokenContracts.get(erc20ContractAddress.data)
+    return this.tokenContracts.get(depositContractAddress.data)
   }
 
   /**
-   * register custom token.
+   * register ERC20 custom token.
+   * ERC20 contract wrapper is passed directly. This method should be used
+   * when you want to use custom IERC20 contract. PETH contract use this method.
    * @param erc20Contract IERC20Contract instance
    * @param depositContract IDepositContract instance
    */
@@ -500,7 +503,8 @@ export default class LightClient {
   }
 
   /**
-   * register new ERC20 token
+   * register ERC20 token.
+   * use default ERC20 contract wrapper
    * @param erc20ContractAddress ERC20 token address to register
    * @param depositContractAddress deposit contract address connecting to tokenAddress above
    */
@@ -518,14 +522,18 @@ export default class LightClient {
   }
 
   /**
-   * initiate exit process
+   * Withdrawal process starts from calling this method.
+   * Given amount and depositContractAddress, checks if client has sufficient token amount.
+   * If client has sufficient amount, create exitProperty from stateUpdates this client owns,
+   * calls `claimProperty` method on UniversalAdjudicationContract. Store the property in exitList.
+   * User can call `finalizeExit` to withdraw actual token after the exitProperty is decided to true on-chain.
    * @param amount amount to exit
-   * @param address deposit contract address to exit
+   * @param depositContractAddress deposit contract address to exit
    */
-  public async exit(amount: number, address: string) {
-    const depositContractAddress = Address.from(address)
+  public async exit(amount: number, depositContractAddress: string) {
+    const addr = Address.from(depositContractAddress)
     const stateUpdates = await this.stateManager.resolveStateUpdate(
-      depositContractAddress,
+      addr,
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
@@ -583,7 +591,11 @@ export default class LightClient {
   }
 
   /**
-   * finalize exit to withdraw token from deposit contract
+   * Given exit instance, finalize exit to withdraw token from deposit contract.
+   * Client checks if the exitProperty of the exit instance is decided by calling `isDecided` method
+   * of UniversalAdjudicationContract. If the property claim have not been decided yet, call `decideClaimToTrue`.
+   * If the exitProperty had been decided to true, call `finalizeExit` method of corresponding payout contract.
+   *
    * @param exit Exit object to finalize
    */
   public async finalizeExit(exit: Exit) {
@@ -618,6 +630,9 @@ export default class LightClient {
     this.ee.emit(EmitterEvent.EXIT_FINALIZED, exit.id)
   }
 
+  /**
+   * Get pending exit list
+   */
   public async getExitlist(): Promise<Exit[]> {
     const { coder } = ovmContext
     const exitDb = new RangeDb(
