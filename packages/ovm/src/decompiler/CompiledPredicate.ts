@@ -192,7 +192,7 @@ export const createAtomicPropositionCall = (
       context.compiledProperty.inputs[input.predicate.source.inputIndex]
     )
     const extraInputBytes = input.inputs.map(i => {
-      if (i.type == 'NormalInput') {
+      if (i.type === 'NormalInput') {
         return context.compiledProperty.inputs[i.inputIndex]
       } else {
         throw new Error(`It doesn't support ${i.type} in InputPredicateCall`)
