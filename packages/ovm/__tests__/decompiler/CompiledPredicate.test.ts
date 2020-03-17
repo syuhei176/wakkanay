@@ -314,7 +314,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
           predicateTable: deciderManager.shortnameMap,
           constantTable: { Constant: Bytes.default() }
         })
-      }).toThrowError("It doesn't support ConstantInput in InputPredicateCall")
+      }).toThrow("It doesn't support ConstantInput in InputPredicateCall")
     })
   })
 
