@@ -191,9 +191,13 @@ export const createAtomicPropositionCall = (
       ovmContext.coder,
       context.compiledProperty.inputs[input.predicate.source.inputIndex]
     )
-    const extraInputBytes = input.inputs.map(
-      i => context.compiledProperty.inputs[(i as NormalInput).inputIndex]
-    )
+    const extraInputBytes = input.inputs.map(i => {
+      if (i.type === 'NormalInput') {
+        return context.compiledProperty.inputs[i.inputIndex]
+      } else {
+        throw new Error(`It doesn't support ${i.type} in InputPredicateCall`)
+      }
+    })
     property.inputs = property.inputs.concat(extraInputBytes)
     return ovmContext.coder.encode(property.toStruct())
   } else if (input.predicate.type == 'VariablePredicateCall') {
