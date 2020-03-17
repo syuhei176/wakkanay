@@ -2,11 +2,12 @@ import { Bytes } from '@cryptoeconomicslab/primitives'
 import { getWitnesses, isHint, replaceHint } from '@cryptoeconomicslab/db'
 import { Decider } from '../../interfaces/Decider'
 import { DeciderManager } from '../../DeciderManager'
-import { Property } from '../../types'
+import { Property, LogicalConnective } from '../../types'
 import { TraceInfoCreator } from '../../Tracer'
 
 /**
  * ThereExists decides property to true if any quantified value fulfill proposition.
+ * inputs: Array<Bytes> [HintString, variableName, Property]
  */
 export class ThereExistsSuchThatDecider implements Decider {
   public async decide(
@@ -14,6 +15,7 @@ export class ThereExistsSuchThatDecider implements Decider {
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes } = {}
   ) {
+    const { coder } = ovmContext
     let witnesses: Bytes[]
     if (isHint(inputs[0])) {
       witnesses = await getWitnesses(
@@ -24,7 +26,7 @@ export class ThereExistsSuchThatDecider implements Decider {
       throw new Error('inputs[0] must be valid hint data.')
     }
     const innerProperty = Property.fromStruct(
-      ovmContext.coder.decode(Property.getParamType(), inputs[2])
+      coder.decode(Property.getParamType(), inputs[2])
     )
     const variableName = inputs[1].intoString()
 
@@ -36,10 +38,27 @@ export class ThereExistsSuchThatDecider implements Decider {
         })
       })
     )
+    const outcome = decisions.some(d => d.outcome)
     const childTraceInfo = decisions.find(d => d.outcome === false)?.traceInfo
+    const challenge = {
+      challengeInput: null,
+      property: new Property(
+        manager.getDeciderAddress(LogicalConnective.ForAllSuchThat),
+        [
+          inputs[0],
+          inputs[1],
+          coder.encode(
+            new Property(manager.getDeciderAddress(LogicalConnective.Not), [
+              inputs[2]
+            ]).toStruct()
+          )
+        ]
+      )
+    }
+
     return {
       outcome: decisions.some(d => d.outcome),
-      challenges: [],
+      challenges: outcome ? [] : [challenge],
       traceInfo: childTraceInfo
         ? TraceInfoCreator.createThere(childTraceInfo)
         : undefined

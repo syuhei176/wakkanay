@@ -16,7 +16,8 @@ import {
   Bytes,
   BigNumber,
   Integer,
-  Range
+  Range,
+  List
 } from '@cryptoeconomicslab/primitives'
 import {
   KeyValueStore,
@@ -156,6 +157,10 @@ export default class LightClient {
     return this.syncing
   }
 
+  private async getClaimDb(): Promise<KeyValueStore> {
+    return await this.witnessDb.bucket(Bytes.fromString('claimedProperty'))
+  }
+
   /**
    * get balance method
    * returns array of {tokenAddress: string, amount: number}
@@ -191,6 +196,7 @@ export default class LightClient {
     })
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
+    this.watchAdjudicationContract()
   }
 
   /**
@@ -552,10 +558,11 @@ export default class LightClient {
           const bucket = await exitDb.bucket(
             coder.encode(stateUpdate.depositContractAddress)
           )
+          const propertyBytes = coder.encode(exitProperty.toStruct())
           bucket.put(
             stateUpdate.range.start.data,
             stateUpdate.range.end.data,
-            coder.encode(exitProperty.toStruct())
+            propertyBytes
           )
           await this.stateManager.removeVerifiedStateUpdate(
             stateUpdate.depositContractAddress,
@@ -565,6 +572,9 @@ export default class LightClient {
             stateUpdate.depositContractAddress,
             stateUpdate
           )
+          const id = Keccak256.hash(propertyBytes)
+          const propertyDb = await this.getClaimDb()
+          propertyDb.put(id, propertyBytes)
         })
       )
     } else {
@@ -582,9 +592,12 @@ export default class LightClient {
     const exitProperty = exit.toProperty(predicate.deployedAddress)
     const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
-      // TODO: who should decideClaim to true?
+      // TODO: check if challenge period is over
       try {
         await this.adjudicationContract.decideClaimToTrue(exit.id)
+        // remove property from undecided db
+        const db = await this.getClaimDb()
+        await db.del(exit.id)
       } catch (e) {
         throw new Error(`Exit property is not decided: ${exit}`)
       }
@@ -628,7 +641,76 @@ export default class LightClient {
     return Array.prototype.concat.apply([], exitList)
   }
 
-  // TODO: handling challenge game
+  private watchAdjudicationContract() {
+    this.adjudicationContract.subscribeClaimChallenged(
+      async (gameId, challengeGameId) => {
+        const db = await this.getClaimDb()
+        const property = db.get(gameId)
+        if (property) {
+          // challenged property is the one this client claimed
+          const game = await this.adjudicationContract.getGame(challengeGameId)
+          const decision = await this.deciderManager.decide(game.property)
+          if (!decision.outcome) {
+            // challenge again
+            const challenge = decision.challenges[0]
+            const challengingGameId = Keccak256.hash(
+              ovmContext.coder.encode(challenge.property.toStruct())
+            )
+            this.adjudicationContract.challenge(
+              gameId,
+              challenge.challengeInput
+                ? List.from(Bytes, [challenge.challengeInput])
+                : List.from(Bytes, []),
+              challengingGameId
+            )
+          }
+        }
+      }
+    )
+
+    this.adjudicationContract.subscribeNewPropertyClaimed(
+      async (gameId, property, createdBlock) => {
+        console.log('property is claimed', gameId, property, createdBlock)
+        if (
+          property.deciderAddress.data ===
+          this.deciderManager.getDeciderAddress('Exit').data
+        ) {
+          console.log('Exit property claimed')
+          const exit = Exit.fromProperty(property)
+          const { range, depositContractAddress } = exit.stateUpdate
+
+          // TODO: implement general way to check if client should challenge claimed property.
+          const stateUpdates = await this.stateManager.getVerifiedStateUpdates(
+            depositContractAddress,
+            range
+          )
+          if (stateUpdates.length > 0) {
+            const decision = await this.deciderManager.decide(property)
+            if (!decision.outcome && decision.challenges.length > 0) {
+              const challenge = decision.challenges[0]
+              const challengingGameId = Keccak256.hash(
+                ovmContext.coder.encode(challenge.property.toStruct())
+              )
+              this.adjudicationContract.challenge(
+                gameId,
+                challenge.challengeInput
+                  ? List.from(Bytes, [challenge.challengeInput])
+                  : List.from(Bytes, []),
+                challengingGameId
+              )
+            }
+          }
+        }
+      }
+    )
+
+    this.adjudicationContract.subscribeClaimDecided(
+      async (gameId, decision) => {
+        const db = await this.getClaimDb()
+        await db.del(gameId)
+      }
+    )
+  }
 
   //
   // Events subscriptions
