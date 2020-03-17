@@ -607,6 +607,32 @@ export default class LightClient {
   }
 
   private watchAdjudicationContract() {
+    this.adjudicationContract.subscribeClaimChallenged(
+      async (gameId, challengeGameId) => {
+        const db = await this.getClaimDb()
+        const property = db.get(gameId)
+        if (property) {
+          // challenged property is the one this client claimed
+          const game = await this.adjudicationContract.getGame(challengeGameId)
+          const decision = await this.deciderManager.decide(game.property)
+          if (!decision.outcome) {
+            // challenge again
+            const challenge = decision.challenges[0]
+            const challengingGameId = Keccak256.hash(
+              ovmContext.coder.encode(challenge.property.toStruct())
+            )
+            this.adjudicationContract.challenge(
+              gameId,
+              challenge.challengeInput
+                ? List.from(Bytes, [challenge.challengeInput])
+                : List.from(Bytes, []),
+              challengingGameId
+            )
+          }
+        }
+      }
+    )
+
     this.adjudicationContract.subscribeNewPropertyClaimed(
       async (gameId, property, createdBlock) => {
         console.log('property is claimed', gameId, property, createdBlock)
