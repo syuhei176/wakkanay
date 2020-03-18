@@ -72,7 +72,11 @@ import { ethers } from 'ethers'
 import { CheckpointManager } from '../src/managers'
 import deciderConfig from './config.local'
 import { DeciderConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
-import { StateUpdate, Exit } from '@cryptoeconomicslab/plasma'
+import {
+  StateUpdate,
+  Exit,
+  PlasmaContractConfig
+} from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
 import {
   DoubleLayerInclusionProof,
@@ -112,7 +116,7 @@ async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
     tokenContractFactory,
     commitmentContract,
     ownershipPayoutContract,
-    deciderConfig: deciderConfig as DeciderConfig,
+    deciderConfig: deciderConfig as DeciderConfig & PlasmaContractConfig,
     aggregatorEndpoint
   })
 }

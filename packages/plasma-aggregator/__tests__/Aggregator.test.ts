@@ -7,7 +7,8 @@ import {
   DepositTransaction,
   Transaction,
   StateUpdate,
-  TRANSACTION_STATUS
+  TRANSACTION_STATUS,
+  PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import { RangeStore, RangeDb, KeyValueStore } from '@cryptoeconomicslab/db'
@@ -86,7 +87,8 @@ describe('Aggregator integration', () => {
       witnessDb,
       depositContractFactory,
       commitmentContractFactory,
-      config as DeciderConfig
+      config as DeciderConfig & PlasmaContractConfig,
+      {}
     )
     aggregator.registerToken(
       Address.from(config.payoutContracts.DepositContract)

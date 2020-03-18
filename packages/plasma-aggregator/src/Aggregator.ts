@@ -17,7 +17,8 @@ import {
   TransactionReceipt,
   DepositTransaction,
   TRANSACTION_STATUS,
-  Block
+  Block,
+  PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import { KeyValueStore } from '@cryptoeconomicslab/db'
 import {
@@ -32,17 +33,17 @@ import { BlockManager, StateManager } from './managers'
 import { sleep } from './utils'
 import cors from 'cors'
 
-const HTTP_PORT = Number(process.env.PORT || 3000)
-const BLOCK_INTERVAL = Number(process.env.BLOCK_INTERVAL || 10000)
-const COMMITMENT_CONTRACT_ADDRESS = process.env
-  .COMMITMENT_CONTRACT_ADDRESS as string
-
 export default class Aggregator {
   readonly decider: DeciderManager
   private depositContracts: IDepositContract[] = []
   private commitmentContract: ICommitmentContract
   private httpServer: Express
   private ownershipPredicate: CompiledPredicate
+  private option: {
+    isSubmitter: boolean
+    port: number
+    blockInterval: number
+  }
 
   /**
    * instantiate aggregator
@@ -55,12 +56,25 @@ export default class Aggregator {
     private witnessDb: KeyValueStore,
     private depositContractFactory: (address: Address) => IDepositContract,
     commitmentContractFactory: (address: Address) => ICommitmentContract,
-    config: DeciderConfig,
-    private isSubmitter: boolean = false
+    config: DeciderConfig & PlasmaContractConfig,
+    {
+      isSubmitter = false,
+      port = 3000,
+      blockInterval = 15000
+    }: {
+      isSubmitter?: boolean
+      port?: number
+      blockInterval?: number
+    }
   ) {
+    this.option = {
+      isSubmitter,
+      port,
+      blockInterval
+    }
     this.decider = new DeciderManager(witnessDb, ovmContext.coder)
     this.commitmentContract = commitmentContractFactory(
-      Address.from(COMMITMENT_CONTRACT_ADDRESS)
+      Address.from(config.commitmentContract)
     )
     this.decider.loadJson(config)
     const ownershipPredicate = this.decider.compiledPredicateMap.get(
@@ -80,7 +94,7 @@ export default class Aggregator {
    */
   public run() {
     this.runHttpServer()
-    if (this.isSubmitter) {
+    if (this.option.isSubmitter) {
       this.poll()
     }
   }
@@ -97,8 +111,8 @@ export default class Aggregator {
       this.handleGetInclusionProof.bind(this)
     )
 
-    this.httpServer.listen(HTTP_PORT, () =>
-      console.log(`server is listening on port ${HTTP_PORT}!`)
+    this.httpServer.listen(this.option.port, () =>
+      console.log(`server is listening on port ${this.option.port}!`)
     )
   }
 
@@ -233,7 +247,7 @@ export default class Aggregator {
    * generate next block and submit to commitment contract
    */
   private async poll() {
-    await sleep(BLOCK_INTERVAL)
+    await sleep(this.option.blockInterval)
     const block = await this.blockManager.generateNextBlock()
     if (block) {
       await this.submitBlock(block)

@@ -3,7 +3,8 @@ import {
   Transaction,
   TransactionReceipt,
   Checkpoint,
-  Exit
+  Exit,
+  PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import {
   Property,
@@ -67,7 +68,7 @@ interface LightClientOptions {
   tokenContractFactory: (address: Address) => IERC20Contract
   commitmentContract: ICommitmentContract
   ownershipPayoutContract: IOwnershipPayoutContract
-  deciderConfig: DeciderConfig
+  deciderConfig: DeciderConfig & PlasmaContractConfig
   aggregatorEndpoint?: string
 }
 
