@@ -17,7 +17,8 @@ import {
   TransactionReceipt,
   DepositTransaction,
   TRANSACTION_STATUS,
-  Block
+  Block,
+  PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import { KeyValueStore } from '@cryptoeconomicslab/db'
 import {
@@ -34,8 +35,6 @@ import cors from 'cors'
 
 const HTTP_PORT = Number(process.env.PORT || 3000)
 const BLOCK_INTERVAL = Number(process.env.BLOCK_INTERVAL || 10000)
-const COMMITMENT_CONTRACT_ADDRESS = process.env
-  .COMMITMENT_CONTRACT_ADDRESS as string
 
 export default class Aggregator {
   readonly decider: DeciderManager
@@ -55,12 +54,12 @@ export default class Aggregator {
     private witnessDb: KeyValueStore,
     private depositContractFactory: (address: Address) => IDepositContract,
     commitmentContractFactory: (address: Address) => ICommitmentContract,
-    config: DeciderConfig,
+    config: DeciderConfig & PlasmaContractConfig,
     private isSubmitter: boolean = false
   ) {
     this.decider = new DeciderManager(witnessDb, ovmContext.coder)
     this.commitmentContract = commitmentContractFactory(
-      Address.from(COMMITMENT_CONTRACT_ADDRESS)
+      Address.from(config.commitmentContract)
     )
     this.decider.loadJson(config)
     const ownershipPredicate = this.decider.compiledPredicateMap.get(
