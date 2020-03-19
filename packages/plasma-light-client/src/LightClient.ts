@@ -31,6 +31,7 @@ import {
   ICommitmentContract,
   IDepositContract,
   IERC20Contract,
+  IERC20DetailedContract,
   IAdjudicationContract,
   IOwnershipPayoutContract
 } from '@cryptoeconomicslab/contract'
@@ -52,6 +53,7 @@ import {
   DepositedRangeManager
 } from './managers'
 import APIClient from './APIClient'
+import TokenManager from './managers/TokenManager'
 
 enum EmitterEvent {
   CHECKPOINT_FINALIZED = 'CHECKPOINT_FINALIZED',
@@ -65,7 +67,7 @@ interface LightClientOptions {
   witnessDb: KeyValueStore
   adjudicationContract: IAdjudicationContract
   depositContractFactory: (address: Address) => IDepositContract
-  tokenContractFactory: (address: Address) => IERC20Contract
+  tokenContractFactory: (address: Address) => IERC20DetailedContract
   commitmentContract: ICommitmentContract
   ownershipPayoutContract: IOwnershipPayoutContract
   deciderConfig: DeciderConfig & PlasmaContractConfig
@@ -80,13 +82,14 @@ export default class LightClient {
   private ownershipPredicate: CompiledPredicate
   private deciderManager: DeciderManager
   private apiClient: APIClient
+  private tokenManager: TokenManager
 
   constructor(
     private wallet: Wallet,
     private witnessDb: KeyValueStore,
     private adjudicationContract: IAdjudicationContract,
     private depositContractFactory: (address: Address) => IDepositContract,
-    private tokenContractFactory: (address: Address) => IERC20Contract,
+    private tokenContractFactory: (address: Address) => IERC20DetailedContract,
     private commitmentContract: ICommitmentContract,
     private ownershipPayoutContract: IOwnershipPayoutContract,
     private stateManager: StateManager,
@@ -106,6 +109,7 @@ export default class LightClient {
     }
     this.ownershipPredicate = ownershipPredicate
     this.apiClient = new APIClient(this.aggregatorEndpoint)
+    this.tokenManager = new TokenManager()
   }
 
   /**
@@ -170,6 +174,7 @@ export default class LightClient {
     Array<{
       depositContractAddress: string
       amount: number
+      decimals: number
     }>
   > {
     const addrs = Array.from(this.depositContracts.keys())
@@ -178,9 +183,14 @@ export default class LightClient {
         Address.from(addr),
         new Range(BigNumber.from(0), BigNumber.from(10000)) // TODO: get all stateUpdate method
       )
+      const tokenAddress = this.tokenContracts.get(addr)
+      if (!tokenAddress) {
+        throw new Error(`token contract(${addr}) not found.`)
+      }
       return {
         depositContractAddress: addr,
-        amount: data.reduce((p, s) => p + Number(s.amount), 0)
+        amount: data.reduce((p, s) => p + Number(s.amount), 0),
+        decimals: this.tokenManager.getDecimal(tokenAddress.address)
       }
     })
     return await Promise.all(resultPromise)
@@ -454,14 +464,15 @@ export default class LightClient {
    * @param erc20Contract IERC20Contract instance
    * @param depositContract IDepositContract instance
    */
-  public registerCustomToken(
-    erc20Contract: IERC20Contract,
+  public async registerCustomToken(
+    erc20Contract: IERC20DetailedContract,
     depositContract: IDepositContract
   ) {
     console.log('contracts set for token:', erc20Contract.address.data)
     const depositContractAddress = depositContract.address
     this.depositContracts.set(depositContractAddress.data, depositContract)
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
+    await this.tokenManager.addTokenContract(erc20Contract)
 
     depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
       await this.depositedRangeManager.extendRange(
