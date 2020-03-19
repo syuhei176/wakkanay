@@ -38,7 +38,6 @@ export class ThereExistsSuchThatDecider implements Decider {
         })
       })
     )
-    const outcome = decisions.some(d => d.outcome)
     const index = decisions.findIndex(d => d.outcome)
     const childTraceInfo = decisions.find(d => d.outcome === false)?.traceInfo
     const challenge = {
@@ -57,20 +56,25 @@ export class ThereExistsSuchThatDecider implements Decider {
       )
     }
 
-    let nextWitnesses: Bytes[] | undefined = undefined
     if (index >= 0) {
+      let nextWitnesses: Bytes[] | undefined = undefined
       const witness = witnesses[index]
       const childWitnesses = decisions[index].witnesses || []
       nextWitnesses = childWitnesses.concat([witness])
-    }
-
-    return {
-      outcome,
-      witnesses: nextWitnesses,
-      challenges: outcome ? [] : [challenge],
-      traceInfo: childTraceInfo
-        ? TraceInfoCreator.createThere(childTraceInfo)
-        : undefined
+      return {
+        outcome: true,
+        witnesses: nextWitnesses,
+        challenges: []
+      }
+    } else {
+      return {
+        outcome: false,
+        witnesses: [],
+        challenges: [challenge],
+        traceInfo: childTraceInfo
+          ? TraceInfoCreator.createThere(childTraceInfo)
+          : undefined
+      }
     }
   }
 }

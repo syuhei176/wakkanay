@@ -46,7 +46,11 @@ describe('ThereExistsSuchThatDecider', () => {
     ])
 
     const decision = await deciderManager.decide(property)
-    expect(decision.outcome).toBeTruthy()
+    expect(decision).toEqual({
+      outcome: true,
+      witnesses: [Bytes.fromHexString('0x223022')],
+      challenges: []
+    })
   })
 
   test('ThereDoesNotExists positive integer n of number less than 5 such that n is greater than 10.', async () => {

@@ -82,8 +82,7 @@ describe('OwnershipProperty', () => {
         )
       ],
       challenges: [],
-      outcome: true,
-      traceInfo: undefined
+      outcome: true
     })
   })
 
