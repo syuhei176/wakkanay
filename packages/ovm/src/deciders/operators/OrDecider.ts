@@ -1,4 +1,4 @@
-import { Bytes } from '@cryptoeconomicslab/primitives'
+import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, LogicalConnective } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
@@ -16,6 +16,7 @@ export class OrDecider implements Decider {
     } catch (e) {
       return {
         outcome: false,
+        witnesses: [],
         challenges: [],
         traceInfo: TraceInfoCreator.exception(
           'Or connective has an invalid child.'
@@ -29,9 +30,14 @@ export class OrDecider implements Decider {
       })
     )
 
-    if (decisions.some(d => d.outcome)) {
+    const index = decisions.findIndex(d => d.outcome)
+    if (index >= 0) {
+      const childWitnesses = decisions[index].witnesses || []
       return {
         outcome: true,
+        witnesses: childWitnesses.concat([
+          ovmContext.coder.encode(Integer.from(index))
+        ]),
         challenges: []
       }
     }
@@ -53,6 +59,7 @@ export class OrDecider implements Decider {
 
     return {
       outcome: false,
+      witnesses: [],
       challenges: [challenge],
       traceInfo: TraceInfoCreator.createOr(
         decisions.map(d => d.traceInfo).filter(t => !!t) as TraceInfo[]

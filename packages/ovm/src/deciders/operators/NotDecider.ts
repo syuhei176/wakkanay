@@ -20,6 +20,7 @@ export class NotDecider implements Decider {
     const decision = await manager.decide(property)
     return {
       outcome: !decision.outcome,
+      witnesses: [],
       challenges: [
         {
           property: property,

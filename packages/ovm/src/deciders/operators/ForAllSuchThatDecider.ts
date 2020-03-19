@@ -50,6 +50,7 @@ export class ForAllSuchThatDecider implements Decider {
         }
         return {
           outcome: false,
+          witnesses: [],
           challenges: [challenge].concat(decision.challenges),
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createFor(q, decision.traceInfo)
@@ -61,6 +62,7 @@ export class ForAllSuchThatDecider implements Decider {
     return (
       falseDecision || {
         outcome: true,
+        witnesses: [],
         challenges: []
       }
     )

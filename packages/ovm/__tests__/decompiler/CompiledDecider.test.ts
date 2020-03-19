@@ -46,6 +46,7 @@ describe('CompiledDecider', () => {
     )
 
     expect(decision).toEqual({
+      witnesses: [],
       challenges: [],
       outcome: true
     })

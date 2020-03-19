@@ -34,7 +34,11 @@ describe('AndDecider', () => {
       trueProperty,
       trueProperty
     ])
-    expect(decision.outcome).toEqual(true)
+    expect(decision).toEqual({
+      outcome: true,
+      witnesses: [Bytes.fromHexString('0x5b5d'), Bytes.fromHexString('0x5b5d')],
+      challenges: []
+    })
   })
   it('decide and(true, false)', async () => {
     const andDecider = new AndDecider()

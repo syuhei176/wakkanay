@@ -14,6 +14,9 @@ export interface Challenge {
 
 export interface Decision {
   outcome: boolean
+  // witnesses is empty if outcome is false
+  witnesses?: Bytes[]
+  // challenges is empty if outcome is true
   challenges: Challenge[]
   // traceInfo is the snapshot when false decision is made.
   // If outcome is true, traceInfo is undefined.

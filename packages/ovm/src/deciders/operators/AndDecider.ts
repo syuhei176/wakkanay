@@ -1,4 +1,4 @@
-import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
+import { Bytes, Integer, List } from '@cryptoeconomicslab/primitives'
 import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManagerInterface } from '../../DeciderManager'
@@ -20,6 +20,7 @@ export class AndDecider implements Decider {
     } catch (e) {
       return {
         outcome: false,
+        witnesses: [],
         challenges: [],
         traceInfo: TraceInfoCreator.exception(
           'And connective has an invalid child.'
@@ -31,7 +32,7 @@ export class AndDecider implements Decider {
       properties.map(async (p: Property, index: number) => {
         const decision = await manager.decide(p)
         if (decision.outcome) {
-          return null
+          return decision
         }
         const challenge: Challenge = {
           property: new Property(
@@ -42,6 +43,7 @@ export class AndDecider implements Decider {
         }
         return {
           outcome: false,
+          witnesses: [],
           challenges: [challenge].concat(decision.challenges),
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createAnd(index, decision.traceInfo)
@@ -49,12 +51,17 @@ export class AndDecider implements Decider {
         }
       })
     )
-    const filteredDecisions = decisions.filter(r => !!r)
-    if (filteredDecisions[0]) {
-      return filteredDecisions[0]
+    const falseDecisions = decisions.filter(d => d.outcome === false)
+    if (falseDecisions[0]) {
+      return falseDecisions[0]
     }
+    // every decisions must be true
+    const witnesses = decisions.map(d =>
+      ovmContext.coder.encode(List.from(Bytes, d.witnesses || []))
+    )
     return {
       outcome: true,
+      witnesses,
       challenges: []
     }
   }
