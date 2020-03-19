@@ -32,6 +32,6 @@ describe('TokenManager', () => {
     const tokenAddress = Address.default()
     expect(() => {
       tokenManager.getDecimal(tokenAddress)
-    }).toThrow('')
+    }).toThrow(`Token description(${tokenAddress.data}) not found.`)
   })
 })
