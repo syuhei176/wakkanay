@@ -5,7 +5,7 @@ import {
   OrDecider,
   encodeProperty
 } from '../../src'
-import { Bytes } from '@cryptoeconomicslab/primitives'
+import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
 import JsonCoder from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
@@ -62,6 +62,7 @@ describe('OrDecider', () => {
       trueProperty
     ])
     expect(decision.outcome).toEqual(true)
+    expect(decision.witnesses).toEqual([JsonCoder.encode(Integer.from(1))])
   })
 
   test('decide or(true, false) to true', async () => {
@@ -71,6 +72,7 @@ describe('OrDecider', () => {
       falseProperty
     ])
     expect(decision.outcome).toEqual(true)
+    expect(decision.witnesses).toEqual([JsonCoder.encode(Integer.from(0))])
   })
 
   test('decide or(true, true) to true', async () => {

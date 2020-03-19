@@ -9,6 +9,7 @@ import {
 } from '../helpers/initiateDeciderManager'
 import { Property, FreeVariable, DeciderManager } from '../../src'
 import { setupContext } from '@cryptoeconomicslab/context'
+import JsonCoder from '@cryptoeconomicslab/coder'
 setupContext({ coder: Coder })
 
 describe('ThereExistsSuchThatDecider', () => {
@@ -48,7 +49,7 @@ describe('ThereExistsSuchThatDecider', () => {
     const decision = await deciderManager.decide(property)
     expect(decision).toEqual({
       outcome: true,
-      witnesses: [Bytes.fromHexString('0x223022')],
+      witnesses: [JsonCoder.encode(BigNumber.from(0))],
       challenges: []
     })
   })
@@ -97,5 +98,6 @@ describe('ThereExistsSuchThatDecider', () => {
 
     const decision = await deciderManager.decide(property)
     expect(decision.outcome).toBeTruthy()
+    expect(decision.witnesses).toEqual([signature])
   })
 })
