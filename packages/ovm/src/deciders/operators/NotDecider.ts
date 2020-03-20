@@ -7,6 +7,7 @@ import { TraceInfoCreator } from '../../Tracer'
 /**
  * NotDecider recieves one input and returns logical negation of its decision.
  * If decision outcome is false, valid challenge is inner property.
+ * NotDecider never return witnesses.
  */
 export class NotDecider implements Decider {
   public async decide(

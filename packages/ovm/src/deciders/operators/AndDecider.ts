@@ -7,7 +7,10 @@ import { TraceInfoCreator } from '../../Tracer'
 
 /**
  * AndDecider recieves multiple inputs and returns logical and of those decision.
- * If decision outcome is false, valid challenge is a negation of a inner property.
+ * If decision outcome is true, AndDecider returns encoded witnesses of each child properties.
+ * If decision outcome is false, valid challenge is a negation of a inner property and index of the inner property is `challengeInput`.
+ * The valid challenge of And(p0, p1, ...) is Not(p_index) and `challengeInput` is index of false property.
+ *    However, if p_index is not atomic proposition, AndDecider should return valid challenge of "p_index".
  */
 export class AndDecider implements Decider {
   public async decide(
