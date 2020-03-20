@@ -17,16 +17,44 @@ import {
   CompiledPredicate,
   DeciderConfig
 } from '@cryptoeconomicslab/ovm'
+import { Balance } from '@cryptoeconomicslab/wallet'
+import {
+  Secp256k1Signer,
+  secp256k1Verifier
+} from '@cryptoeconomicslab/signature'
 import JsonCoder from '@cryptoeconomicslab/coder'
-import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
 import { setupContext } from '@cryptoeconomicslab/context'
 import config from './config.local'
 import { ethers } from 'ethers'
 setupContext({ coder: JsonCoder })
 
+// mock wallet
+const MockWallet = jest.fn().mockImplementation(() => {
+  const w = ethers.Wallet.createRandom()
+  const signingKey = new ethers.utils.SigningKey(w.privateKey)
+  const address = w.address
+
+  return {
+    getAddress: () => Address.from(address),
+    getL1Balance: async (tokenAddress?: Address) => {
+      return new Balance(BigNumber.from(0), 18, 'eth')
+    },
+    signMessage: async (message: Bytes) => {
+      const signer = new Secp256k1Signer(
+        Bytes.fromHexString(signingKey.privateKey)
+      )
+      return signer.sign(message)
+    },
+    verifyMySignature: async (message: Bytes, signature: Bytes) => {
+      const publicKey = Bytes.fromHexString(address)
+      return await secp256k1Verifier.verify(message, signature, publicKey)
+    }
+  }
+})
+
 const DEPOSIT_ADDRESS = Address.default()
-const ALIS_WALLET = new EthWallet(ethers.Wallet.createRandom())
-const BOB_WALLET = new EthWallet(ethers.Wallet.createRandom())
+const ALIS_WALLET = new MockWallet()
+const BOB_WALLET = new MockWallet()
 const ALIS_ADDRESS = ALIS_WALLET.getAddress()
 const BOB_ADDRESS = BOB_WALLET.getAddress()
 

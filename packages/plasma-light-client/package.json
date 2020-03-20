@@ -40,20 +40,18 @@
     "@cryptoeconomicslab/wallet": "^0.0.36",
     "axios": "^0.19.2",
     "event-emitter": "^0.3.5",
-    "jsbi": "^3.1.1"
+    "jsbi": "^3.1.2"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
     "@cryptoeconomicslab/context": "^0.0.36",
-    "@cryptoeconomicslab/eth-coder": "^0.0.1",
-    "@cryptoeconomicslab/eth-contract": "^0.0.1",
-    "@cryptoeconomicslab/eth-wallet": "^0.0.1",
-    "@cryptoeconomicslab/level-kvs": "^0.0.4",
+    "@cryptoeconomicslab/level-kvs": "^0.0.6",
     "@cryptoeconomicslab/primitives": "^0.0.36",
-    "ethers": "^4.0.43",
+    "@cryptoeconomicslab/signature": "0.0.36",
+    "ethers": "^4.0.46",
     "fake-indexeddb": "^3.0.0"
   },
   "peerDependencies": {
-    "@cryptoeconomicslab/primitives": "^0.0.6"
+    "@cryptoeconomicslab/primitives": "^0.0.36"
   }
 }

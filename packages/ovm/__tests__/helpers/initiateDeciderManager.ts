@@ -75,7 +75,7 @@ export function initializeDeciderManager() {
   deciderManager.setDecider(
     SampleDeciderAddress,
     new SampleDecider(),
-    AtomicPredicate.Bool
+    AtomicPredicate.Foo
   )
   deciderManager.setDecider(
     NotDeciderAddress,

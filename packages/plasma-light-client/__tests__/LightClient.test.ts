@@ -4,20 +4,9 @@ import SyncManager from '../src/managers/SyncManager'
 import DepositedRangeManager from '../src/managers/DepositedRangeManager'
 import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
-import { replaceHint, RangeDb, KeyValueStore } from '@cryptoeconomicslab/db'
+import { replaceHint, KeyValueStore } from '@cryptoeconomicslab/db'
 import { IndexedDbKeyValueStore } from '@cryptoeconomicslab/indexeddb-kvs'
 import 'fake-indexeddb/auto'
-
-import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
-
-import { ERC20Contract } from '@cryptoeconomicslab/eth-contract/lib/contract/ERC20Contract'
-import { CommitmentContract } from '@cryptoeconomicslab/eth-contract/lib/contract/CommitmentContract'
-import { AdjudicationContract } from '@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract'
-
-jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/AdjudicationContract')
-jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/DepositContract')
-jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/ERC20Contract')
-jest.mock('@cryptoeconomicslab/eth-contract/lib/contract/CommitmentContract')
 
 const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
@@ -26,13 +15,13 @@ const MockAdjudicationContract = jest.fn().mockImplementation(() => {
     isDecided: mockIsDecided,
     claimProperty: mockClaimProperty
   }
-}) as jest.Mock<AdjudicationContract>
+})
 
 const mockDeposit = jest.fn()
 
 const MockDepositContract = jest
   .fn()
-  .mockImplementation((addr: Address, eventDb: KeyValueStore, wallet) => {
+  .mockImplementation((addr: Address, eventDb: KeyValueStore) => {
     return {
       address: addr,
       deposit: mockDeposit,
@@ -48,11 +37,13 @@ const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
     approve: mockApprove,
     address
   }
-}) as jest.Mock<ERC20Contract>
+})
 
-const MockCommitmentContract = (CommitmentContract as unknown) as jest.Mock<
-  CommitmentContract
->
+const MockCommitmentContract = jest
+  .fn()
+  .mockImplementation((addr: Address, eventDb: KeyValueStore) => ({
+    submitRoot: () => undefined
+  }))
 
 const mockFinalizeExit = jest.fn()
 const MockOwnershipPayoutContract = jest.fn().mockImplementation(() => {
@@ -78,6 +69,11 @@ import {
   PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
+import { Balance } from '@cryptoeconomicslab/wallet'
+import {
+  Secp256k1Signer,
+  secp256k1Verifier
+} from '@cryptoeconomicslab/signature'
 import {
   DoubleLayerInclusionProof,
   IntervalTreeInclusionProof,
@@ -85,26 +81,48 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 setupContext({ coder: JsonCoder })
 
+// mock wallet
+const MockWallet = jest.fn().mockImplementation(() => {
+  const w = ethers.Wallet.createRandom()
+  const signingKey = new ethers.utils.SigningKey(w.privateKey)
+  const address = w.address
+
+  return {
+    getAddress: () => Address.from(address),
+    getL1Balance: async (tokenAddress?: Address) => {
+      return new Balance(BigNumber.from(0), 18, 'eth')
+    },
+    signMessage: async (message: Bytes) => {
+      const signer = new Secp256k1Signer(
+        Bytes.fromHexString(signingKey.privateKey)
+      )
+      return signer.sign(message)
+    },
+    verifyMySignature: async (message: Bytes, signature: Bytes) => {
+      const publicKey = Bytes.fromHexString(address)
+      return await secp256k1Verifier.verify(message, signature, publicKey)
+    }
+  }
+})
+
 async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
   const kvs = new IndexedDbKeyValueStore(Bytes.fromString('root'))
   const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
-  const wallet = new EthWallet(ethers.Wallet.createRandom())
+  const wallet = new MockWallet()
   const eventDb = await kvs.bucket(Bytes.fromString('event'))
   const adjudicationContract = new MockAdjudicationContract(
     Address.from('0x8f0483125FCb9aaAEFA9209D8E9d7b9C8B9Fb90F'),
-    eventDb,
-    wallet.getEthersWallet()
+    eventDb
   )
   const depositContractFactory = (addr: Address) => {
-    return new MockDepositContract(addr, eventDb, wallet.getEthersWallet())
+    return new MockDepositContract(addr, eventDb)
   }
   const tokenContractFactory = (addr: Address) => {
-    return new MockERC20Contract(addr, wallet.getEthersWallet())
+    return new MockERC20Contract(addr)
   }
   const commitmentContract = new MockCommitmentContract(
     Address.from('0x8CdaF0CD259887258Bc13a92C0a6dA92698644C0'),
-    eventDb,
-    wallet.getEthersWallet()
+    eventDb
   )
   const ownershipPayoutContract = new MockOwnershipPayoutContract()
 

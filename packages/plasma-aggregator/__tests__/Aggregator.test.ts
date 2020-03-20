@@ -20,9 +20,12 @@ import {
   Range
 } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
+import { Wallet, Balance } from '@cryptoeconomicslab/wallet'
+import {
+  Secp256k1Signer,
+  secp256k1Verifier
+} from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
-import { EthWallet } from '@cryptoeconomicslab/eth-wallet'
-import { CommitmentContract } from '@cryptoeconomicslab/eth-contract'
 import JSBI from 'jsbi'
 import config from './config.local'
 setupContext({
@@ -30,13 +33,13 @@ setupContext({
 })
 
 import { BlockManager, StateManager } from '../src/managers'
-import * as ethers from 'ethers'
+import { ethers } from 'ethers'
 
+// Setup mock contract
 const mockDeposit = jest.fn()
-
 const MockDepositContract = jest
   .fn()
-  .mockImplementation((addr: Address, eventDb: KeyValueStore, wallet) => {
+  .mockImplementation((addr: Address, eventDb: KeyValueStore) => {
     return {
       address: addr,
       deposit: mockDeposit,
@@ -46,9 +49,39 @@ const MockDepositContract = jest
     }
   })
 
-const ALIS_WALLET = new EthWallet(ethers.Wallet.createRandom())
+const MockCommitmentContract = jest
+  .fn()
+  .mockImplementation((addr: Address, eventDb: KeyValueStore) => ({
+    submitRoot: () => undefined
+  }))
+
+// mock wallet
+const MockWallet = jest.fn().mockImplementation(() => {
+  const w = ethers.Wallet.createRandom()
+  const signingKey = new ethers.utils.SigningKey(w.privateKey)
+  const address = w.address
+
+  return {
+    getAddress: () => Address.from(address),
+    getL1Balance: async (tokenAddress?: Address) => {
+      return new Balance(BigNumber.from(0), 18, 'eth')
+    },
+    signMessage: async (message: Bytes) => {
+      const signer = new Secp256k1Signer(
+        Bytes.fromHexString(signingKey.privateKey)
+      )
+      return signer.sign(message)
+    },
+    verifyMySignature: async (message: Bytes, signature: Bytes) => {
+      const publicKey = Bytes.fromHexString(address)
+      return await secp256k1Verifier.verify(message, signature, publicKey)
+    }
+  }
+})
+
+const ALIS_WALLET = new MockWallet()
 const ALIS_ADDRESS = ALIS_WALLET.getAddress()
-const BOB_WALLET = new EthWallet(ethers.Wallet.createRandom())
+const BOB_WALLET = new MockWallet()
 const BOB_ADDRESS = BOB_WALLET.getAddress()
 
 describe('Aggregator integration', () => {
@@ -59,7 +92,7 @@ describe('Aggregator integration', () => {
     blockManager: BlockManager,
     kvs: KeyValueStore,
     stateBucket: KeyValueStore,
-    wallet: EthWallet,
+    wallet: Wallet,
     witnessDb: KeyValueStore,
     eventDb: KeyValueStore
 
@@ -72,13 +105,13 @@ describe('Aggregator integration', () => {
     blockManager = new BlockManager(blockDb)
     witnessDb = await kvs.bucket(Bytes.fromString('witness'))
     eventDb = await kvs.bucket(Bytes.fromString('event'))
-    wallet = new EthWallet(ethers.Wallet.createRandom())
+    wallet = new MockWallet()
 
     function depositContractFactory(address: Address) {
-      return new MockDepositContract(address, eventDb, wallet.getEthersWallet())
+      return new MockDepositContract(address, eventDb)
     }
     function commitmentContractFactory(address: Address) {
-      return new CommitmentContract(address, eventDb, wallet.getEthersWallet())
+      return new MockCommitmentContract(address, eventDb)
     }
     aggregator = new Aggregator(
       wallet,

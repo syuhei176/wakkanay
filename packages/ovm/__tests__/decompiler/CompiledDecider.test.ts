@@ -58,7 +58,7 @@ describe('CompiledDecider', () => {
     def LessThan(n, upper_bound) :=
       IsLessThan(n, upper_bound)
         
-    def test(a, c) := LessThan(a).all(b -> IsLessThan(c, b) and Bool(b))
+    def test(a, c) := LessThan(a).all(b -> IsLessThan(c, b) and Foo(b))
     `
 
     // An instance of compiled predicate "TestF(TestF, 10, 5)".
