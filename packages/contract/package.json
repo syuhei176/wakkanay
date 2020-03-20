@@ -39,6 +39,6 @@
     "@cryptoeconomicslab/primitives": "^0.0.36"
   },
   "peerDependencies": {
-    "@cryptoeconomicslab/primitives": "^0.0.5"
+    "@cryptoeconomicslab/primitives": "^0.0.36"
   }
 }

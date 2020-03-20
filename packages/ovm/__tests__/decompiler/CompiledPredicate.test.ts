@@ -62,6 +62,7 @@ describe('CompiledPredicate', () => {
         TestPredicateAddress,
         testSource
       )
+      console.log(compiledPredicate)
       deciderManager.setDecider(
         TestPredicateAddress,
         new CompiledDecider(compiledPredicate),

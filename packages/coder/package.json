@@ -36,6 +36,6 @@
     "@cryptoeconomicslab/primitives": "^0.0.6"
   },
   "dependencies": {
-    "jsbi": "^3.1.1"
+    "jsbi": "^3.1.2"
   }
 }
