@@ -76,7 +76,6 @@ interface LightClientOptions {
 
 export default class LightClient {
   private depositContracts: Map<string, IDepositContract> = new Map()
-  private tokenContracts: Map<string, IERC20Contract> = new Map()
   private _syncing = false
   private ee = EventEmitter()
   private ownershipPredicate: CompiledPredicate
@@ -183,14 +182,10 @@ export default class LightClient {
         Address.from(addr),
         new Range(BigNumber.from(0), BigNumber.from(10000)) // TODO: get all stateUpdate method
       )
-      const tokenAddress = this.tokenContracts.get(addr)
-      if (!tokenAddress) {
-        throw new Error(`token contract(${addr}) not found.`)
-      }
       return {
         depositContractAddress: addr,
         amount: data.reduce((p, s) => p + Number(s.amount), 0),
-        decimals: this.tokenManager.getDecimal(tokenAddress.address)
+        decimals: this.tokenManager.getDecimal(Address.from(addr))
       }
     })
     return await Promise.all(resultPromise)
@@ -454,7 +449,7 @@ export default class LightClient {
   private getERC20TokenContract(
     depositContractAddress: Address
   ): IERC20Contract | undefined {
-    return this.tokenContracts.get(depositContractAddress.data)
+    return this.tokenManager.getTokenContract(depositContractAddress)
   }
 
   /**
@@ -471,8 +466,10 @@ export default class LightClient {
     console.log('contracts set for token:', erc20Contract.address.data)
     const depositContractAddress = depositContract.address
     this.depositContracts.set(depositContractAddress.data, depositContract)
-    this.tokenContracts.set(depositContractAddress.data, erc20Contract)
-    await this.tokenManager.addTokenContract(erc20Contract)
+    await this.tokenManager.addTokenContract(
+      depositContractAddress,
+      erc20Contract
+    )
 
     depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
       await this.depositedRangeManager.extendRange(

@@ -14,6 +14,10 @@ const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
 
 describe('TokenManager', () => {
   let tokenManager: TokenManager
+  const tokenAddress = Address.default()
+  const depositContractAddress = Address.from(
+    '0x0000000000000000000000000000000000000001'
+  )
 
   beforeEach(async () => {
     mockApprove.mockClear()
@@ -23,15 +27,16 @@ describe('TokenManager', () => {
   })
 
   test('addTokenContract and getDecimals', async () => {
-    const tokenAddress = Address.default()
-    await tokenManager.addTokenContract(new MockERC20Contract(tokenAddress))
-    expect(tokenManager.getDecimal(tokenAddress)).toEqual(6)
+    await tokenManager.addTokenContract(
+      depositContractAddress,
+      new MockERC20Contract(tokenAddress)
+    )
+    expect(tokenManager.getDecimal(depositContractAddress)).toEqual(6)
   })
 
   test('getDecimals throw exception', async () => {
-    const tokenAddress = Address.default()
     expect(() => {
-      tokenManager.getDecimal(tokenAddress)
-    }).toThrow(`Token description(${tokenAddress.data}) not found.`)
+      tokenManager.getDecimal(depositContractAddress)
+    }).toThrow(`Token Contract of (${depositContractAddress.data}) not found.`)
   })
 })
