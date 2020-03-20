@@ -35,7 +35,9 @@ describe('OwnershipProperty', () => {
     deciderManager: DeciderManager
 
   beforeAll(() => {
-    wallet = Wallet.createRandom()
+    wallet = new Wallet(
+      '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
+    )
     aliceAddress = Address.from(wallet.address)
     signer = new Secp256k1Signer(Bytes.fromHexString(wallet.privateKey))
     predicateAddress = Address.from(
@@ -74,9 +76,9 @@ describe('OwnershipProperty', () => {
     )
 
     expect(decision).toStrictEqual({
+      witnesses: [signature],
       challenges: [],
-      outcome: true,
-      traceInfo: undefined
+      outcome: true
     })
   })
 

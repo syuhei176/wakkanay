@@ -4,11 +4,12 @@ import {
   AtomicPredicate,
   AndDecider
 } from '../../src'
-import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
+import { Bytes, Integer, List } from '@cryptoeconomicslab/primitives'
 import DefaultCoder from '@cryptoeconomicslab/coder'
 import { MockDeciderManager } from '../mocks/MockDeciderManager'
 import Coder from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
+import JsonCoder from '@cryptoeconomicslab/coder'
 setupContext({ coder: Coder })
 
 describe('AndDecider', () => {
@@ -34,7 +35,14 @@ describe('AndDecider', () => {
       trueProperty,
       trueProperty
     ])
-    expect(decision.outcome).toEqual(true)
+    expect(decision).toEqual({
+      outcome: true,
+      witnesses: [
+        JsonCoder.encode(List.from(Bytes, [])),
+        JsonCoder.encode(List.from(Bytes, []))
+      ],
+      challenges: []
+    })
   })
   it('decide and(true, false)', async () => {
     const andDecider = new AndDecider()

@@ -6,8 +6,11 @@ import { DeciderManager } from '../../DeciderManager'
 import { TraceInfoCreator } from '../../Tracer'
 
 /**
- * ForDecider check quantifier and property.
+ * ForAllSuchThatDecider decides property to true if all quantified values fulfill proposition.
  * inputs:Array<Bytes> [HintString, variableName, Property]
+ * ForAllSuchThatDecider never return witnesses.
+ * If decision outcome is false, valid challenge of ForAllSuchThat is Not(P(variable)).
+ * However, if "P(variable)" is not atomic proposition, ForAllSuchThatDecider should return valid challenge of "P(variable)".
  */
 export class ForAllSuchThatDecider implements Decider {
   public async decide(
@@ -50,6 +53,7 @@ export class ForAllSuchThatDecider implements Decider {
         }
         return {
           outcome: false,
+          witnesses: [],
           challenges: [challenge].concat(decision.challenges),
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createFor(q, decision.traceInfo)
@@ -61,6 +65,7 @@ export class ForAllSuchThatDecider implements Decider {
     return (
       falseDecision || {
         outcome: true,
+        witnesses: [],
         challenges: []
       }
     )
