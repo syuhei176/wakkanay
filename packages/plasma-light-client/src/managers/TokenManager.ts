@@ -35,6 +35,7 @@ export default class TokenManager {
   /**
    * Get decimal of token by deposit contract address.
    * @param depositContractAddress The address of Deposit Contract
+   * @returns Retuens decimal value which indicates how many "0"s there are to the right of the decimal point in token representation.
    */
   getDecimal(depositContractAddress: Address): number {
     const tokenContract = this.getTokenContract(depositContractAddress)
