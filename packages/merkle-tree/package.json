@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/merkle-tree",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "merkle tree implementation",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,13 +29,13 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "@cryptoeconomicslab/hash": "^0.0.36",
-    "@cryptoeconomicslab/utils": "^0.0.36",
+    "@cryptoeconomicslab/hash": "^0.0.37",
+    "@cryptoeconomicslab/utils": "^0.0.37",
     "jsbi": "^3.1.2"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.36",
-    "@cryptoeconomicslab/primitives": "^0.0.36"
+    "@cryptoeconomicslab/coder": "^0.0.37",
+    "@cryptoeconomicslab/primitives": "^0.0.37"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.36"
