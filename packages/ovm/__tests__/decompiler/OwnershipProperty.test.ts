@@ -76,11 +76,7 @@ describe('OwnershipProperty', () => {
     )
 
     expect(decision).toStrictEqual({
-      witnesses: [
-        Bytes.fromHexString(
-          '0xb21fff50d7128745fe7036a7a7560340959009ee8d156f25f4a0c66540c339062414c4d277ae8b9e1cb5ac764ba082518784a0cb3f64c8bc4bdfdf2d59ea258c1c'
-        )
-      ],
+      witnesses: [signature],
       challenges: [],
       outcome: true
     })
