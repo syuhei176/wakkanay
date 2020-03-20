@@ -45,11 +45,10 @@
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
-    "@cryptoeconomicslab/eth-coder": "^0.0.9",
-    "@cryptoeconomicslab/eth-contract": "^0.0.9",
-    "@cryptoeconomicslab/eth-wallet": "^0.0.9",
+    "@cryptoeconomicslab/context": "0.0.36",
     "@cryptoeconomicslab/level-kvs": "^0.0.6",
-    "@cryptoeconomicslab/primitives": "^0.0.36"
+    "@cryptoeconomicslab/primitives": "^0.0.36",
+    "@cryptoeconomicslab/signature": "0.0.36"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.36"
