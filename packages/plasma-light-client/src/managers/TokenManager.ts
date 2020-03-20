@@ -15,6 +15,10 @@ export default class TokenManager {
     this.tokenDecimals.set(erc20Contract.address.data, decimals)
   }
 
+  /**
+   * get decimal of token
+   * @param tokenAddress The address of Token Contract
+   */
   getDecimal(tokenAddress: Address): number {
     const decimals = this.tokenDecimals.get(tokenAddress.data)
     if (!decimals) {
