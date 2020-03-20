@@ -26,6 +26,16 @@ describe('TokenManager', () => {
     tokenManager = new TokenManager()
   })
 
+  test('addTokenContract and getTokenContract', async () => {
+    await tokenManager.addTokenContract(
+      depositContractAddress,
+      new MockERC20Contract(tokenAddress)
+    )
+    const tokenContract = tokenManager.getTokenContract(depositContractAddress)
+    expect(tokenContract).not.toBeUndefined()
+    expect(tokenContract?.address).toEqual(tokenAddress)
+  })
+
   test('addTokenContract and getDecimals', async () => {
     await tokenManager.addTokenContract(
       depositContractAddress,
