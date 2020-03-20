@@ -42,7 +42,7 @@ export class ThereExistsSuchThatDecider implements Decider {
         })
       })
     )
-    const index = decisions.findIndex(d => d.outcome)
+    const indexOfTrueDecision = decisions.findIndex(d => d.outcome)
     const childTraceInfo = decisions.find(d => d.outcome === false)?.traceInfo
     const challenge = {
       challengeInput: null,
@@ -60,11 +60,11 @@ export class ThereExistsSuchThatDecider implements Decider {
       )
     }
 
-    if (index >= 0) {
+    if (indexOfTrueDecision >= 0) {
       // If any decision prove true
       let nextWitnesses: Bytes[] | undefined = undefined
-      const witness = witnesses[index]
-      const childWitnesses = decisions[index].witnesses || []
+      const witness = witnesses[indexOfTrueDecision]
+      const childWitnesses = decisions[indexOfTrueDecision].witnesses || []
       nextWitnesses = childWitnesses.concat([witness])
       return {
         outcome: true,
