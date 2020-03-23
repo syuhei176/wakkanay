@@ -32,9 +32,11 @@ const MockDepositContract = jest
   })
 
 const mockApprove = jest.fn()
+const mockDecimals = jest.fn().mockImplementation(() => Integer.from(6))
 const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
   return {
     approve: mockApprove,
+    decimals: mockDecimals,
     address
   }
 })
@@ -79,6 +81,7 @@ import {
   IntervalTreeInclusionProof,
   AddressTreeInclusionProof
 } from '@cryptoeconomicslab/merkle-tree'
+import { IERC20DetailedContract } from '@cryptoeconomicslab/contract'
 setupContext({ coder: JsonCoder })
 
 // mock wallet
