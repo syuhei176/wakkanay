@@ -168,6 +168,8 @@ export default class LightClient {
   /**
    * Get current balance of tokens in plasma.
    * All ERC20 tokens including Peth registered by `registerCustomToken` method or `registerToken` method are included.
+   * @returns Array of balance object which has the amount you have and token information.
+   *     e.g. For ETH, the unit of amount is "wei" and decimal is 18.
    */
   public async getBalance(): Promise<
     Array<{
