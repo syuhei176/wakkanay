@@ -29,8 +29,8 @@
     "clean": "rm -rf lib docs"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "0.0.37",
-    "@cryptoeconomicslab/primitives": "0.0.37"
+    "@cryptoeconomicslab/coder": "0.0.38",
+    "@cryptoeconomicslab/primitives": "0.0.38"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.5"
