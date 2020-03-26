@@ -125,6 +125,27 @@ export class DoubleLayerTree
   addressTree: AddressTree
   intervalTreeMap: Map<string, IntervalTree> = new Map<string, IntervalTree>()
   constructor(private leaves: DoubleLayerTreeLeaf[]) {
+    // check if the leaves is in order of address
+    const sorted = leaves.reduce((sorted, current, currentIndex, array) => {
+      if (!sorted) return false
+
+      // last element
+      if (currentIndex === array.length - 1) return sorted
+      const next = array[currentIndex + 1]
+
+      return (
+        (current.address.data === next.address.data &&
+          JSBI.lessThan(current.start.data, next.start.data)) ||
+        current.address.data < next.address.data
+      )
+    }, true)
+    if (!sorted) throw new Error('Invalid ordered leaves')
+
+    // get ordered unique addresses' string
+    const addresses = leaves
+      .map(leaf => leaf.address.data)
+      .filter((v, i, a) => a.indexOf(v) === i)
+
     const addressTreeLeaves: AddressTreeNode[] = []
     const addressLeavesMap = leaves.reduce<Map<string, IntervalTreeNode[]>>(
       (newMap, l) => {
@@ -138,7 +159,9 @@ export class DoubleLayerTree
       },
       new Map<string, IntervalTreeNode[]>()
     )
-    for (const [key, value] of addressLeavesMap.entries()) {
+
+    for (const key of addresses) {
+      const value = addressLeavesMap.get(key) as IntervalTreeNode[]
       const intervalTree = new IntervalTree(value)
       this.intervalTreeMap.set(key, intervalTree)
       addressTreeLeaves.push(
