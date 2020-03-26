@@ -56,6 +56,20 @@ describe('DoubleLayerTree', () => {
     const leaf10 = geenrateDoubleLayerTreeLeaf(token1, 100, 'token1leaf0')
     const leaf11 = geenrateDoubleLayerTreeLeaf(token1, 200, 'token1leaf1')
 
+    describe('generate tree', () => {
+      it('successfully generate tree', () => {
+        expect(() => {
+          new DoubleLayerTree([leaf0, leaf1, leaf2, leaf3])
+        }).not.toThrowError()
+      })
+
+      it('fail to generate tree with invalid ordered leaves', () => {
+        expect(() => {
+          new DoubleLayerTree([leaf0, leaf3, leaf2, leaf1])
+        }).toThrow(new Error('Invalid ordered leaves'))
+      })
+    })
+
     describe('getRoot', () => {
       it('throw exception invalid data length', async () => {
         const invalidLeaf = new DoubleLayerTreeLeaf(

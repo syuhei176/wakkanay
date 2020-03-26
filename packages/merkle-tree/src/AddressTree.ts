@@ -109,6 +109,9 @@ export class AddressTreeVerifier extends AbstractMerkleVerifier<
   AddressTreeNode
 > {
   computeParent(a: AddressTreeNode, b: AddressTreeNode): AddressTreeNode {
+    if (a.address.data > b.address.data) {
+      throw new Error('right.address is greater than left.address')
+    }
     return new AddressTreeNode(
       a.address,
       FixedBytes.from(
