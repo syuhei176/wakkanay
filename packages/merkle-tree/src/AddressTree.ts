@@ -28,11 +28,6 @@ export class AddressTreeNode implements MerkleTreeNode<Address> {
   }
 
   encode(): Bytes {
-    // return Bytes.concat([
-    //   Bytes.from(this.data.data),
-    //   Bytes.fromHexString(this.address.data)
-    // ])
-
     return ovmContext.coder.encode(this.toStruct())
   }
 

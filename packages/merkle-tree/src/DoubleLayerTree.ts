@@ -150,7 +150,7 @@ export class DoubleLayerTree
   getRoot(): FixedBytes {
     return this.addressTree.getRoot()
   }
-  findIndex(leaf: Bytes): number | null {
+  findIndex(leaf: FixedBytes): number | null {
     const foundIndex = this.leaves.findIndex(
       l => l.getData().toHexString() == leaf.toHexString()
     )

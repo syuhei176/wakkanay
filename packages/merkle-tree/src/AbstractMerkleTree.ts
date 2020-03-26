@@ -1,4 +1,4 @@
-import { FixedBytes, Bytes, Codable } from '@cryptoeconomicslab/primitives'
+import { FixedBytes, Codable } from '@cryptoeconomicslab/primitives'
 import { Hash, Keccak256 } from '@cryptoeconomicslab/hash'
 import { ArrayUtils } from '@cryptoeconomicslab/utils'
 import {
@@ -38,7 +38,7 @@ export abstract class AbstractMerkleTree<
   getRoot(): FixedBytes {
     return this.levels[this.levels.length - 1][0].data
   }
-  findIndex(leaf: Bytes): number | null {
+  findIndex(leaf: FixedBytes): number | null {
     const index = this.leaves.findIndex(
       l => l.data.toHexString() == leaf.toHexString()
     )

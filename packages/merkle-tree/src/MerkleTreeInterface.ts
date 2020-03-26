@@ -19,7 +19,7 @@ export interface MerkleTreeGenerator<I, T extends MerkleTreeNode<I>> {
 
 export interface MerkleTreeInterface<I, T extends MerkleTreeNode<I>> {
   getRoot(): FixedBytes
-  findIndex(leaf: Bytes): number | null
+  findIndex(leaf: FixedBytes): number | null
   getLeaf(index: number): T
 }
 
