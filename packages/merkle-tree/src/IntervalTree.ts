@@ -1,4 +1,5 @@
 import {
+  FixedBytes,
   Bytes,
   BigNumber,
   Integer,
@@ -19,23 +20,44 @@ export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
    * @param start is 32 byte integer and lower bound of range.
    * @param data is hash of leaf data.
    */
-  constructor(public start: BigNumber, public data: Bytes) {
-    if (data.data.length !== 32) throw new Error('data length is not 32 bytes.')
+  constructor(public start: BigNumber, public data: FixedBytes) {
+    if (data.size !== 32) throw new Error('data length is not 32 bytes.')
   }
   getInterval(): BigNumber {
     return this.start
   }
   static decode(b: Bytes): IntervalTreeNode {
-    const d = b.split(32)
-    return new IntervalTreeNode(
-      BigNumber.fromHexString(d[1].toHexString()),
-      d[0]
+    return IntervalTreeNode.fromStruct(
+      ovmContext.coder.decode(IntervalTreeNode.getParamType(), b)
     )
   }
+
   encode(): Bytes {
-    return Bytes.concat([
-      this.data,
-      Bytes.fromHexString(this.start.data.toString(16)).padZero(32)
+    return ovmContext.coder.encode(this.toStruct())
+  }
+
+  public static getParamType(): Struct {
+    return new Struct([
+      { key: 'data', value: FixedBytes.default(32) },
+      { key: 'start', value: BigNumber.default() }
+    ])
+  }
+
+  public static fromStruct(struct: Struct): IntervalTreeNode {
+    const data = struct.data[0].value as FixedBytes
+    const start = struct.data[1].value as BigNumber
+    return new IntervalTreeNode(start, data)
+  }
+  public toStruct(): Struct {
+    return new Struct([
+      {
+        key: 'data',
+        value: this.data
+      },
+      {
+        key: 'start',
+        value: this.start
+      }
     ])
   }
 }
@@ -112,14 +134,17 @@ export class IntervalTreeVerifier extends AbstractMerkleVerifier<
     }
     return new IntervalTreeNode(
       b.start,
-      this.hashAlgorythm.hash(Bytes.concat([a.encode(), b.encode()]))
+      FixedBytes.from(
+        32,
+        this.hashAlgorythm.hash(Bytes.concat([a.encode(), b.encode()])).data
+      )
     )
   }
 
   createEmptyNode(): IntervalTreeNode {
     return new IntervalTreeNode(
       BigNumber.MAX_NUMBER,
-      this.hashAlgorythm.hash(Bytes.default())
+      FixedBytes.from(32, this.hashAlgorythm.hash(Bytes.default()).data)
     )
   }
   /**

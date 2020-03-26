@@ -1,4 +1,4 @@
-import { Bytes, Codable } from '@cryptoeconomicslab/primitives'
+import { FixedBytes, Codable } from '@cryptoeconomicslab/primitives'
 import { Hash, Keccak256 } from '@cryptoeconomicslab/hash'
 import { ArrayUtils } from '@cryptoeconomicslab/utils'
 import {
@@ -35,10 +35,10 @@ export abstract class AbstractMerkleTree<
     })
     this.calculateRoot(parents, level + 1)
   }
-  getRoot(): Bytes {
+  getRoot(): FixedBytes {
     return this.levels[this.levels.length - 1][0].data
   }
-  findIndex(leaf: Bytes): number | null {
+  findIndex(leaf: FixedBytes): number | null {
     const index = this.leaves.findIndex(
       l => l.data.toHexString() == leaf.toHexString()
     )
@@ -110,7 +110,7 @@ export abstract class AbstractMerkleVerifier<
     leaf: T,
     intervalStart: B,
     intervalEnd: B,
-    root: Bytes,
+    root: FixedBytes,
     inclusionProof: InclusionProof<B, T>
   ): boolean {
     const merklePath = this.calculateMerklePath(inclusionProof)
@@ -133,7 +133,7 @@ export abstract class AbstractMerkleVerifier<
     leaf: T,
     merklePath: string,
     proofElement: T[]
-  ): { root: Bytes; implicitEnd: B } {
+  ): { root: FixedBytes; implicitEnd: B } {
     const firstRightSiblingIndex = merklePath.indexOf('0')
     const firstRightSibling =
       firstRightSiblingIndex >= 0

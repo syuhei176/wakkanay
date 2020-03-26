@@ -12,13 +12,28 @@ import {
 } from '../src'
 import {
   Bytes,
+  FixedBytes,
   BigNumber,
   Address,
   Range
 } from '@cryptoeconomicslab/primitives'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
-import coder from '@cryptoeconomicslab/coder'
+import coder from '@cryptoeconomicslab/eth-coder'
 import JSBI from 'jsbi'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder })
+
+function geenrateDoubleLayerTreeLeaf(
+  address: Address,
+  bn: number,
+  data: string
+) {
+  return new DoubleLayerTreeLeaf(
+    address,
+    BigNumber.from(bn),
+    FixedBytes.from(32, Keccak256.hash(Bytes.fromString(data)).data)
+  )
+}
 
 describe('DoubleLayerTree', () => {
   describe('DoubleLayerTreeGenerator', () => {
@@ -34,42 +49,19 @@ describe('DoubleLayerTree', () => {
   describe('DoubleLayerTree', () => {
     const token0 = Address.from('0x0000000000000000000000000000000000000000')
     const token1 = Address.from('0x0000000000000000000000000000000000000001')
-    const leaf0 = new DoubleLayerTreeLeaf(
-      token0,
-      BigNumber.from(JSBI.BigInt(0)),
-      Keccak256.hash(Bytes.fromString('leaf0'))
-    )
-    const leaf1 = new DoubleLayerTreeLeaf(
-      token0,
-      BigNumber.from(JSBI.BigInt(7)),
-      Keccak256.hash(Bytes.fromString('leaf1'))
-    )
-    const leaf2 = new DoubleLayerTreeLeaf(
-      token0,
-      BigNumber.from(JSBI.BigInt(15)),
-      Keccak256.hash(Bytes.fromString('leaf2'))
-    )
-    const leaf3 = new DoubleLayerTreeLeaf(
-      token0,
-      BigNumber.from(JSBI.BigInt(5000)),
-      Keccak256.hash(Bytes.fromString('leaf3'))
-    )
-    const leaf10 = new DoubleLayerTreeLeaf(
-      token1,
-      BigNumber.from(JSBI.BigInt(100)),
-      Keccak256.hash(Bytes.fromString('token1leaf0'))
-    )
-    const leaf11 = new DoubleLayerTreeLeaf(
-      token1,
-      BigNumber.from(JSBI.BigInt(200)),
-      Keccak256.hash(Bytes.fromString('token1leaf1'))
-    )
+    const leaf0 = geenrateDoubleLayerTreeLeaf(token0, 0, 'leaf0')
+    const leaf1 = geenrateDoubleLayerTreeLeaf(token0, 7, 'leaf1')
+    const leaf2 = geenrateDoubleLayerTreeLeaf(token0, 15, 'leaf2')
+    const leaf3 = geenrateDoubleLayerTreeLeaf(token0, 5000, 'leaf3')
+    const leaf10 = geenrateDoubleLayerTreeLeaf(token1, 100, 'token1leaf0')
+    const leaf11 = geenrateDoubleLayerTreeLeaf(token1, 200, 'token1leaf1')
+
     describe('getRoot', () => {
       it('throw exception invalid data length', async () => {
         const invalidLeaf = new DoubleLayerTreeLeaf(
           token0,
           BigNumber.from(JSBI.BigInt(500)),
-          Bytes.fromString('leaf0')
+          FixedBytes.fromHexString(1, '0x00')
         )
         expect(() => {
           new DoubleLayerTree([leaf0, leaf1, leaf2, invalidLeaf])
@@ -93,7 +85,7 @@ describe('DoubleLayerTree', () => {
         ])
         const root = tree.getRoot()
         expect(root.toHexString()).toStrictEqual(
-          '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
+          '0xd4e96e267ab3f6f1cc39bfcf489e781b5d406c2f776b07364badf188563ffe4e'
         )
       })
     })
@@ -122,7 +114,8 @@ describe('DoubleLayerTree', () => {
             [
               new AddressTreeNode(
                 Address.from('0x0000000000000000000000000000000000000001'),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
                 )
               )
@@ -134,13 +127,15 @@ describe('DoubleLayerTree', () => {
             [
               new IntervalTreeNode(
                 BigNumber.from(JSBI.BigInt(7)),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
                 )
               ),
               new IntervalTreeNode(
                 BigNumber.from(JSBI.BigInt(5000)),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
                 )
               )
@@ -154,7 +149,8 @@ describe('DoubleLayerTree', () => {
             [
               new AddressTreeNode(
                 Address.from('0x0000000000000000000000000000000000000001'),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
                 )
               )
@@ -166,13 +162,15 @@ describe('DoubleLayerTree', () => {
             [
               new IntervalTreeNode(
                 BigNumber.from(JSBI.BigInt(0)),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
                 )
               ),
               new IntervalTreeNode(
                 BigNumber.from(JSBI.BigInt(5000)),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
                 )
               )
@@ -187,13 +185,15 @@ describe('DoubleLayerTree', () => {
         new IntervalTreeInclusionProof(BigNumber.from(JSBI.BigInt(0)), 0, [
           new IntervalTreeNode(
             BigNumber.from(JSBI.BigInt(7)),
-            Bytes.fromHexString(
+            FixedBytes.fromHexString(
+              32,
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
             BigNumber.from(JSBI.BigInt(5000)),
-            Bytes.fromHexString(
+            FixedBytes.fromHexString(
+              32,
               '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
             )
           )
@@ -204,7 +204,8 @@ describe('DoubleLayerTree', () => {
           [
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
               )
             )
@@ -213,8 +214,9 @@ describe('DoubleLayerTree', () => {
       )
       it('return true', async () => {
         const verifier = new DoubleLayerTreeVerifier()
-        const root = Bytes.fromHexString(
-          '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
+        const root = FixedBytes.fromHexString(
+          32,
+          '0xd4e96e267ab3f6f1cc39bfcf489e781b5d406c2f776b07364badf188563ffe4e'
         )
         const result = verifier.verifyInclusion(
           leaf0,
@@ -229,20 +231,23 @@ describe('DoubleLayerTree', () => {
       })
       it('return true for 2', async () => {
         const verifier = new DoubleLayerTreeVerifier()
-        const root = Bytes.fromHexString(
-          '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
+        const root = FixedBytes.fromHexString(
+          32,
+          '0xd4e96e267ab3f6f1cc39bfcf489e781b5d406c2f776b07364badf188563ffe4e'
         )
         const validInclusionProofFor2 = new DoubleLayerInclusionProof(
           new IntervalTreeInclusionProof(BigNumber.from(JSBI.BigInt(15)), 2, [
             new IntervalTreeNode(
               BigNumber.from(JSBI.BigInt(5000)),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0xfdd1f2a1ec75fe968421a41d2282200de6bec6a21f81080a71b1053d9c0120f3'
               )
             ),
             new IntervalTreeNode(
               BigNumber.from(JSBI.BigInt(7)),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
               )
             )
@@ -253,7 +258,8 @@ describe('DoubleLayerTree', () => {
             [
               new AddressTreeNode(
                 Address.from('0x0000000000000000000000000000000000000001'),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
                 )
               )
@@ -274,7 +280,8 @@ describe('DoubleLayerTree', () => {
 
       it('return false with invalid proof', async () => {
         const verifier = new DoubleLayerTreeVerifier()
-        const root = Bytes.fromHexString(
+        const root = FixedBytes.fromHexString(
+          32,
           '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
         )
         expect(() => {
@@ -293,7 +300,8 @@ describe('DoubleLayerTree', () => {
       })
       it('throw exception with invalid range', async () => {
         const verifier = new DoubleLayerTreeVerifier()
-        const root = Bytes.fromHexString(
+        const root = FixedBytes.fromHexString(
+          32,
           '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
         )
         expect(() => {
@@ -313,20 +321,23 @@ describe('DoubleLayerTree', () => {
 
       it('throw exception detecting intersection', async () => {
         const verifier = new DoubleLayerTreeVerifier()
-        const root = Bytes.fromHexString(
+        const root = FixedBytes.fromHexString(
+          32,
           '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
         )
         const invalidInclusionProof = new DoubleLayerInclusionProof(
           new IntervalTreeInclusionProof(BigNumber.from(JSBI.BigInt(0)), 0, [
             new IntervalTreeNode(
               BigNumber.from(JSBI.BigInt(7)),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
               )
             ),
             new IntervalTreeNode(
               BigNumber.from(JSBI.BigInt(0)),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
               )
             )
@@ -337,7 +348,8 @@ describe('DoubleLayerTree', () => {
             [
               new AddressTreeNode(
                 Address.from('0x0000000000000000000000000000000000000001'),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
                 )
               )
@@ -358,20 +370,23 @@ describe('DoubleLayerTree', () => {
       })
       it('throw exception left.start is not less than right.start', async () => {
         const verifier = new DoubleLayerTreeVerifier()
-        const root = Bytes.fromHexString(
+        const root = FixedBytes.fromHexString(
+          32,
           '0x1aa3429d5aa7bf693f3879fdfe0f1a979a4b49eaeca9638fea07ad7ee5f0b64f'
         )
         const invalidInclusionProof = new DoubleLayerInclusionProof(
           new IntervalTreeInclusionProof(BigNumber.from(JSBI.BigInt(7)), 1, [
             new IntervalTreeNode(
               BigNumber.from(JSBI.BigInt(0)),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0x6fef85753a1881775100d9b0a36fd6c333db4e7f358b8413d3819b6246b66a30'
               )
             ),
             new IntervalTreeNode(
               BigNumber.from(JSBI.BigInt(0)),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
               )
             )
@@ -382,7 +397,8 @@ describe('DoubleLayerTree', () => {
             [
               new AddressTreeNode(
                 Address.from('0x0000000000000000000000000000000000000001'),
-                Bytes.fromHexString(
+                FixedBytes.fromHexString(
+                  32,
                   '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
                 )
               )
@@ -423,13 +439,15 @@ describe('DoubleLayerTree', () => {
         new IntervalTreeInclusionProof(BigNumber.from(JSBI.BigInt(0)), 0, [
           new IntervalTreeNode(
             BigNumber.from(JSBI.BigInt(7)),
-            Bytes.fromHexString(
+            FixedBytes.fromHexString(
+              32,
               '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
             )
           ),
           new IntervalTreeNode(
             BigNumber.from(JSBI.BigInt(5000)),
-            Bytes.fromHexString(
+            FixedBytes.fromHexString(
+              32,
               '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
             )
           )
@@ -440,7 +458,8 @@ describe('DoubleLayerTree', () => {
           [
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
               )
             )

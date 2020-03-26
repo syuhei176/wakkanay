@@ -1,4 +1,10 @@
-import { BigNumber, Bytes, Struct, List } from '@cryptoeconomicslab/primitives'
+import {
+  BigNumber,
+  Bytes,
+  Struct,
+  List,
+  FixedBytes
+} from '@cryptoeconomicslab/primitives'
 import { Property } from '@cryptoeconomicslab/ovm'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import {
@@ -30,7 +36,11 @@ export default class Block {
     return new DoubleLayerTreeLeaf(
       stateUpdate.depositContractAddress,
       stateUpdate.range.start,
-      Keccak256.hash(ovmContext.coder.encode(stateUpdate.property.toStruct()))
+      FixedBytes.from(
+        32,
+        Keccak256.hash(ovmContext.coder.encode(stateUpdate.property.toStruct()))
+          .data
+      )
     )
   }
 
@@ -40,7 +50,6 @@ export default class Block {
       stateUpdates = [...stateUpdates, ...v]
     })
     const leaves = stateUpdates.map(this.generateLeaf)
-    console.log('leaves:', leaves)
     return new DoubleLayerTree(leaves)
   }
 
@@ -50,7 +59,7 @@ export default class Block {
   ): boolean {
     const tree = this.getTree()
     const leaf = this.generateLeaf(stateUpdate)
-    if (tree.findIndex(leaf.encode()) === null) {
+    if (tree.findIndex(leaf.data) === null) {
       return false
     }
     const verifier = new DoubleLayerTreeVerifier()

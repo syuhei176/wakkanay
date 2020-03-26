@@ -15,6 +15,7 @@ import {
 import {
   Address,
   Bytes,
+  FixedBytes,
   BigNumber,
   Integer,
   Range,
@@ -235,7 +236,7 @@ export default class LightClient {
    * @param blockNumber block number to sync state
    * @param root root hash of new block to be synced
    */
-  private async syncState(blockNumber: BigNumber, root: Bytes) {
+  private async syncState(blockNumber: BigNumber, root: FixedBytes) {
     this._syncing = true
     console.log(`syncing state: ${blockNumber}`)
     try {
@@ -307,7 +308,10 @@ export default class LightClient {
         const leaf = new DoubleLayerTreeLeaf(
           su.depositContractAddress,
           su.range.start,
-          Keccak256.hash(coder.encode(su.property.toStruct()))
+          FixedBytes.from(
+            32,
+            Keccak256.hash(coder.encode(su.property.toStruct())).data
+          )
         )
         if (verifier.verifyInclusion(leaf, su.range, root, inclusionProof)) {
           console.info(

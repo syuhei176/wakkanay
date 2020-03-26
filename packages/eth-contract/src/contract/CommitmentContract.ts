@@ -1,5 +1,5 @@
 import * as ethers from 'ethers'
-import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
+import { Address, FixedBytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import { EventLog, ICommitmentContract } from '@cryptoeconomicslab/contract'
 import { KeyValueStore } from '@cryptoeconomicslab/db'
 import EthEventWatcher from '../events'
@@ -30,10 +30,14 @@ export class CommitmentContract implements ICommitmentContract {
     this.gasLimit = 400000
   }
 
-  async submit(blockNumber: BigNumber, root: Bytes) {
-    return await this.connection.submitRoot(blockNumber.data.toString(), root, {
-      gasLimit: this.gasLimit
-    })
+  async submit(blockNumber: BigNumber, root: FixedBytes) {
+    return await this.connection.submitRoot(
+      blockNumber.data.toString(),
+      root.toHexString(),
+      {
+        gasLimit: this.gasLimit
+      }
+    )
   }
 
   async getCurrentBlock(): Promise<BigNumber> {
@@ -45,20 +49,20 @@ export class CommitmentContract implements ICommitmentContract {
    * Get Merkle Root hash as Bytes
    * @param blockNumber block number to get Merkle Root
    */
-  async getRoot(blockNumber: BigNumber): Promise<Bytes> {
+  async getRoot(blockNumber: BigNumber): Promise<FixedBytes> {
     const root = await this.connection.blocks(blockNumber.data.toString())
-    return Bytes.fromHexString(root)
+    return FixedBytes.fromHexString(32, root)
   }
 
   subscribeBlockSubmitted(
-    handler: (blockNumber: BigNumber, root: Bytes) => void
+    handler: (blockNumber: BigNumber, root: FixedBytes) => void
   ) {
     this.eventWatcher.subscribe('BlockSubmitted', (log: EventLog) => {
       const blockNumber = log.values[0]
       const root = log.values[1]
       handler(
         BigNumber.fromString(blockNumber.toString()),
-        Bytes.fromHexString(root)
+        FixedBytes.fromHexString(32, root)
       )
     })
     this.eventWatcher.cancel()

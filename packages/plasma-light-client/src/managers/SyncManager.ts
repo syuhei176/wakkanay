@@ -1,5 +1,5 @@
 import { KeyValueStore } from '@cryptoeconomicslab/db'
-import { Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
+import { FixedBytes, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 
 const LATEST_SYNCED_BLOCK = Bytes.fromString('latest_synced_block')
 
@@ -13,8 +13,10 @@ export default class SyncManager {
     return ovmContext.coder.decode(BigNumber.default(), d)
   }
 
-  public async getRoot(blockNumber: BigNumber): Promise<Bytes | null> {
-    return await this.db.get(ovmContext.coder.encode(blockNumber))
+  public async getRoot(blockNumber: BigNumber): Promise<FixedBytes | null> {
+    const data = await this.db.get(ovmContext.coder.encode(blockNumber))
+    if (!data) return null
+    return FixedBytes.from(32, data.data)
   }
 
   /**
@@ -24,9 +26,12 @@ export default class SyncManager {
    */
   public async updateSyncedBlockNumber(
     blockNumber: BigNumber,
-    root: Bytes
+    root: FixedBytes
   ): Promise<void> {
     await this.db.put(LATEST_SYNCED_BLOCK, ovmContext.coder.encode(blockNumber))
-    await this.db.put(ovmContext.coder.encode(blockNumber), root)
+    await this.db.put(
+      ovmContext.coder.encode(blockNumber),
+      Bytes.from(root.data)
+    )
   }
 }

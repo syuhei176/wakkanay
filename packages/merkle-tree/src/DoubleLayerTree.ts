@@ -3,7 +3,8 @@ import {
   Address,
   BigNumber,
   Range,
-  Struct
+  Struct,
+  FixedBytes
 } from '@cryptoeconomicslab/primitives'
 import {
   MerkleTreeInterface,
@@ -74,12 +75,13 @@ export class DoubleLayerTreeLeaf
   constructor(
     public address: Address,
     public start: BigNumber,
-    public data: Bytes
+    public data: FixedBytes
   ) {}
   encode(): Bytes {
-    return Bytes.concat([this.data, Bytes.fromHexString(this.address.data)])
+    return ovmContext.coder.encode(this.toStruct())
   }
-  getData(): Bytes {
+
+  getData(): FixedBytes {
     return this.data
   }
   getInterval() {
@@ -87,6 +89,18 @@ export class DoubleLayerTreeLeaf
       address: this.address,
       start: this.start
     }
+  }
+  public toStruct(): Struct {
+    return new Struct([
+      {
+        key: 'data',
+        value: this.data
+      },
+      {
+        key: 'address',
+        value: this.address
+      }
+    ])
   }
 }
 
@@ -133,10 +147,10 @@ export class DoubleLayerTree
     }
     this.addressTree = new AddressTree(addressTreeLeaves)
   }
-  getRoot(): Bytes {
+  getRoot(): FixedBytes {
     return this.addressTree.getRoot()
   }
-  findIndex(leaf: Bytes): number | null {
+  findIndex(leaf: FixedBytes): number | null {
     const foundIndex = this.leaves.findIndex(
       l => l.getData().toHexString() == leaf.toHexString()
     )
@@ -178,7 +192,7 @@ export interface DoubleLayerTreeVerifier {
   verifyInclusion(
     leaf: DoubleLayerTreeLeaf,
     range: Range,
-    root: Bytes,
+    root: FixedBytes,
     inclusionProof: DoubleLayerInclusionProof
   ): boolean
 }
@@ -197,7 +211,7 @@ export class DoubleLayerTreeVerifier implements DoubleLayerTreeVerifier {
   verifyInclusion(
     leaf: DoubleLayerTreeLeaf,
     range: Range,
-    root: Bytes,
+    root: FixedBytes,
     inclusionProof: DoubleLayerInclusionProof
   ): boolean {
     const intervalTreeVerifier = new IntervalTreeVerifier()

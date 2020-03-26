@@ -3,11 +3,12 @@ import {
   Bytes,
   Struct,
   Codable,
-  List
+  List,
+  FixedBytes
 } from '@cryptoeconomicslab/primitives'
 
 export interface MerkleTreeNode<T> {
-  readonly data: Bytes
+  readonly data: FixedBytes
   getInterval(): T
   encode(): Bytes
 }
@@ -17,13 +18,18 @@ export interface MerkleTreeGenerator<I, T extends MerkleTreeNode<I>> {
 }
 
 export interface MerkleTreeInterface<I, T extends MerkleTreeNode<I>> {
-  getRoot(): Bytes
-  findIndex(leaf: Bytes): number | null
+  getRoot(): FixedBytes
+  findIndex(leaf: FixedBytes): number | null
   getLeaf(index: number): T
 }
 
 export interface MerkleTreeVerifier<B, T extends MerkleTreeNode<I>, I> {
-  verifyInclusion(leaf: T, interval: B, root: Bytes, inclusionProof: I): boolean
+  verifyInclusion(
+    leaf: T,
+    interval: B,
+    root: FixedBytes,
+    inclusionProof: I
+  ): boolean
 }
 
 export class InclusionProof<I extends Codable, T extends MerkleTreeNode<I>> {
