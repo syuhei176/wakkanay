@@ -3,6 +3,7 @@ import Integer from './Integer'
 import Address from './Address'
 import BigNumber from './BigNumber'
 import Bytes from './Bytes'
+import FixedBytes from './FixedBytes'
 import List from './List'
 import Tuple from './Tuple'
 import Struct from './Struct'
@@ -14,6 +15,7 @@ export {
   Integer,
   Address,
   Bytes,
+  FixedBytes,
   BigNumber,
   List,
   Tuple,
