@@ -31,6 +31,9 @@ export default class FixedBytes implements Codable {
   }
 
   constructor(public size: number, public data: Uint8Array) {
+    if (size > 32) {
+      throw new Error('data size must be smaller than or equal to 32')
+    }
     if (size !== data.length) {
       throw new Error(
         `data size does not match. expect ${size}, received ${data.length}`

@@ -21,6 +21,14 @@ describe('FixedBytes', () => {
         FixedBytes.fromHexString(5, hex)
       }).toThrow(new Error('invalid hex string'))
     })
+
+    test('fail to create FixedBytes with more than 33 size', () => {
+      const hex =
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a12'
+      expect(() => {
+        FixedBytes.fromHexString(33, hex)
+      }).toThrow(new Error('data size must be smaller than or equal to 32'))
+    })
   })
 
   describe('toHexString', () => {
