@@ -2,6 +2,7 @@ import JsonCoder from '../src'
 import {
   Address,
   Bytes,
+  FixedBytes,
   Integer,
   List,
   Tuple,
@@ -87,6 +88,16 @@ describe('JsonCoder', () => {
 
       expect(JsonCoder.encode(bigNumber).intoString()).toBe(
         '"1208925819614629174706176"'
+      )
+    })
+
+    test('encode FixedBytes', () => {
+      const fixedBytes = FixedBytes.fromHexString(
+        32,
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+      )
+      expect(JsonCoder.encode(fixedBytes).intoString()).toBe(
+        '"0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a"'
       )
     })
   })
@@ -199,6 +210,22 @@ describe('JsonCoder', () => {
         )
       ).toEqual(
         BigNumber.from(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(80)))
+      )
+    })
+
+    test('decode FixedBytes', () => {
+      expect(
+        JsonCoder.decode(
+          FixedBytes.default(32),
+          Bytes.fromString(
+            '"0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a"'
+          )
+        )
+      ).toEqual(
+        FixedBytes.fromHexString(
+          32,
+          '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+        )
       )
     })
   })

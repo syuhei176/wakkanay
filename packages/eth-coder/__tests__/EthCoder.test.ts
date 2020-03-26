@@ -6,15 +6,27 @@ import {
   List,
   Tuple,
   Struct,
-  BigNumber
+  BigNumber,
+  FixedBytes
 } from '@cryptoeconomicslab/primitives'
+import JSBI from 'jsbi'
 
 describe('EthCoder', () => {
   describe('encode', () => {
     test('encode bignumber', () => {
       const bigNumber = BigNumber.from(10)
-      expect(EthCoder.encode(bigNumber)).toStrictEqual(
+      expect(EthCoder.encode(bigNumber)).toEqual(
         EthCoder.encode(Integer.from(10))
+      )
+    })
+
+    test('encode FixedBytes', () => {
+      const fixedBytes = FixedBytes.fromHexString(
+        32,
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+      )
+      expect(EthCoder.encode(fixedBytes).toHexString()).toEqual(
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
       )
     })
 
@@ -36,6 +48,25 @@ describe('EthCoder', () => {
 
       expect(EthCoder.encode(struct).toHexString()).toBe(
         '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000472ec0185ebb8202f3d4ddb0226998889663cf200000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000'
+      )
+    })
+
+    test('encode struct with FixedBytes', () => {
+      const struct = Struct.from([
+        {
+          key: 'data',
+          value: FixedBytes.fromHexString(
+            32,
+            '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+          )
+        },
+        {
+          key: 'start',
+          value: BigNumber.from(5000)
+        }
+      ])
+      expect(EthCoder.encode(struct).toHexString()).toBe(
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a0000000000000000000000000000000000000000000000000000000000001388'
       )
     })
 
@@ -124,17 +155,36 @@ describe('EthCoder', () => {
         encoded
       )
 
-      expect(decoded.data).toStrictEqual(list.data)
+      expect(decoded.data).toEqual(list.data)
     })
   })
 
   describe('decode', () => {
+    test('bignum', () => {
+      const bn = BigNumber.default()
+      bn.setData(JSBI.BigInt(10))
+      expect(bn).toEqual(BigNumber.from(10))
+    })
+
     test('decode bignumber', () => {
       const b =
         '0x000000000000000000000000000000000000000000000000000000000000000a'
       expect(
         EthCoder.decode(BigNumber.default(), Bytes.fromHexString(b))
-      ).toStrictEqual(BigNumber.from(10))
+      ).toEqual(BigNumber.from(10))
+    })
+
+    test('decode FixedBytes', () => {
+      const b =
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+      expect(
+        EthCoder.decode(FixedBytes.default(32), Bytes.fromHexString(b))
+      ).toEqual(
+        FixedBytes.fromHexString(
+          32,
+          '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+        )
+      )
     })
 
     test('decode struct', () => {
@@ -155,7 +205,7 @@ describe('EthCoder', () => {
         }
       ])
 
-      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toStrictEqual(
+      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toEqual(
         Struct.from([
           {
             key: 'addr',
@@ -173,6 +223,36 @@ describe('EthCoder', () => {
       )
     })
 
+    test('decode struct with FixedBytes', () => {
+      const b =
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a0000000000000000000000000000000000000000000000000000000000001388'
+      const t = Struct.from([
+        {
+          key: 'data',
+          value: FixedBytes.default(32)
+        },
+        {
+          key: 'start',
+          value: BigNumber.default()
+        }
+      ])
+      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toEqual(
+        Struct.from([
+          {
+            key: 'data',
+            value: FixedBytes.fromHexString(
+              32,
+              '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+            )
+          },
+          {
+            key: 'start',
+            value: BigNumber.from(5000)
+          }
+        ])
+      )
+    })
+
     test('decode tuple', () => {
       const b =
         '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000472ec0185ebb8202f3d4ddb0226998889663cf200000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000'
@@ -182,7 +262,7 @@ describe('EthCoder', () => {
         Integer.default()
       ])
 
-      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toStrictEqual(
+      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toEqual(
         Tuple.from([
           Address.from('0x0472ec0185ebb8202f3d4ddb0226998889663cf2'),
           Bytes.fromString('hello'),
@@ -195,7 +275,7 @@ describe('EthCoder', () => {
       const b =
         '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003'
       const t = List.default(Integer, Integer.default())
-      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toStrictEqual(
+      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toEqual(
         List.from(Integer, [Integer.from(1), Integer.from(2), Integer.from(3)])
       )
     })
@@ -230,7 +310,7 @@ describe('EthCoder', () => {
         ])
       )
 
-      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toStrictEqual(
+      expect(EthCoder.decode(t, Bytes.fromHexString(b))).toEqual(
         List.from(factory, [
           Struct.from([
             {
@@ -258,6 +338,14 @@ describe('EthCoder', () => {
   })
 
   describe('getEthParamType()', () => {
+    test('getEthParamType for FixedBytes', () => {
+      const fixedBytes = FixedBytes.fromHexString(
+        32,
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+      )
+      expect(getEthParamType(fixedBytes).type).toBe('bytes32')
+    })
+
     test('getEthParamType for Tuple', () => {
       const tuple = Tuple.from([
         Integer.default(),
@@ -265,7 +353,7 @@ describe('EthCoder', () => {
         Bytes.default()
       ])
 
-      expect(getEthParamType(tuple)).toStrictEqual({
+      expect(getEthParamType(tuple)).toEqual({
         type: 'tuple',
         components: [
           { type: 'uint256', name: '0' },
@@ -283,7 +371,7 @@ describe('EthCoder', () => {
         Bytes.default()
       ])
 
-      expect(getEthParamType(tuple)).toStrictEqual({
+      expect(getEthParamType(tuple)).toEqual({
         type: 'tuple',
         components: [
           {
@@ -314,7 +402,7 @@ describe('EthCoder', () => {
         }
       ])
 
-      expect(getEthParamType(struct)).toStrictEqual({
+      expect(getEthParamType(struct)).toEqual({
         type: 'tuple',
         components: [
           { type: 'address', name: 'addr' },
@@ -349,7 +437,7 @@ describe('EthCoder', () => {
         }
       ])
 
-      expect(getEthParamType(struct)).toStrictEqual({
+      expect(getEthParamType(struct)).toEqual({
         type: 'tuple',
         components: [
           { type: 'address', name: 'addr' },
@@ -387,7 +475,7 @@ describe('EthCoder', () => {
         []
       )
 
-      expect(getEthParamType(list)).toStrictEqual({
+      expect(getEthParamType(list)).toEqual({
         type: 'tuple[]',
         components: [
           { type: 'uint256', name: 'amount' },
@@ -429,7 +517,7 @@ describe('EthCoder', () => {
         []
       )
 
-      expect(getEthParamType(list)).toStrictEqual({
+      expect(getEthParamType(list)).toEqual({
         type: 'tuple[][]',
         components: [
           { type: 'uint256', name: 'amount' },

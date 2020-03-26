@@ -5,7 +5,8 @@ import {
   Bytes,
   List,
   Tuple,
-  Struct
+  Struct,
+  FixedBytes
 } from '@cryptoeconomicslab/primitives'
 import { AbiDecodeError } from './Error'
 import JSBI from 'jsbi'
@@ -17,6 +18,8 @@ export function getEthTypeStringRep(v: Codable): string {
     return 'uint256'
   } else if (c === 'Bytes') {
     return 'bytes'
+  } else if (c === 'FixedBytes') {
+    return `bytes${(v as FixedBytes).size}`
   } else if (c === 'List') {
     const d = (v as List<Codable>).getC().default()
     return `${getEthTypeStringRep(d)}[]`
@@ -27,7 +30,7 @@ export function getEthTypeStringRep(v: Codable): string {
   } else if (c === 'Struct') {
     return 'tuple'
   }
-  throw new Error(`Invalid type for Ethereum Abi coder: ${v.toString()}`)
+  throw new Error(`Invalid type for Ethereum Abi coder: ${c}: ${v.toString()}`)
 }
 
 // Ethereum type representation with components field.
@@ -98,6 +101,8 @@ export function decodeInner(d: Codable, input: any): Codable {
   } else if (c === 'Address') {
     d.setData(input)
   } else if (c === 'Bytes') {
+    d.setData(arrayify(input))
+  } else if (c === 'FixedBytes') {
     d.setData(arrayify(input))
   } else if (c === 'List') {
     d.setData(
