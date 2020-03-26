@@ -7,7 +7,8 @@ import {
   Integer,
   List,
   Tuple,
-  Struct
+  Struct,
+  FixedBytes
 } from '@cryptoeconomicslab/primitives'
 import { JsonDecodeError } from './Error'
 import JSBI from 'jsbi'
@@ -20,6 +21,8 @@ export function encodeInner(e: Codable): any {
   } else if (e instanceof Address) {
     return e.data
   } else if (e instanceof Bytes) {
+    return e.toHexString()
+  } else if (e instanceof FixedBytes) {
     return e.toHexString()
   } else if (e instanceof List) {
     return e.data.map(d => encodeInner(d))
@@ -43,6 +46,8 @@ export function decodeInner(d: Codable, input: any): Codable {
     d.setData(input)
   } else if (d instanceof Bytes) {
     d.setData(Bytes.fromHexString(input).data)
+  } else if (d instanceof FixedBytes) {
+    d.setData(FixedBytes.fromHexString(d.size, input).data)
   } else if (d instanceof List) {
     d.setData(
       input.map((i: any) => {
