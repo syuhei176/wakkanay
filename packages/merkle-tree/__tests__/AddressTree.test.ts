@@ -4,34 +4,54 @@ import {
   AddressTreeVerifier,
   AddressTreeInclusionProof
 } from '../src'
-import { Address, Bytes } from '@cryptoeconomicslab/primitives'
+import { Address, FixedBytes, Bytes } from '@cryptoeconomicslab/primitives'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
+import EthCoder from '@cryptoeconomicslab/eth-coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: EthCoder })
+
+function toFixedBytes(bytes: Bytes, size: number) {
+  return FixedBytes.from(size, bytes.data)
+}
 
 describe('AddressTree', () => {
   const leaf0 = new AddressTreeNode(
     Address.from('0x0000000000000000000000000000000000000000'),
-    Keccak256.hash(Bytes.fromString('root0'))
+    toFixedBytes(Keccak256.hash(Bytes.fromString('root0')), 32)
   )
   const leaf1 = new AddressTreeNode(
     Address.from('0x0000000000000000000000000000000000000001'),
-    Keccak256.hash(Bytes.fromString('root1'))
+    toFixedBytes(Keccak256.hash(Bytes.fromString('root1')), 32)
   )
   const leaf2 = new AddressTreeNode(
     Address.from('0x0000000000000000000000000000000000000002'),
-    Keccak256.hash(Bytes.fromString('root2'))
+    toFixedBytes(Keccak256.hash(Bytes.fromString('root2')), 32)
   )
   const leaf3 = new AddressTreeNode(
     Address.from('0x0000000000000000000000000000000000000003'),
-    Keccak256.hash(Bytes.fromString('root3'))
+    toFixedBytes(Keccak256.hash(Bytes.fromString('root3')), 32)
   )
 
-  beforeEach(() => {})
+  describe('coding', () => {
+    it('encode correctly', () => {
+      const encoded = new AddressTreeNode(
+        Address.from('0x0000000000000000000000000000000000000001'),
+        FixedBytes.fromHexString(
+          32,
+          '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+        )
+      ).encode()
+      expect(encoded.toHexString()).toEqual(
+        '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a0000000000000000000000000000000000000000000000000000000000000001'
+      )
+    })
+  })
   describe('getRoot', () => {
     it('return Merkle Root', async () => {
       const tree = new AddressTree([leaf0, leaf1, leaf2, leaf3])
       const root = tree.getRoot()
       expect(root.toHexString()).toStrictEqual(
-        '0x30acf9f99796b1b310d05d35854812ff91f43cb3f35c932c0d8053bbae3a661e'
+        '0xd6d9aad1739ab290be3cd14c39e0c731a98cb1463d7002316d8266638687a270'
       )
     })
   })
@@ -47,14 +67,16 @@ describe('AddressTree', () => {
           [
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000001'),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0x99fff0297ffbd7e2f1a6820971ba8fa9d502e2a9259ff15813849b63e09af0c1'
               )
             ),
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000002'),
-              Bytes.fromHexString(
-                '0x350008941a274700780a1247fa6e7b2db5c34f1bfbcf15e9fb9230f6dd239ca3'
+              FixedBytes.fromHexString(
+                32,
+                '0xd4eb911cc17f9330493f225937e9b7c0393c2fdc5541118f3fc22657210a55c2'
               )
             )
           ]
@@ -67,14 +89,16 @@ describe('AddressTree', () => {
           [
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000000'),
-              Bytes.fromHexString(
+              FixedBytes.fromHexString(
+                32,
                 '0xcca51deaf7e2f905f605c563fc14ce3f5314136d90598cf77da785cf016f6a3f'
               )
             ),
             new AddressTreeNode(
               Address.from('0x0000000000000000000000000000000000000002'),
-              Bytes.fromHexString(
-                '0x350008941a274700780a1247fa6e7b2db5c34f1bfbcf15e9fb9230f6dd239ca3'
+              FixedBytes.fromHexString(
+                32,
+                '0xd4eb911cc17f9330493f225937e9b7c0393c2fdc5541118f3fc22657210a55c2'
               )
             )
           ]
@@ -85,8 +109,10 @@ describe('AddressTree', () => {
   describe('verifyInclusion', () => {
     it('return true', async () => {
       const tree = new AddressTreeVerifier()
-      const root = Bytes.fromHexString(
-        '0x30acf9f99796b1b310d05d35854812ff91f43cb3f35c932c0d8053bbae3a661e'
+
+      const root = FixedBytes.fromHexString(
+        32,
+        '0xd6d9aad1739ab290be3cd14c39e0c731a98cb1463d7002316d8266638687a270'
       )
       const inclusionProof = new AddressTreeInclusionProof(
         Address.from('0x0000000000000000000000000000000000000000'),
@@ -94,14 +120,16 @@ describe('AddressTree', () => {
         [
           new AddressTreeNode(
             Address.from('0x0000000000000000000000000000000000000001'),
-            Bytes.fromHexString(
+            FixedBytes.fromHexString(
+              32,
               '0x99fff0297ffbd7e2f1a6820971ba8fa9d502e2a9259ff15813849b63e09af0c1'
             )
           ),
           new AddressTreeNode(
             Address.from('0x0000000000000000000000000000000000000002'),
-            Bytes.fromHexString(
-              '0x350008941a274700780a1247fa6e7b2db5c34f1bfbcf15e9fb9230f6dd239ca3'
+            FixedBytes.fromHexString(
+              32,
+              '0xd4eb911cc17f9330493f225937e9b7c0393c2fdc5541118f3fc22657210a55c2'
             )
           )
         ]

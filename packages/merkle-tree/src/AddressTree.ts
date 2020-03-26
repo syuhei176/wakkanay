@@ -1,5 +1,6 @@
 import {
   Bytes,
+  FixedBytes,
   Address,
   Integer,
   Struct,
@@ -12,18 +13,53 @@ import {
 import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
 
 export class AddressTreeNode implements MerkleTreeNode<Address> {
-  constructor(public address: Address, public data: Bytes) {
-    if (data.data.length !== 32) throw new Error('data length is not 32 bytes.')
+  constructor(public address: Address, public data: FixedBytes) {
+    if (data.size !== 32) throw new Error('data length is not 32 bytes.')
   }
-  static decode(b: Bytes): AddressTreeNode {
-    const d = b.split(32)
-    return new AddressTreeNode(Address.from(d[1].toHexString()), d[0])
-  }
-  encode(): Bytes {
-    return Bytes.concat([this.data, Bytes.fromHexString(this.address.data)])
-  }
+
   getInterval(): Address {
     return this.address
+  }
+
+  static decode(b: Bytes): AddressTreeNode {
+    return AddressTreeNode.fromStruct(
+      ovmContext.coder.decode(AddressTreeNode.getParamType(), b)
+    )
+  }
+
+  encode(): Bytes {
+    // return Bytes.concat([
+    //   Bytes.from(this.data.data),
+    //   Bytes.fromHexString(this.address.data)
+    // ])
+
+    return ovmContext.coder.encode(this.toStruct())
+  }
+
+  public static getParamType(): Struct {
+    return new Struct([
+      { key: 'data', value: FixedBytes.default(32) },
+      { key: 'address', value: Address.default() }
+    ])
+  }
+
+  public static fromStruct(struct: Struct): AddressTreeNode {
+    const data = struct.data[0].value as FixedBytes
+    const address = struct.data[1].value as Address
+    return new AddressTreeNode(address, data)
+  }
+
+  public toStruct(): Struct {
+    return new Struct([
+      {
+        key: 'data',
+        value: this.data
+      },
+      {
+        key: 'address',
+        value: this.address
+      }
+    ])
   }
 }
 
@@ -80,12 +116,15 @@ export class AddressTreeVerifier extends AbstractMerkleVerifier<
   computeParent(a: AddressTreeNode, b: AddressTreeNode): AddressTreeNode {
     return new AddressTreeNode(
       a.address,
-      this.hashAlgorythm.hash(Bytes.concat(a.encode(), b.encode()))
+      FixedBytes.from(
+        32,
+        this.hashAlgorythm.hash(Bytes.concat(a.encode(), b.encode())).data
+      )
     )
   }
   createEmptyNode(): AddressTreeNode {
     // TODO: empty node shouldn't be zero address?
-    return new AddressTreeNode(Address.default(), Bytes.default())
+    return new AddressTreeNode(Address.default(), FixedBytes.default(32))
   }
   /**
    * compare Address

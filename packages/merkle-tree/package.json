@@ -35,6 +35,8 @@
   },
   "devDependencies": {
     "@cryptoeconomicslab/coder": "^0.0.39",
+    "@cryptoeconomicslab/context": "0.0.39",
+    "@cryptoeconomicslab/eth-coder": "^0.0.39",
     "@cryptoeconomicslab/primitives": "^0.0.39"
   },
   "peerDependencies": {

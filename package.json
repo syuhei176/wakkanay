@@ -44,5 +44,6 @@
       "packages/**/src/**/*.ts?(x)",
       "!**/@types/**"
     ]
-  }
+  },
+  "dependencies": {}
 }
