@@ -4,8 +4,8 @@ import {
 } from '@cryptoeconomicslab/ovm-solidity-generator'
 import { CompiledPredicate } from '@cryptoeconomicslab/ovm-transpiler'
 import { CodeGenerator } from '@cryptoeconomicslab/ovm-generator'
-import { basename } from 'path'
-import template from './template'
+import { readFileSync } from 'fs'
+import path from 'path'
 
 export class EthereumCodeGenerator implements CodeGenerator {
   constructor(readonly options?: SolidityCodeGeneratorOptions) {}
@@ -43,7 +43,7 @@ export class EthereumCodeGenerator implements CodeGenerator {
      */
     const solc = await import('solc')
     const outputString = solc.compile(JSON.stringify(input), (path: string) => {
-      return { contents: template[basename(path, '.sol')] }
+      return { contents: loadTemplate(path) }
     })
     const output = JSON.parse(outputString)
     if (output.errors.length > 0) {
@@ -54,3 +54,6 @@ export class EthereumCodeGenerator implements CodeGenerator {
     return JSON.stringify(output.contracts['test.sol'][name])
   }
 }
+
+const loadTemplate = (name: string) =>
+  readFileSync(path.join(__dirname, '../node_modules', name)).toString()

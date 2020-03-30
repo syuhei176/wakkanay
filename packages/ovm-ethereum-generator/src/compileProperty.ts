@@ -37,9 +37,16 @@ export async function compile(
   contractName: string
 ): Promise<string> {
   const source = load(basePath, contractName)
-  return await generateEVMByteCode(source, (_import: Import) => {
-    return load(path.join(basePath, _import.path), _import.module)
-  })
+  return await generateEVMByteCode(
+    source,
+    (_import: Import) => {
+      return load(path.join(basePath, _import.path), _import.module)
+    },
+    {
+      ovmPath: 'ovm-contracts/contracts',
+      addressTable: {}
+    }
+  )
 }
 
 export function compileJSON(basePath: string, contractName: string) {

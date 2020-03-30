@@ -1,8 +1,11 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import {DataTypes as types} from '../DataTypes.sol';
-import {CompiledPredicate} from '../predicate/CompiledPredicate.sol';
+import {DataTypes as types} from 'ovm-contracts/contracts/DataTypes.sol';
+import {
+    CompiledPredicate
+} from 'ovm-contracts/contracts/predicate/CompiledPredicate.sol';
+
 
 /**
  * @title MockCompiledPredicate
@@ -10,7 +13,9 @@ import {CompiledPredicate} from '../predicate/CompiledPredicate.sol';
  */
 contract MockCompiledPredicate is CompiledPredicate {
     address public payoutContractAddress = address(this);
+
     constructor() public {}
+
     function isValidChallenge(
         bytes[] memory _inputs,
         bytes[] memory _challengeInputs,
@@ -18,6 +23,7 @@ contract MockCompiledPredicate is CompiledPredicate {
     ) public view returns (bool) {
         return true;
     }
+
     function decide(bytes[] memory _inputs, bytes[] memory _witness)
         public
         view
@@ -25,6 +31,7 @@ contract MockCompiledPredicate is CompiledPredicate {
     {
         return true;
     }
+
     function decideTrue(bytes[] memory _inputs, bytes[] memory _witness)
         public
     {}
