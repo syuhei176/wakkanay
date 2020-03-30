@@ -1,0 +1,2 @@
+def thereValTest() :=
+A().any(a -> a())

@@ -3,7 +3,7 @@
   "scripts": {
     "clean": "lerna run clean",
     "publish": "lerna run build && lerna publish",
-    "test": "jest",
+    "test": "jest && lerna run test --scope @cryptoeconomicslab/ovm-ethereum-generator",
     "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
   },
   "devDependencies": {
@@ -28,8 +28,7 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testMatch": [
-      "**/__tests__/**/?(*.)+(spec|test).(ts|js)",
-      "**/?(*.)+(spec|test).ts"
+      "**/__tests__/**/?(*.)+(spec|test).(ts|js)"
     ],
     "moduleFileExtensions": [
       "js",
@@ -42,7 +41,8 @@
     },
     "collectCoverageFrom": [
       "packages/**/src/**/*.ts?(x)",
-      "!**/@types/**"
+      "!**/@types/**",
+      "!packages/ovm-ethereum-generator/**"
     ]
   }
 }

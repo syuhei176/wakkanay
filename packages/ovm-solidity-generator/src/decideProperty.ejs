@@ -1,0 +1,36 @@
+<%  if(property.predicate.type == 'InputPredicateCall') { -%>
+<%    if(property.inputs.length == 0) { -%>
+        require(adjudicationContract.isDecidedById(keccak256(_inputs[<%= property.predicate.source.inputIndex-1 %>])));
+<%    } else { -%>
+        types.Property memory inputPredicateProperty<%=propIndex%> = abi.decode(_inputs[<%= property.predicate.source.inputIndex-1 %>], (types.Property));
+        bytes[] memory <%= valName %> = new bytes[](inputPredicateProperty<%=propIndex%>.inputs.length + 1);
+        for(uint256 i = 0;i < inputPredicateProperty<%=propIndex%>.inputs.length;i++) {
+            <%= valName %>[i] = inputPredicateProperty<%=propIndex%>.inputs[i];
+        }
+        <%= valName %>[inputPredicateProperty<%=propIndex%>.inputs.length] = _inputs[<%= property.inputs[0].inputIndex-1 %>];
+        require(
+            CompiledPredicate(inputPredicateProperty<%=propIndex%>.predicateAddress).decide(<%= valName %>, utils.subArray(_witness, 1, _witness.length)),
+            "InputPredicate must be true"
+        );
+<%    } -%>
+<%  } else if(property.predicate.type == 'VariablePredicateCall') { -%>
+        require(
+            adjudicationContract.isDecidedById(keccak256(challengeInput)),
+            "VariablePredicate must be true"
+        );
+<%  } else { -%>
+        bytes[] memory <%= valName %> = new bytes[](<%= property.inputs.length %>);
+<%- include('constructInputs', {property: property, valName: valName, witnessName: '_witness[0]'}) -%>
+<%    if(property.predicate.type == 'CompiledPredicateCall') { -%>
+        // This is for predicates dynamic linking
+        require(
+            CompiledPredicate(<%= property.predicate.source %>).decide(<%= valName %>, utils.subArray(_witness, 1, _witness.length)),
+            "<%= property.predicate.source %> must be true"
+        );
+<%  } else { -%>
+        require(
+            AtomicPredicate(<%= property.predicate.source %>).decide(<%= valName %>),
+            "<%= property.predicate.source %> must be true"
+        );
+<%  } -%>
+<%  } -%>

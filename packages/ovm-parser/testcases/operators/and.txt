@@ -1,0 +1,1 @@
+def andTest(a, b) := Foo(a) and Bar(b)

@@ -1,0 +1,1 @@
+def thereTest() := A().any(a -> Foo(a))

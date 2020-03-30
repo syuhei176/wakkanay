@@ -1,0 +1,173 @@
+pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
+
+import { DataTypes as types } from "<%= getOVMPath() %>/DataTypes.sol";
+import "<%= getOVMPath() %>/UniversalAdjudicationContract.sol";
+import "<%= getOVMPath() %>/Utils.sol";
+import "<%= getOVMPath() %>/Predicate/AtomicPredicate.sol";
+import "<%= getOVMPath() %>/Predicate/CompiledPredicate.sol";
+
+<%
+  for(let c = 0;c < compiledPredicates.length;c++) {
+    const claimDef = compiledPredicates[c]
+    const constants = claimDef.constants || []
+%>
+/**
+ * <%= claimDef.name %>(<%= claimDef.inputDefs %>)
+ */
+contract <%= claimDef.name %> {
+<%
+  for(var i = 0;i < claimDef.contracts.length;i++) {
+    let property = claimDef.contracts[i]
+-%>
+    bytes public <%= property.name %> = bytes("<%= property.name %>");
+<%
+  }
+%>
+    UniversalAdjudicationContract adjudicationContract;
+    Utils utils;
+    address IsLessThan = address(<%= getAddress('IsLessThan') %>);
+    address Equal = address(<%= getAddress('Equal') %>);
+    address IsValidSignature = address(<%= getAddress('IsValidSignature') %>);
+    address IsContained = address(<%= getAddress('IsContained') %>);
+    address VerifyInclusion = address(<%= getAddress('VerifyInclusion') %>);
+    address IsSameAmount = address(<%= getAddress('IsSameAmount') %>);
+    address IsConcatenatedWith = address(<%= getAddress('IsConcatenatedWith') %>);
+    address IsValidHash = address(<%= getAddress('IsValidHash') %>);
+    address IsStored = address(<%= getAddress('IsStored') %>);
+    address notAddress = address(<%= getAddress('Not') %>);
+    address andAddress = address(<%= getAddress('And') %>);
+    address forAllSuchThatAddress = address(<%= getAddress('ForAllSuchThat') %>);
+    address public payoutContractAddress;
+    bool isInitialized = false;
+<% constants.forEach(c => { -%>
+    <%= c.varType %> <%= c.name %>;
+<% }) -%>
+
+    constructor(
+        address _adjudicationContractAddress,
+        address _utilsAddress,
+        address _notAddress,
+        address _andAddress,
+        address _forAllSuchThatAddress<% if(constants.length > 0){ %>,<% } %>
+<% constants.forEach((c, index) => { -%>
+        <%= c.varType %> <%= c.varType == 'bytes' ? 'memory' : '' %> _<%= c.name %><% if(index < constants.length - 1) { %>,<% } %>
+<% }) -%>
+    ) public {
+        adjudicationContract = UniversalAdjudicationContract(_adjudicationContractAddress);
+        utils = Utils(_utilsAddress);
+        notAddress = _notAddress;
+        andAddress = _andAddress;
+        forAllSuchThatAddress = _forAllSuchThatAddress;
+<% constants.forEach((c, index) => { -%>
+        <%= c.name %> = _<%= c.name %>;
+<% }) -%>
+    }
+
+    function setPredicateAddresses(
+        address _isLessThan,
+        address _equal,
+        address _isValidSignature,
+        address _isContained,
+        address _verifyInclusion,
+        address _isSameAmount,
+        address _isConcatenatedWith,
+        address _isValidHash,
+        address _isStored,
+        address _payoutContractAddress
+    ) public {
+        require(!isInitialized, "isInitialized must be false");
+        IsLessThan = _isLessThan;
+        Equal = _equal;
+        IsValidSignature = _isValidSignature;
+        IsContained = _isContained;
+        VerifyInclusion = _verifyInclusion;
+        IsSameAmount = _isSameAmount;
+        IsConcatenatedWith = _isConcatenatedWith;
+        IsValidHash = _isValidHash;
+        IsStored = _isStored;
+        payoutContractAddress = _payoutContractAddress;
+        isInitialized = true;
+    }
+    
+    /**
+     * @dev Validates a child node of the property in game tree.
+     */
+    function isValidChallenge(
+        bytes[] memory _inputs,
+        bytes[] memory _challengeInput,
+        types.Property memory _challenge
+    ) public view returns (bool) {
+        require(
+            keccak256(abi.encode(getChild(_inputs, _challengeInput))) == keccak256(abi.encode(_challenge)),
+            "_challenge must be valud child of game tree"
+        );
+        return true;
+    }
+    
+    function getChild(
+        bytes[] memory inputs,
+        bytes[] memory challengeInput
+    ) private view returns (types.Property memory) {
+        if(!utils.isLabel(inputs[0])) {
+            return getChild<%= claimDef.entryPoint %>(inputs, challengeInput);
+        }
+        bytes32 input0 = keccak256(utils.getInputValue(inputs[0]));
+        bytes[] memory subInputs = utils.subArray(inputs, 1, inputs.length);
+<%
+  claimDef.contracts.forEach((property) => {
+-%>
+        if(input0 == keccak256(<%= property.name %>)) {
+            return getChild<%= property.name %>(subInputs, challengeInput);
+        }
+<%
+  })
+-%>
+    }
+
+    /**
+     * @dev check the property is true
+     */
+    function decide(bytes[] memory _inputs, bytes[] memory _witness) public view returns(bool) {
+        if(!utils.isLabel(_inputs[0])) {
+            return decide<%= claimDef.entryPoint %>(_inputs, _witness);
+        }
+        bytes32 input0 = keccak256(utils.getInputValue(_inputs[0]));
+        bytes[] memory subInputs = utils.subArray(_inputs, 1, _inputs.length);
+<%
+  claimDef.contracts.forEach((property) => {
+-%>
+        if(input0 == keccak256(<%= property.name %>)) {
+            return decide<%= property.name %>(subInputs, _witness);
+        }
+<%
+  })
+-%>
+    }
+
+    function decideTrue(bytes[] memory _inputs, bytes[] memory _witness) public {
+        require(decide(_inputs, _witness), "must be true");
+        types.Property memory property = types.Property({
+            predicateAddress: address(this),
+            inputs: _inputs
+        });
+        adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
+    }
+
+<%
+  claimDef.contracts.forEach((property) => {
+-%>
+<%- include('getChild', {property: property}); -%>
+<%
+  })
+-%>
+<%
+  claimDef.contracts.forEach((property) => {
+-%>
+<%- include('decide', {property: property}); -%>
+<%
+  })
+-%>
+
+}
+<% } %>
