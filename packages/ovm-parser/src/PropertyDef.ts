@@ -1,3 +1,7 @@
+/**
+ * @name Program
+ * @description root node of parsed syntax tree
+ */
 export interface Program {
   imports: Import[]
   declarations: PropertyDef[]

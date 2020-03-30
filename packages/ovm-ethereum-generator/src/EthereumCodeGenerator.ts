@@ -7,6 +7,10 @@ import { CodeGenerator } from '@cryptoeconomicslab/ovm-generator'
 import { readFileSync } from 'fs'
 import path from 'path'
 
+/**
+ * @name EthereumCodeGenerator
+ * @description A code generator for EVM byte code
+ */
 export class EthereumCodeGenerator implements CodeGenerator {
   constructor(readonly options?: SolidityCodeGeneratorOptions) {}
   async generate(compiledPredicates: CompiledPredicate[]): Promise<string> {

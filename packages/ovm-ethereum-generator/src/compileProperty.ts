@@ -7,7 +7,8 @@ import { AbiCoder } from 'ethers/utils'
 const abi = new AbiCoder()
 
 /**
- * compile all files in a directory
+ * @name compileAllSourceFiles
+ * @description compile all files in a directory
  * @param sourceDir source directory of property definition
  * @param outputDir output directory of generated JSON
  */

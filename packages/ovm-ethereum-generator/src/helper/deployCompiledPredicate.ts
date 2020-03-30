@@ -3,6 +3,16 @@ import { ContractJSON } from 'ethereum-waffle/lib/ContractJSON'
 import ethers from 'ethers'
 import { TestCaseSet, TestContext } from './testCase'
 
+/**
+ * @name deployCompiledPredicate
+ * @description This is test utility.
+ *      Deploy CompiledPredicate for unit test
+ * @param wallet wallet instance of ethers.js
+ * @param Utils ContractJSON of Util contract
+ * @param AdjudicationContract ContractJSON of Adjudication contract
+ * @param testCase
+ * @param testContext
+ */
 export async function deployCompiledPredicate(
   wallet: ethers.Wallet,
   Utils: ContractJSON,

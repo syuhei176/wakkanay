@@ -18,6 +18,17 @@ export interface SetUpCompiledPredicateTestOptions {
   gasLimit: number
 }
 
+/**
+ * @name setUpCompiledPredicateTest
+ * @description test utility for unit test of Predicates
+ * @param name test name
+ * @param createTestCases creating TestCaseSets function
+ * @param MockAtomicPredicate ContractJSON of MockAtomicPredicate
+ * @param MockCompiledPredicate ContractJSON of MockCompiledPredicate
+ * @param Utils ContractJSON of Utils contract
+ * @param MockAdjudicationContract ContractJSON of Adjudication contract
+ * @param options test options
+ */
 export function setUpCompiledPredicateTest(
   name: string,
   createTestCases: (wallet: ethers.Wallet) => TestCaseSet[],

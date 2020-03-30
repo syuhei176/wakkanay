@@ -14,16 +14,17 @@ import {
 import { PropertyDef, PropertyNode } from '@cryptoeconomicslab/ovm-parser'
 
 /**
- *
+ * @name createCompiledPredicates
+ * @description transpile PropertyDefs to CompilePredicates
  * @param {*} propertyDefs are definition of claim
  */
 export function createCompiledPredicates(
   propertyDefs: PropertyDef[]
 ): CompiledPredicate[] {
-  return propertyDefs.map(calculateInteractiveNodesPerProperty)
+  return propertyDefs.map(createCompiledPredicatesForProperty)
 }
 
-function calculateInteractiveNodesPerProperty(
+function createCompiledPredicatesForProperty(
   p: PropertyDef
 ): CompiledPredicate {
   const name = utils.toCapitalCase(p.name)
@@ -31,7 +32,7 @@ function calculateInteractiveNodesPerProperty(
   if (p.body == null) {
     throw new Error('p.body must not be null')
   }
-  searchInteractiveNode(newContracts, p.body, p.inputDefs, name)
+  traverseLogicalConnnective(newContracts, p.body, p.inputDefs, name)
   const constants = getConstants(newContracts)
   const result: CompiledPredicate = {
     type: 'CompiledPredicate',
@@ -47,14 +48,15 @@ function calculateInteractiveNodesPerProperty(
 }
 
 /**
- * searchInteractiveNode
+ * @name traverseLogicalConnnective
+ * @description traverse logical connectives
  * @param {*} contracts
  * @param {*} property
  * @param {*} parent
  * @param {*} originalPredicateName
  * @param {*} parentSuffix
  */
-function searchInteractiveNode(
+function traverseLogicalConnnective(
   contracts: IntermediateCompiledPredicate[],
   property: PropertyNode,
   parentInputDefs: string[],
@@ -70,41 +72,24 @@ function searchInteractiveNode(
     newInputDefs = [makeContractName(originalPredicateName, suffix)].concat(
       newInputDefs
     )
-    const newContract: IntermediateCompiledPredicate = {
-      type: 'IntermediateCompiledPredicate',
+    const newContract = createCompiledPredicate(
+      property,
+      newInputDefs,
       originalPredicateName,
-      name: makeContractName(originalPredicateName, suffix),
-      connective: convertStringToLogicalConnective(
-        property.predicate as LogicalConnectiveStrings
-      ),
-      inputDefs: newInputDefs,
-      inputs: [],
-      propertyInputs: []
-    }
+      suffix
+    )
     const children: (AtomicProposition | Placeholder)[] = []
     if (
       property.predicate == 'ForAllSuchThat' ||
       property.predicate == 'ThereExistsSuchThat'
     ) {
-      if (property.inputs[0] == undefined) {
-        throw new Error('property.inputs[0] must not be string')
-      }
-      if (
-        typeof property.inputs[2] == 'string' ||
-        property.inputs[2] == undefined
-      ) {
-        throw new Error('property.inputs[2] must not be string')
-      }
-      if (property.inputs[2].type != 'PropertyNode') {
-        throw new Error('property.inputs[2] must not be PropertyNode')
-      }
       // quantifier
       if (typeof property.inputs[0] == 'string') {
         children[0] = property.inputs[0]
       } else {
-        children[0] = searchInteractiveNode(
+        children[0] = traverseLogicalConnnective(
           contracts,
-          property.inputs[0],
+          property.inputs[0] as PropertyNode,
           newContract.inputDefs,
           originalPredicateName
         )
@@ -112,9 +97,9 @@ function searchInteractiveNode(
       // placeholder
       children[1] = property.inputs[1] as string
       // innerProperty
-      children[2] = searchInteractiveNode(
+      children[2] = traverseLogicalConnnective(
         contracts,
-        property.inputs[2],
+        property.inputs[2] as PropertyNode,
         newContract.inputDefs,
         originalPredicateName,
         suffix
@@ -126,15 +111,9 @@ function searchInteractiveNode(
     ) {
       property.inputs.forEach(
         (p: PropertyNode | string | undefined, i: number) => {
-          if (typeof p == 'string' || p == undefined) {
-            throw new Error(`property.inputs[${i}] must not be string`)
-          }
-          if (p.type != 'PropertyNode') {
-            throw new Error(`property.inputs[${i}] must not be PropertyNode`)
-          }
-          children[i] = searchInteractiveNode(
+          children[i] = traverseLogicalConnnective(
             contracts,
-            p,
+            p as PropertyNode,
             newContract.inputDefs,
             originalPredicateName,
             suffix + (i + 1)
@@ -144,23 +123,57 @@ function searchInteractiveNode(
     }
     newContract.inputs = children
     newContract.propertyInputs = getPropertyInputIndexes(children)
-    // If not atomic proposition, generate a contract
+    // If it is logical connective, push it as new compiled predicate
     contracts.push(newContract)
-    return {
-      type: 'AtomicProposition',
-      predicate: {
-        type: 'AtomicPredicateCall',
-        source: newContract.name
-      },
-      inputs: getInputIndex(parentInputDefs, newInputDefs, true),
-      isCompiled: true
-    }
+    return compileLogicalConnective(newContract, parentInputDefs, newInputDefs)
   } else {
-    return {
-      type: 'AtomicProposition',
-      predicate: getPredicate(parentInputDefs, property.predicate),
-      inputs: getInputIndex(parentInputDefs, property.inputs as string[])
-    }
+    return compileAtomicPredicate(property, parentInputDefs)
+  }
+}
+
+function createCompiledPredicate(
+  property: PropertyNode,
+  newInputDefs: string[],
+  originalPredicateName: string,
+  suffix: string
+): IntermediateCompiledPredicate {
+  return {
+    type: 'IntermediateCompiledPredicate',
+    originalPredicateName,
+    name: makeContractName(originalPredicateName, suffix),
+    connective: convertStringToLogicalConnective(
+      property.predicate as LogicalConnectiveStrings
+    ),
+    inputDefs: newInputDefs,
+    inputs: [],
+    propertyInputs: []
+  }
+}
+
+function compileLogicalConnective(
+  newContract: IntermediateCompiledPredicate,
+  parentInputDefs: string[],
+  newInputDefs: string[]
+): AtomicProposition {
+  return {
+    type: 'AtomicProposition',
+    predicate: {
+      type: 'AtomicPredicateCall',
+      source: newContract.name
+    },
+    inputs: getInputIndex(parentInputDefs, newInputDefs, true),
+    isCompiled: true
+  }
+}
+
+function compileAtomicPredicate(
+  property: PropertyNode,
+  parentInputDefs: string[]
+): AtomicProposition {
+  return {
+    type: 'AtomicProposition',
+    predicate: getPredicate(parentInputDefs, property.predicate),
+    inputs: getInputIndex(parentInputDefs, property.inputs as string[])
   }
 }
 

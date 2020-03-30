@@ -25,6 +25,10 @@ export interface SolidityCodeGeneratorOptions {
 
 const defaultOVMPath = 'ovm-contracts'
 
+/**
+ * @name SolidityCodeGenerator
+ * @description A code generator for Solidity language
+ */
 export class SolidityCodeGenerator implements CodeGenerator {
   constructor(
     readonly options: SolidityCodeGeneratorOptions = {
@@ -65,6 +69,11 @@ export class SolidityCodeGenerator implements CodeGenerator {
       '0x0000000000000000000000000000000000000000'
     )
   }
+
+  /**
+   * @name indent
+   * @description make indent
+   */
   indent = (text: string, depth: number) => {
     return text
       .split('\n')
