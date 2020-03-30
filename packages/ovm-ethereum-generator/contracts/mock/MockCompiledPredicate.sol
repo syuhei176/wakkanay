@@ -22,6 +22,18 @@ contract MockCompiledPredicate is CompiledPredicate {
         return true;
     }
 
+    function getChild(bytes[] calldata inputs, bytes[] calldata challengeInput)
+        external
+        view
+        returns (types.Property memory)
+    {
+        return
+            types.Property({
+                predicateAddress: address(this),
+                inputs: new bytes[](0)
+            });
+    }
+
     function decide(bytes[] memory _inputs, bytes[] memory _witness)
         public
         view

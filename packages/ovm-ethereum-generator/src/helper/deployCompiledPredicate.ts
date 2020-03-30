@@ -1,11 +1,12 @@
 import { deployContract } from 'ethereum-waffle'
+import { ContractJSON } from 'ethereum-waffle/lib/ContractJSON'
 import ethers from 'ethers'
 import { TestCaseSet, TestContext } from './testCase'
 
 export async function deployCompiledPredicate(
   wallet: ethers.Wallet,
-  Utils: any,
-  AdjudicationContract: any,
+  Utils: ContractJSON,
+  AdjudicationContract: ContractJSON,
   testCase: TestCaseSet,
   testContext: TestContext
 ) {

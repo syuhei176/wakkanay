@@ -2,7 +2,6 @@ import {
   arrayify,
   concat,
   hexlify,
-  keccak256,
   randomBytes,
   toUtf8Bytes,
   AbiCoder
@@ -14,20 +13,11 @@ export interface OvmProperty {
   inputs: string[]
 }
 
-export function getGameIdFromProperty(ovmProperty: OvmProperty) {
-  return keccak256(
-    abi.encode(
-      ['tuple(address, bytes[])'],
-      [[ovmProperty.predicateAddress, ovmProperty.inputs]]
-    )
-  )
-}
-
 function concatHex(hexArr: string[]): string {
   return hexlify(concat(hexArr.map(arrayify)))
 }
 
-export function prefix(_prefix: string, _source: string): string {
+function prefix(_prefix: string, _source: string): string {
   return concatHex([hexlify(toUtf8Bytes(_prefix)), _source])
 }
 
