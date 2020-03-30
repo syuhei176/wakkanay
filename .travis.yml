@@ -12,5 +12,5 @@ script:
   - lerna bootstrap
   - lerna run build
   - lerna run lint --parallel
-  - npm test
+  - npm run test:all
   - npm run coveralls

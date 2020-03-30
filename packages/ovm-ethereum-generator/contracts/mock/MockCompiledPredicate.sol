@@ -2,9 +2,7 @@ pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 import {DataTypes as types} from 'ovm-contracts/contracts/DataTypes.sol';
-import {
-    CompiledPredicate
-} from 'ovm-contracts/contracts/predicate/CompiledPredicate.sol';
+import 'ovm-contracts/contracts/Predicate/CompiledPredicate.sol';
 
 
 /**

@@ -1,9 +1,7 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import {
-    AtomicPredicate
-} from 'ovm-contracts/contracts/predicate/AtomicPredicate.sol';
+import 'ovm-contracts/contracts/Predicate/AtomicPredicate.sol';
 
 
 /**
