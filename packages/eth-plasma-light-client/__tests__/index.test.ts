@@ -1,16 +1,45 @@
 import { ethers } from 'ethers'
 import initialize from '../src/index'
-import { Bytes } from '@cryptoeconomicslab/primitives'
+import { Bytes, Integer } from '@cryptoeconomicslab/primitives'
 import deciderConfig from './config.local'
 import { LevelKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import {
-  AdjudicationContract,
   CommitmentContract,
+  AdjudicationContract,
   OwnershipPayoutContract
 } from '@cryptoeconomicslab/eth-contract'
 import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
 setupContext({ coder: JsonCoder })
+
+// mock
+jest.mock('@cryptoeconomicslab/eth-contract', () => {
+  const {
+    DepositContract,
+    ERC20Contract,
+    CommitmentContract,
+    AdjudicationContract,
+    OwnershipPayoutContract
+  } = jest.requireActual('@cryptoeconomicslab/eth-contract')
+  return {
+    DepositContract,
+    ERC20Contract,
+    CommitmentContract,
+    AdjudicationContract,
+    OwnershipPayoutContract,
+    PETHContract: jest.fn().mockImplementation(() => {
+      return {
+        address: '',
+        approve: jest.fn().mockImplementation(async () => {
+          return
+        }),
+        decimals: jest.fn().mockImplementation(async () => {
+          return Integer.from(18)
+        })
+      }
+    })
+  }
+})
 
 describe('index', () => {
   beforeEach(async () => {})

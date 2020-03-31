@@ -61,7 +61,7 @@ export default async function initialize(options: EthLightClientOptions) {
     deciderConfig: options.config,
     aggregatorEndpoint: options.aggregatorEndpoint
   })
-  client.registerCustomToken(
+  await client.registerCustomToken(
     new PETHContract(Address.from(options.config.PlasmaETH), options.wallet),
     depositContractFactory(
       Address.from(options.config.payoutContracts['DepositContract'])
