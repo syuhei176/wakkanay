@@ -361,5 +361,57 @@ describe('Parser', () => {
         })
       })
     })
+
+    describe('deep nest', () => {
+      test('Foo(a).any(c -> Foo(b) and Foo(c))', () => {
+        const ast: PropertyDef[] = parser.parse(
+          `@quantifier("bucket\${a},type,\${a}")
+def Foo(a) := Bool(a) and Bool(a)
+
+def deepNestTest(a, b) := Foo(a).any(c -> Bool(b) and Bool(c))`
+        ).declarations
+        expect(ast).toStrictEqual([
+          {
+            name: 'Foo',
+            inputDefs: ['a'],
+            body: {
+              type: 'PropertyNode',
+              predicate: 'And',
+              inputs: [
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] }
+              ]
+            },
+            annotations: [
+              {
+                type: 'Annotation',
+                body: { name: 'quantifier', args: ['bucket${a},type,${a}'] }
+              }
+            ]
+          },
+          {
+            name: 'deepNestTest',
+            inputDefs: ['a', 'b'],
+            body: {
+              type: 'PropertyNode',
+              predicate: 'ThereExistsSuchThat',
+              inputs: [
+                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
+                'c',
+                {
+                  type: 'PropertyNode',
+                  predicate: 'And',
+                  inputs: [
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['b'] },
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['c'] }
+                  ]
+                }
+              ]
+            },
+            annotations: []
+          }
+        ])
+      })
+    })
   })
 })

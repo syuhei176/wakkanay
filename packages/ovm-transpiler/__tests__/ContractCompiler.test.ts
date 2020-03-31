@@ -882,6 +882,162 @@ describe('ContractCompiler', () => {
           }
         ])
       })
+
+      test('Foo(a).any(c -> Bool(b) and Bool(c))', () => {
+        const input: PropertyDef[] = [
+          {
+            name: 'Foo',
+            inputDefs: ['a'],
+            body: {
+              type: 'PropertyNode',
+              predicate: 'And',
+              inputs: [
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] }
+              ]
+            },
+            annotations: [
+              {
+                type: 'Annotation',
+                body: { name: 'quantifier', args: ['bucket${a},type,${a}'] }
+              }
+            ]
+          },
+          {
+            name: 'deepNestTest',
+            inputDefs: ['a', 'b'],
+            body: {
+              type: 'PropertyNode',
+              predicate: 'ThereExistsSuchThat',
+              inputs: [
+                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
+                'c',
+                {
+                  type: 'PropertyNode',
+                  predicate: 'And',
+                  inputs: [
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['b'] },
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['c'] }
+                  ]
+                }
+              ]
+            },
+            annotations: []
+          }
+        ]
+        const output = createCompiledPredicates(input)
+        expect(output).toStrictEqual([
+          {
+            type: 'CompiledPredicate',
+            name: 'Foo',
+            inputDefs: ['a'],
+            contracts: [
+              {
+                type: 'IntermediateCompiledPredicate',
+                originalPredicateName: 'Foo',
+                name: 'FooA',
+                connective: 'And',
+                inputDefs: ['FooA', 'a'],
+                inputs: [
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'CompiledPredicateCall',
+                      source: 'Bool'
+                    },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 1, children: [] }
+                    ]
+                  },
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'CompiledPredicateCall',
+                      source: 'Bool'
+                    },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 1, children: [] }
+                    ]
+                  }
+                ],
+                propertyInputs: []
+              }
+            ],
+            entryPoint: 'FooA',
+            constants: [{ varType: 'address', name: 'Bool' }]
+          },
+          {
+            type: 'CompiledPredicate',
+            name: 'DeepNestTest',
+            inputDefs: ['a', 'b'],
+            contracts: [
+              {
+                type: 'IntermediateCompiledPredicate',
+                originalPredicateName: 'DeepNestTest',
+                name: 'DeepNestTestTA',
+                connective: 'And',
+                inputDefs: ['DeepNestTestTA', 'b', 'c'],
+                inputs: [
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'CompiledPredicateCall',
+                      source: 'Bool'
+                    },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 1, children: [] }
+                    ]
+                  },
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'CompiledPredicateCall',
+                      source: 'Bool'
+                    },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 2, children: [] }
+                    ]
+                  }
+                ],
+                propertyInputs: []
+              },
+              {
+                type: 'IntermediateCompiledPredicate',
+                originalPredicateName: 'DeepNestTest',
+                name: 'DeepNestTestT',
+                connective: 'ThereExistsSuchThat',
+                inputDefs: ['DeepNestTestT', 'a', 'b'],
+                inputs: [
+                  {
+                    type: 'AtomicProposition',
+                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 1, children: [] }
+                    ]
+                  },
+                  'c',
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'DeepNestTestTA'
+                    },
+                    inputs: [
+                      { type: 'LabelInput', label: 'DeepNestTestTA' },
+                      { type: 'NormalInput', inputIndex: 2, children: [] },
+                      { type: 'VariableInput', placeholder: 'c', children: [] }
+                    ],
+                    isCompiled: true
+                  }
+                ],
+                propertyInputs: []
+              }
+            ],
+            entryPoint: 'DeepNestTestT',
+            constants: [{ varType: 'address', name: 'Bool' }]
+          }
+        ])
+      })
     })
   })
 })

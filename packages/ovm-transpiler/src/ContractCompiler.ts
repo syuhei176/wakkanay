@@ -113,7 +113,6 @@ function traverseLogicalConnnective(
       return acc
     }
   }, [])
-
   newContract.inputs = children
   newContract.propertyInputs = getPropertyInputIndexes(children)
   return compiledPredicates.concat([newContract])
