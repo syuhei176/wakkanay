@@ -791,5 +791,97 @@ describe('ContractCompiler', () => {
         ])
       })
     })
+
+    describe('deep nest', () => {
+      test('Foo(a) or (Foo(b) and Foo(c))', () => {
+        const input: PropertyDef[] = [
+          {
+            annotations: [],
+            name: 'DeepNestTest',
+            inputDefs: ['a', 'b', 'c'],
+            body: {
+              type: 'PropertyNode',
+              predicate: 'Or',
+              inputs: [
+                {
+                  type: 'PropertyNode',
+                  predicate: 'And',
+                  inputs: [
+                    { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
+                    { type: 'PropertyNode', predicate: 'Foo', inputs: ['b'] }
+                  ]
+                },
+                { type: 'PropertyNode', predicate: 'Foo', inputs: ['c'] }
+              ]
+            }
+          }
+        ]
+        const output = createCompiledPredicates(input)
+        expect(output).toStrictEqual([
+          {
+            type: 'CompiledPredicate',
+            name: 'DeepNestTest',
+            inputDefs: ['a', 'b', 'c'],
+            contracts: [
+              {
+                type: 'IntermediateCompiledPredicate',
+                originalPredicateName: 'DeepNestTest',
+                name: 'DeepNestTestO1A',
+                connective: 'And',
+                inputDefs: ['DeepNestTestO1A', 'a', 'b'],
+                inputs: [
+                  {
+                    type: 'AtomicProposition',
+                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 1, children: [] }
+                    ]
+                  },
+                  {
+                    type: 'AtomicProposition',
+                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 2, children: [] }
+                    ]
+                  }
+                ],
+                propertyInputs: []
+              },
+              {
+                type: 'IntermediateCompiledPredicate',
+                originalPredicateName: 'DeepNestTest',
+                name: 'DeepNestTestO',
+                connective: 'Or',
+                inputDefs: ['DeepNestTestO', 'a', 'b', 'c'],
+                inputs: [
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'DeepNestTestO1A'
+                    },
+                    inputs: [
+                      { type: 'LabelInput', label: 'DeepNestTestO1A' },
+                      { type: 'NormalInput', inputIndex: 1, children: [] },
+                      { type: 'NormalInput', inputIndex: 2, children: [] }
+                    ],
+                    isCompiled: true
+                  },
+                  {
+                    type: 'AtomicProposition',
+                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 3, children: [] }
+                    ]
+                  }
+                ],
+                propertyInputs: []
+              }
+            ],
+            entryPoint: 'DeepNestTestO'
+          }
+        ])
+      })
+    })
   })
 })

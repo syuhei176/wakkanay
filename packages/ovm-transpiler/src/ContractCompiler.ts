@@ -28,11 +28,14 @@ function createCompiledPredicatesForProperty(
   p: PropertyDef
 ): CompiledPredicate {
   const name = utils.toCapitalCase(p.name)
-  const newContracts: IntermediateCompiledPredicate[] = []
   if (p.body == null) {
     throw new Error('p.body must not be null')
   }
-  traverseLogicalConnnective(newContracts, p.body, p.inputDefs, name)
+  const newContracts: IntermediateCompiledPredicate[] = traverseLogicalConnnective(
+    p.body,
+    p.inputDefs,
+    name
+  )
   const constants = getConstants(newContracts)
   const result: CompiledPredicate = {
     type: 'CompiledPredicate',
@@ -49,86 +52,71 @@ function createCompiledPredicatesForProperty(
 
 /**
  * @name traverseLogicalConnnective
- * @description traverse logical connectives
- * @param {*} contracts
+ * @description traverse logical connectives and returns CompiledPredicates
  * @param {*} property
  * @param {*} parent
  * @param {*} originalPredicateName
  * @param {*} parentSuffix
  */
 function traverseLogicalConnnective(
-  contracts: IntermediateCompiledPredicate[],
   property: PropertyNode,
   parentInputDefs: string[],
   originalPredicateName: string,
   parentSuffix?: string
-): AtomicProposition {
-  if (utils.isNotAtomicProposition(property.predicate)) {
-    const suffix = (parentSuffix || '') + property.predicate[0]
-    let newInputDefs = getArguments(property)
-    if (parentSuffix === undefined) {
-      newInputDefs = parentInputDefs
-    }
-    newInputDefs = [makeContractName(originalPredicateName, suffix)].concat(
-      newInputDefs
-    )
-    const newContract = createCompiledPredicate(
-      property,
-      newInputDefs,
-      originalPredicateName,
-      suffix
-    )
-    const children: (AtomicProposition | Placeholder)[] = []
-    if (
-      property.predicate == 'ForAllSuchThat' ||
-      property.predicate == 'ThereExistsSuchThat'
-    ) {
-      // quantifier
-      if (typeof property.inputs[0] == 'string') {
-        children[0] = property.inputs[0]
-      } else {
-        children[0] = traverseLogicalConnnective(
-          contracts,
-          property.inputs[0] as PropertyNode,
-          newContract.inputDefs,
-          originalPredicateName
-        )
-      }
-      // placeholder
-      children[1] = property.inputs[1] as string
-      // innerProperty
-      children[2] = traverseLogicalConnnective(
-        contracts,
-        property.inputs[2] as PropertyNode,
-        newContract.inputDefs,
-        originalPredicateName,
-        suffix
-      )
-    } else if (
-      property.predicate == 'And' ||
-      property.predicate == 'Or' ||
-      property.predicate == 'Not'
-    ) {
-      property.inputs.forEach(
-        (p: PropertyNode | string | undefined, i: number) => {
-          children[i] = traverseLogicalConnnective(
-            contracts,
-            p as PropertyNode,
-            newContract.inputDefs,
-            originalPredicateName,
-            suffix + (i + 1)
-          )
-        }
-      )
-    }
-    newContract.inputs = children
-    newContract.propertyInputs = getPropertyInputIndexes(children)
-    // If it is logical connective, push it as new compiled predicate
-    contracts.push(newContract)
-    return compileLogicalConnective(newContract, parentInputDefs, newInputDefs)
-  } else {
-    return compileAtomicPredicate(property, parentInputDefs)
+): IntermediateCompiledPredicate[] {
+  if (!utils.isNotAtomicProposition(property.predicate)) {
+    return []
   }
+  const suffix = (parentSuffix || '') + property.predicate[0]
+  let newInputDefs = getArguments(property)
+  if (parentSuffix === undefined) {
+    newInputDefs = parentInputDefs
+  }
+  newInputDefs = [makeContractName(originalPredicateName, suffix)].concat(
+    newInputDefs
+  )
+  const newContract = createCompiledPredicate(
+    property,
+    newInputDefs,
+    originalPredicateName,
+    suffix
+  )
+  const children: (AtomicProposition | Placeholder)[] = []
+  const compiledPredicates = property.inputs.reduce<
+    IntermediateCompiledPredicate[]
+  >((acc, p: PropertyNode | string | undefined, i: number) => {
+    if (p && typeof p !== 'string') {
+      let childSuffix = suffix
+      if (
+        property.predicate === 'And' ||
+        property.predicate === 'Or' ||
+        property.predicate === 'Not'
+      ) {
+        childSuffix += i + 1
+      }
+      const contracts = traverseLogicalConnnective(
+        p,
+        newInputDefs,
+        originalPredicateName,
+        childSuffix
+      )
+      children.push(
+        createAtomicProposition(
+          contracts[contracts.length - 1],
+          p as PropertyNode,
+          newInputDefs
+        )
+      )
+      return contracts.concat(acc)
+    } else {
+      if (p) children.push(p)
+      return acc
+    }
+  }, [])
+
+  newContract.inputs = children
+  newContract.propertyInputs = getPropertyInputIndexes(children)
+  return compiledPredicates.concat([newContract])
 }
 
 function createCompiledPredicate(
@@ -147,6 +135,22 @@ function createCompiledPredicate(
     inputDefs: newInputDefs,
     inputs: [],
     propertyInputs: []
+  }
+}
+
+function createAtomicProposition(
+  newContract: IntermediateCompiledPredicate,
+  property: PropertyNode,
+  parentInputDefs: string[]
+) {
+  if (utils.isNotAtomicProposition(property.predicate)) {
+    return compileLogicalConnective(
+      newContract,
+      parentInputDefs,
+      newContract.inputDefs
+    )
+  } else {
+    return compileAtomicPredicate(property, parentInputDefs)
   }
 }
 
