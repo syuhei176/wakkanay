@@ -6,7 +6,7 @@
     "test": "jest",
     "test:all": "npm test && npm run test:contract",
     "test:contract": "lerna run test --scope @cryptoeconomicslab/ovm-ethereum-generator",
-    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
+    "coverage": "jest --coverage"
   },
   "devDependencies": {
     "@types/jest": "^24.9.0",

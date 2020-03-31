@@ -43,7 +43,7 @@ jobs:
           lerna bootstrap
           lerna run build
           npm run test:all
-          npm run coveralls
+          npm run coverage
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v1.0.1
         with:
