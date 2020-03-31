@@ -1,0 +1,50 @@
+on: ['push', 'pull_request']
+name: Test
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: lint
+        run: |
+          npm install -g npm@latest
+          npm install -g lerna
+          npm install --frozen-lockfile
+          lerna bootstrap
+          lerna run build
+          lerna run lint --parallel
+
+  test:
+    name: Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: test
+        run: |
+          npm install -g npm@latest
+          npm install -g lerna
+          npm install --frozen-lockfile
+          lerna bootstrap
+          lerna run build
+          npm run test:all
+          npm run coveralls
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v1.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
