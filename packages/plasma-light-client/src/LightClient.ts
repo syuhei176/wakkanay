@@ -619,14 +619,13 @@ export default class LightClient {
     const exitProperty = exit.toProperty(predicate.deployedAddress)
     const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
-      // TODO: check if challenge period is over
-      try {
+      const decidable = await this.adjudicationContract.isDecidable(exit.id)
+      if (decidable) {
         await this.adjudicationContract.decideClaimToTrue(exit.id)
-        // remove property from undecided db
         const db = await this.getClaimDb()
         await db.del(exit.id)
-      } catch (e) {
-        throw new Error(`Exit property is not decided: ${exit}`)
+      } else {
+        throw new Error('Exit property is not decidable')
       }
     }
 
