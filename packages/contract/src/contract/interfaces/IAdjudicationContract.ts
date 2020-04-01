@@ -18,6 +18,13 @@ export interface IAdjudicationContract {
   isDecided(gameId: Bytes): Promise<boolean>
 
   /**
+   * @name isDecidable
+   * @description Gets if a game is ready to decide
+   * @param gameId
+   */
+  isDecidable(gameId: Bytes): Promise<boolean>
+
+  /**
    * @name claimProperty
    * @description Claims property to create new game.
    * @param property

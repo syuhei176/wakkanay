@@ -18,6 +18,7 @@ export class AdjudicationContract implements IAdjudicationContract {
     'function getGame(bytes32 gameId) view returns(tuple(tuple(address, bytes[]), bytes[], bool, uint256))',
     'function isDecided(bytes32 gameId) view returns(bool)',
     'function isDecidedById(bytes32 gameId) view returns(bool)',
+    'function isDecidable(bytes32 gameId) view returns(bool)',
     'function claimProperty(tuple(address, bytes[]))',
     'function decideClaimToTrue(bytes32 gameId)',
     'function decideClaimToFalse(bytes32 gameId, bytes32 challengingGameId)',
@@ -54,6 +55,10 @@ export class AdjudicationContract implements IAdjudicationContract {
 
   async isDecided(gameId: Bytes): Promise<boolean> {
     return await this.connection.isDecidedById(gameId.toHexString())
+  }
+
+  async isDecidable(gameId: Bytes): Promise<boolean> {
+    return await this.connection.isDecidable(gameId.toHexString())
   }
 
   async claimProperty(property: Property): Promise<void> {

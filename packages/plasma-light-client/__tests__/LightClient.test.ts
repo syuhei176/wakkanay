@@ -10,9 +10,13 @@ import 'fake-indexeddb/auto'
 
 const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
+const mockIsDecidable = jest.fn().mockResolvedValue(true)
+const mockDecideClaimToTrue = jest.fn()
 const MockAdjudicationContract = jest.fn().mockImplementation(() => {
   return {
     isDecided: mockIsDecided,
+    isDecidable: mockIsDecidable,
+    decideClaimToTrue: mockDecideClaimToTrue,
     claimProperty: mockClaimProperty
   }
 })
@@ -387,8 +391,9 @@ describe('LightClient', () => {
       )
     })
 
-    test('fail to finalizeExit property is not decided', async () => {
+    test('fail to finalizeExit property is not decidable', async () => {
       mockIsDecided.mockResolvedValueOnce(false)
+      mockIsDecidable.mockResolvedValueOnce(false)
       const { coder } = ovmContext
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -398,7 +403,7 @@ describe('LightClient', () => {
       ])
       const exit = Exit.fromProperty(exitProperty)
       await expect(client.finalizeExit(exit)).rejects.toEqual(
-        new Error(`Exit property is not decided: ${exit}`)
+        new Error(`Exit property is not decidable`)
       )
     })
   })
