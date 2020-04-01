@@ -44,7 +44,7 @@ export async function compile(
       return load(path.join(basePath, _import.path), _import.module)
     },
     {
-      ovmPath: 'ovm-contracts/contracts',
+      ovmPath: '.',
       addressTable: {}
     }
   )

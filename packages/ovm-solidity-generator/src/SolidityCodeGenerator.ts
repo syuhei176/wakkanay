@@ -1,4 +1,5 @@
 import ejs from 'ejs'
+import path from 'path'
 import templateSource from './sol'
 import decide from './decide'
 import getChild from './getChild'
@@ -61,7 +62,7 @@ export class SolidityCodeGenerator implements CodeGenerator {
   }
 
   getOVMPath = () => {
-    return this.options.ovmPath || defaultOVMPath
+    return path.normalize(this.options.ovmPath || defaultOVMPath)
   }
   getAddress = (predicateName: string) => {
     return (

@@ -4,8 +4,8 @@ pragma experimental ABIEncoderV2;
 import { DataTypes as types } from "ovm-contracts/DataTypes.sol";
 import "ovm-contracts/UniversalAdjudicationContract.sol";
 import "ovm-contracts/Utils.sol";
-import "ovm-contracts/Predicate/AtomicPredicate.sol";
-import "ovm-contracts/Predicate/CompiledPredicate.sol";
+import "ovm-contracts/AtomicPredicate.sol";
+import "ovm-contracts/CompiledPredicate.sol";
 
 
 /**

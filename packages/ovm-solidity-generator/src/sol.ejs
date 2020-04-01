@@ -4,8 +4,8 @@ pragma experimental ABIEncoderV2;
 import { DataTypes as types } from "<%= getOVMPath() %>/DataTypes.sol";
 import "<%= getOVMPath() %>/UniversalAdjudicationContract.sol";
 import "<%= getOVMPath() %>/Utils.sol";
-import "<%= getOVMPath() %>/Predicate/AtomicPredicate.sol";
-import "<%= getOVMPath() %>/Predicate/CompiledPredicate.sol";
+import "<%= getOVMPath() %>/AtomicPredicate.sol";
+import "<%= getOVMPath() %>/CompiledPredicate.sol";
 
 <%
   for(let c = 0;c < compiledPredicates.length;c++) {

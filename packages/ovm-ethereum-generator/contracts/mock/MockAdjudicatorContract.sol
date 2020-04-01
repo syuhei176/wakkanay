@@ -1,8 +1,8 @@
 pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
-import {DataTypes as types} from 'ovm-contracts/contracts/DataTypes.sol';
-import 'ovm-contracts/contracts/Utils.sol';
+import {DataTypes as types} from '../DataTypes.sol';
+import '../Utils.sol';
 
 
 /**

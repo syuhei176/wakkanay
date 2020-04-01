@@ -60,4 +60,6 @@ export class EthereumCodeGenerator implements CodeGenerator {
 }
 
 const loadTemplate = (name: string) =>
-  readFileSync(path.join(__dirname, '../node_modules', name)).toString()
+  readFileSync(
+    path.join(__dirname, '../contracts', path.basename(name))
+  ).toString()
