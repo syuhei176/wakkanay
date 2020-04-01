@@ -1,0 +1,27 @@
+<%    if(input.type == 'ConstantInput') { -%>
+        <%= valName %>[<%=index%>] = utils.prefixConstant(<%=input.name%>);
+<%    } else if(input.type == 'LabelInput') { -%>
+        <%= valName %>[<%=index%>] = utils.prefixLabel(<%=input.label%>);
+<%    } else if(input.type == 'NormalInput') { -%>
+<%      if(input.children.length == 1) { -%>
+<%          if(input.children[0] >= 0) { -%>
+        <%= valName %>[<%=index%>] = inputProperty<%=input.inputIndex%>.inputs[<%= input.children[0] %>];
+<%          } else { -%>
+        <%= valName %>[<%=index%>] = abi.encode(inputProperty<%=input.inputIndex%>.predicateAddress);
+<%          } -%>
+<%      } else if(input.children.length == 2) { -%>
+<%          if(input.children[1] >= 0) { -%>
+        <%= valName %>[<%=index%>] = inputProperty<%=input.inputIndex%>Child<%=input.children[0]%>.inputs[<%= input.children[1] %>];
+<%          } else { -%>
+        <%= valName %>[<%=index%>] = abi.encode(inputProperty<%=input.inputIndex%>Child<%=input.children[0]%>.predicateAddress);
+<%          } -%>
+<%      } else { -%>
+        <%= valName %>[<%=index%>] = _inputs[<%=input.inputIndex - 1%>];
+<%      } -%>
+<%    } else if(input.type == 'VariableInput') { -%>
+        <%= valName %>[<%=index%>] = <%- witnessName %>;
+<%    } else if(input.type == 'SelfInput') { -%>
+        <%= valName %>[<%=index%>] = abi.encode(address(this));
+<%    } else { -%>
+        // error unknown input type
+<%    } -%>

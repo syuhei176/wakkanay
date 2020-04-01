@@ -1,0 +1,101 @@
+    /**
+     * Gets child of <%= property.name %>(<%= property.inputDefs %>).
+     */
+    function getChild<%= property.name %>(bytes[] memory _inputs, bytes[] memory challengeInputs) private view returns (types.Property memory) {
+<%
+        property.propertyInputs.forEach((propertyInput, index) => {
+-%>
+        types.Property memory inputProperty<%=propertyInput.inputIndex%> = abi.decode(_inputs[<%=propertyInput.inputIndex-1%>], (types.Property));
+<%
+        if(propertyInput.children.length > 0) {
+-%>
+        types.Property memory inputProperty<%=propertyInput.inputIndex%>Child<%=propertyInput.children[0]%> = abi.decode(inputProperty<%=propertyInput.inputIndex%>.inputs[<%= propertyInput.children[0] %>], (types.Property));
+<%
+        }
+-%>
+<%
+        })
+-%>
+<%  if(property.connective == 'And') { -%>
+        uint256 challengeInput = abi.decode(challengeInputs[0], (uint256));
+        bytes[] memory notInputs = new bytes[](1);
+<%
+      for(var j = 0;j < property.inputs.length;j++) {
+        var item = property.inputs[j]
+-%>
+        if(challengeInput == <%= j %>) {
+<%      if(item.isCompiled) { -%>
+            bytes[] memory childInputs = new bytes[](<%= item.inputs.length %>);
+<%- indent(include('constructInputs', {property: item, valName: 'childInputs', witnessName: 'challengeInputs[0]'}), 4) -%>
+            return getChild(childInputs, utils.subArray(challengeInputs, 1, challengeInputs.length));
+<%      } else if(item.predicate.type == 'CompiledPredicateCall') { -%>
+            // This is for predicates dynamic linking
+            bytes[] memory childInputs = new bytes[](<%= item.inputs.length %>);
+<%- indent(include('constructInputs', {property: item, valName: 'childInputs', witnessName: 'challengeInputs[0]'}), 4) -%>
+            return CompiledPredicate(<%= item.predicate.source %>).getChild(childInputs, utils.subArray(challengeInputs, 1, challengeInputs.length));
+<%      } else { -%>
+<%-  indent(include('constructProperty', {property: item, valName: 'notInputs[0]', propIndex: j, freeVariable: false}), 4) -%>
+            return types.Property({
+                predicateAddress: notAddress,
+                inputs: notInputs
+            });
+<%      } -%>
+        }
+<%    } -%>
+<%  } else if(property.connective == 'ForAllSuchThat') {
+      const quantifier = property.inputs[0];
+      const innerProperty = property.inputs[2];
+-%>
+<%    if(innerProperty.isCompiled) { -%>
+        bytes[] memory childInputs = new bytes[](<%= innerProperty.inputs.length %>);
+<%- include('constructInputs', {property: innerProperty, valName: 'childInputs', witnessName: 'challengeInputs[0]'}) -%>
+        return getChild(childInputs, utils.subArray(challengeInputs, 1, challengeInputs.length));
+<%    } else { -%>
+        bytes[] memory notInputs = new bytes[](1);
+<%-  include('constructProperty', {property: innerProperty, valName: 'notInputs[0]', propIndex: '', freeVariable: false}) -%>
+        return types.Property({
+            predicateAddress: notAddress,
+            inputs: notInputs
+        });
+<%    } -%>
+<%  } else if(property.connective == 'Not') {
+        const innerProperty = property.inputs[0];
+-%>
+        bytes memory property;
+<%-  include('constructProperty', {property: innerProperty, valName: 'property', propIndex: '', freeVariable: false}) -%>
+        return abi.decode(property, (types.Property));
+<%  } else if(property.connective == 'ThereExistsSuchThat') {
+        const quantifier = property.inputs[0];
+        const innerProperty = property.inputs[2];
+-%>
+        bytes[] memory forAllSuchThatInputs = new bytes[](3);
+        bytes[] memory notInputs = new bytes[](1);
+<%-  include('constructProperty', {property: innerProperty, valName: 'notInputs[0]', propIndex: '', freeVariable: 'bytes(\"V' + property.inputs[1] + '\")'}) -%>
+        forAllSuchThatInputs[0] = bytes("");
+        forAllSuchThatInputs[1] = bytes("<%= property.inputs[1] %>");
+        forAllSuchThatInputs[2] = abi.encode(types.Property({
+            predicateAddress: notAddress,
+            inputs: notInputs
+        }));
+        return types.Property({
+            predicateAddress: forAllSuchThatAddress,
+            inputs: forAllSuchThatInputs
+        });
+<%  } else if(property.connective == 'Or') {  %>
+        bytes[] memory andInputs = new bytes[](<%= property.inputs.length %>);
+<%
+        property.inputs.forEach((item, index) => {
+-%>
+        bytes[] memory notInputs<%= index %> = new bytes[](1);
+<%-  include('constructProperty', {property: item, valName: 'notInputs' + index + '[0]', propIndex: index, freeVariable: false}) -%>
+        andInputs[<%= index %>] = abi.encode(types.Property({
+            predicateAddress: notAddress,
+            inputs: notInputs<%= index %>
+        }));
+<%      }) -%>
+        return types.Property({
+            predicateAddress: andAddress,
+            inputs: andInputs
+        });
+<%  } -%>
+    }

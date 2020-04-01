@@ -1,0 +1,1 @@
+def bindAndTest(a) := Foo(a.0) and Bar(a.1)

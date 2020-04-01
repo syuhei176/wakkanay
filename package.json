@@ -4,7 +4,9 @@
     "clean": "lerna run clean",
     "publish": "lerna run build && lerna publish",
     "test": "jest",
-    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
+    "test:all": "npm test && npm run test:contract",
+    "test:contract": "lerna run test --scope @cryptoeconomicslab/ovm-ethereum-generator",
+    "coverage": "jest --coverage"
   },
   "devDependencies": {
     "@types/jest": "^24.9.0",
@@ -28,8 +30,7 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testMatch": [
-      "**/__tests__/**/?(*.)+(spec|test).(ts|js)",
-      "**/?(*.)+(spec|test).ts"
+      "**/__tests__/**/?(*.)+(spec|test).(ts|js)"
     ],
     "moduleFileExtensions": [
       "js",

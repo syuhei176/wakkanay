@@ -1,0 +1,67 @@
+    /**
+     * Decides <%= property.name %>(<%= property.inputDefs %>).
+     */
+    function decide<%= property.name %>(bytes[] memory _inputs, bytes[] memory _witness) public view returns (bool) {
+<%
+        property.propertyInputs.forEach((propertyInput, index) => {
+-%>
+        types.Property memory inputProperty<%=propertyInput.inputIndex%> = abi.decode(_inputs[<%=propertyInput.inputIndex-1%>], (types.Property));
+<%
+        if(propertyInput.children.length > 0) {
+-%>
+        types.Property memory inputProperty<%=propertyInput.inputIndex%>Child<%=propertyInput.children[0]%> = abi.decode(inputProperty<%=propertyInput.inputIndex%>.inputs[<%= propertyInput.children[0] %>], (types.Property));
+<%
+        }
+-%>
+<%
+        })
+-%>
+<% if(property.connective == 'And') { -%>
+        // And logical connective
+<%
+        property.inputs.forEach((item, index) => {
+-%>
+<%      if(item.isCompiled) { -%>
+            bytes[] memory childInputs<%= index %> = new bytes[](<%= item.inputs.length %>);
+<%- include('constructInputs', {property: item, valName: 'childInputs' + index, witnessName: '_witness[0]'}) -%>
+        require(decide(childInputs<%= index %>,  abi.decode(_witness[<%= index %>], (bytes[]))));
+<%      } else { %>
+<%- include('decideProperty', {propIndex: index, property: item, valName: 'childInputs' + index}) -%>
+<%      } %>
+<%      }) -%>
+        return true;
+<% } else if(property.connective == 'ThereExistsSuchThat') { -%>
+        // check ThereExistsSuchThat
+<%
+const quantifier = property.inputs[0]
+const innerProperty = property.inputs[2]
+-%>
+<%      if(innerProperty.isCompiled) { -%>
+        bytes[] memory childInputs = new bytes[](<%= innerProperty.inputs.length %>);
+<%- include('constructInputs', {property: innerProperty, valName: 'childInputs', witnessName: '_witness[0]'}) -%>
+        require(decide(childInputs,  utils.subArray(_witness, 1, _witness.length)));
+<%      } else { %>
+<%- include('decideProperty', {propIndex: '', property: innerProperty, valName: 'childInputs'}) -%>
+<%      } %>
+        return true;
+<% } else if(property.connective == 'Or') { -%>
+        // check Or
+        uint256 orIndex = abi.decode(_witness[0], (uint256));
+<%
+        property.inputs.forEach((item, index) => {
+-%>
+        if(orIndex == <%= index %>) {
+<%        if(item.isCompiled) { -%>
+            bytes[] memory childInputs<%= index %> = new bytes[](<%= item.inputs.length %>);
+<%- indent(include('constructInputs', {property: item, valName: 'childInputs' + index, witnessName: '_witness[0]'}), 4) -%>
+            require(decide(childInputs<%= index %>, utils.subArray(_witness, 1, _witness.length)));
+<%        } else { %>
+<%- indent(include('decideProperty', {propIndex: index, property: item, valName: 'childInputs' + index}), 4) -%>
+<%        } %>
+        }
+<%      }) -%>
+        return true;
+<% } else { -%>
+        return false;
+<% } -%>
+    }

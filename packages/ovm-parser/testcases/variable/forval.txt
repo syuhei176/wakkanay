@@ -1,0 +1,1 @@
+def forValTest(a) := A(a).all(b -> b())
