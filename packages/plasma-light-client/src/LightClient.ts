@@ -377,9 +377,28 @@ export default class LightClient {
     depositContractAddressString: string,
     toAddress: string
   ) {
-    const depositContractAddress = Address.from(depositContractAddressString)
+    console.log('transfer :', amount, depositContractAddressString, toAddress)
     const to = Address.from(toAddress)
-    console.log('transfer :', amount, depositContractAddress, to)
+    const ownershipStateObject = this.ownershipProperty(to)
+    await this.sendTransaction(
+      amount,
+      depositContractAddressString,
+      ownershipStateObject
+    )
+  }
+
+  /**
+   * send plasma transaction with amount, Deposit Contract address and StateObject.
+   * @param amount amount of transaction
+   * @param depositContractAddressString which token of transaction
+   * @param stateObject property indicating deprecate condition of next state
+   */
+  public async sendTransaction(
+    amount: number,
+    depositContractAddressString: string,
+    stateObject: Property
+  ) {
+    const depositContractAddress = Address.from(depositContractAddressString)
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       depositContractAddress,
       amount
@@ -388,7 +407,6 @@ export default class LightClient {
       throw new Error('Not enough amount')
     }
 
-    const property = this.ownershipProperty(to)
     const latestBlock = await this.syncManager.getLatestSyncedBlockNumber()
     const transactions = await Promise.all(
       stateUpdates.map(async su => {
@@ -396,7 +414,7 @@ export default class LightClient {
           depositContractAddress,
           su.range,
           BigNumber.from(JSBI.add(latestBlock.data, JSBI.BigInt(5))),
-          property,
+          stateObject,
           this.wallet.getAddress()
         )
         const sig = await this.wallet.signMessage(
@@ -582,7 +600,7 @@ export default class LightClient {
             coder.encode(stateUpdate.depositContractAddress)
           )
           const propertyBytes = coder.encode(exitProperty.toStruct())
-          bucket.put(
+          await bucket.put(
             stateUpdate.range.start.data,
             stateUpdate.range.end.data,
             propertyBytes
