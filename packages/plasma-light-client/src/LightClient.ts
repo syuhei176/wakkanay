@@ -391,7 +391,7 @@ export default class LightClient {
    * send plasma transaction with amount, Deposit Contract address and StateObject.
    * @param amount amount of transaction
    * @param depositContractAddressString which token of transaction
-   * @param stateObject property indicating deprecate condition of next state
+   * @param stateObject property defining deprecate condition of next state
    */
   public async sendTransaction(
     amount: number,
