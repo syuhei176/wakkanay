@@ -14,6 +14,7 @@ export interface DeciderManagerInterface {
     substitutions?: { [key: string]: Bytes }
   ): Promise<Decision>
   getDeciderAddress(shortname: string): Address
+  getStorageDb(): Promise<KeyValueStore>
 }
 
 /**
@@ -88,6 +89,11 @@ export class DeciderManager implements DeciderManagerInterface {
     compiledPredicate: CompiledPredicate
   ) {
     this.compiledPredicates.set(predicateName, compiledPredicate)
+  }
+
+  public async getStorageDb(): Promise<KeyValueStore> {
+    const bucket = await this.witnessDb.bucket(Bytes.fromString('storage'))
+    return bucket
   }
 
   /**

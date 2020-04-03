@@ -9,6 +9,8 @@ import {
 } from '../../src'
 import { setupContext } from '@cryptoeconomicslab/context'
 import { TraceInfoCreator } from '../../src/Tracer'
+import { KeyValueStore } from '@cryptoeconomicslab/db'
+import { InMemoryKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 setupContext({ coder: JsonCoder })
 
 const BoolDeciderAddress = Address.from(
@@ -29,6 +31,7 @@ const OrDeciderAddress = Address.from(
 
 export class MockDeciderManager implements DeciderManagerInterface {
   readonly coder: Coder = JsonCoder
+  private db = new InMemoryKeyValueStore(Bytes.fromString('db'))
   public async decide(
     property: Property,
     substitutions: { [key: string]: Bytes } = {}
@@ -55,5 +58,8 @@ export class MockDeciderManager implements DeciderManagerInterface {
     } else {
       throw new Error(`operator ${operator} is not registered.`)
     }
+  }
+  async getStorageDb(): Promise<KeyValueStore> {
+    return this.db
   }
 }
