@@ -344,6 +344,68 @@ export default class LightClient {
   }
 
   /**
+   * create exit property from StateUpdate
+   * @param stateUpdate
+   */
+  private async createExitProperty(
+    stateUpdate: StateUpdate
+  ): Promise<Property> {
+    const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
+    const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
+      'ExitDeposit'
+    )
+    if (!predicate) throw new Error('Exit predicate not found')
+    if (!exitDepositPredicate)
+      throw new Error('ExitDeposit predicate not found')
+
+    const { coder } = ovmContext
+    const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
+      b: coder.encode(stateUpdate.blockNumber),
+      token: coder.encode(stateUpdate.depositContractAddress),
+      range: coder.encode(stateUpdate.range.toStruct())
+    })
+    const quantified = await getWitnesses(this.witnessDb, hint)
+
+    const inputsOfExitProperty = [coder.encode(stateUpdate.property.toStruct())]
+    if (quantified.length === 0) {
+      // making exitDeposit property
+      const checkpoints = await this.checkpointManager.getCheckpointsWithRange(
+        stateUpdate.depositContractAddress,
+        stateUpdate.range
+      )
+      if (checkpoints.length === 0) {
+        throw new Error(
+          'Client tried to exitDeposit but checkpoint is not found.'
+        )
+      }
+      // check stateUpdate is subrange of checkpoint
+      const checkpointStateUpdate = StateUpdate.fromProperty(
+        checkpoints[0].stateUpdate
+      )
+      if (
+        checkpointStateUpdate.depositContractAddress.data ===
+          stateUpdate.depositContractAddress.data &&
+        JSBI.equal(
+          checkpointStateUpdate.blockNumber.data,
+          stateUpdate.blockNumber.data
+        )
+      ) {
+        inputsOfExitProperty.push(coder.encode(checkpoints[0].toStruct()))
+      } else {
+        throw new Error('invalid range')
+      }
+      return exitDepositPredicate.makeProperty(inputsOfExitProperty)
+    } else if (quantified.length === 1) {
+      // making exit property
+      const proof = quantified[0]
+      inputsOfExitProperty.push(proof)
+      return predicate.makeProperty(inputsOfExitProperty)
+    } else {
+      throw new Error('invalid range')
+    }
+  }
+
+  /**
    * Deposit given amount of token to corresponding deposit contract.
    * this method calls `approve` method of ERC20 contract and `deposit` method
    * of Deposit contract.
@@ -517,6 +579,10 @@ export default class LightClient {
           checkpointId,
           c
         )
+        await this.checkpointManager.insertCheckpointWithRange(
+          depositContractAddress,
+          c
+        )
 
         const stateUpdate = StateUpdate.fromProperty(checkpoint[0])
         const owner = this.getOwner(stateUpdate)
@@ -570,28 +636,11 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
-      if (!predicate) throw new Error('Exit predicate not found')
       const coder = ovmContext.coder
       await Promise.all(
         stateUpdates.map(async stateUpdate => {
-          const hint = replaceHint(
-            'proof.block${b}.range${token},RANGE,${range}',
-            {
-              b: coder.encode(stateUpdate.blockNumber),
-              token: coder.encode(stateUpdate.depositContractAddress),
-              range: coder.encode(stateUpdate.range.toStruct())
-            }
-          )
-          const quantified = await getWitnesses(this.witnessDb, hint)
-          if (quantified.length !== 1) {
-            throw new Error('invalid range')
-          }
-          const proof = quantified[0]
-          const exitProperty = predicate.makeProperty([
-            coder.encode(stateUpdate.property.toStruct()),
-            proof
-          ])
+          const exitProperty = await this.createExitProperty(stateUpdate)
+
           await this.adjudicationContract.claimProperty(exitProperty)
           const exitDb = new RangeDb(
             await this.witnessDb.bucket(Bytes.fromString('exit'))
