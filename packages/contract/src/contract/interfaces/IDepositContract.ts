@@ -25,7 +25,7 @@ export interface IDepositContract {
    * subscribe to checkpoint finalized event
    */
   subscribeCheckpointFinalized(
-    handler: (checkpointId: Bytes, checkpoint: [Range, Property]) => void
+    handler: (checkpointId: Bytes, checkpoint: [Property]) => void
   ): void
 
   /**

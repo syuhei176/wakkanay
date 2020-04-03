@@ -510,15 +510,15 @@ export default class LightClient {
     })
 
     depositContract.subscribeCheckpointFinalized(
-      async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
-        const c = new Checkpoint(checkpoint[0], checkpoint[1])
+      async (checkpointId: Bytes, checkpoint: [Property]) => {
+        const c = new Checkpoint(checkpoint[0])
         await this.checkpointManager.insertCheckpoint(
           depositContractAddress,
           checkpointId,
           c
         )
 
-        const stateUpdate = StateUpdate.fromProperty(checkpoint[1])
+        const stateUpdate = StateUpdate.fromProperty(checkpoint[0])
         const owner = this.getOwner(stateUpdate)
         if (owner && owner.data === this.wallet.getAddress().data) {
           await this.stateManager.insertVerifiedStateUpdate(

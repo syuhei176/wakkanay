@@ -315,11 +315,10 @@ export default class Aggregator {
    */
   private depositHandlerFactory(
     depositContractAddress: Address
-  ): (checkpointId: Bytes, checkpoint: [Range, Property]) => void {
-    return async (checkpointId: Bytes, checkpoint: [Range, Property]) => {
+  ): (checkpointId: Bytes, checkpoint: [Property]) => void {
+    return async (checkpointId: Bytes, checkpoint: [Property]) => {
       const blockNumber = await this.blockManager.getCurrentBlockNumber()
-      const stateUpdate = checkpoint[1]
-      stateUpdate.inputs[1] = ovmContext.coder.encode(checkpoint[0].toStruct())
+      const stateUpdate = checkpoint[0]
       const tx = new DepositTransaction(depositContractAddress, stateUpdate)
       this.stateManager.insertDepositRange(tx, blockNumber)
     }

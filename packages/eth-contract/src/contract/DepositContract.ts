@@ -71,21 +71,17 @@ export class DepositContract implements IDepositContract {
   }
 
   subscribeCheckpointFinalized(
-    handler: (checkpointId: Bytes, checkpoint: [Range, Property]) => void
+    handler: (checkpointId: Bytes, checkpoint: [Property]) => void
   ) {
     this.eventWatcher.subscribe('CheckpointFinalized', (log: EventLog) => {
       const checkpointId = log.values[0]
       const checkpoint = log.values[1]
       const stateUpdate = new Property(
-        Address.from(checkpoint[1][0]),
-        checkpoint[1][1].map(Bytes.fromHexString)
-      )
-      const subrange = new Range(
-        BigNumber.fromString(checkpoint[0][0].toString()),
-        BigNumber.fromString(checkpoint[0][1].toString())
+        Address.from(checkpoint[0][0]),
+        checkpoint[0][1].map(Bytes.fromHexString)
       )
 
-      handler(Bytes.fromHexString(checkpointId), [subrange, stateUpdate])
+      handler(Bytes.fromHexString(checkpointId), [stateUpdate])
     })
     this.eventWatcher.cancel()
     this.eventWatcher.start(() => {
