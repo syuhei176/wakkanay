@@ -345,6 +345,9 @@ export default class LightClient {
 
   /**
    * create exit property from StateUpdate
+   * If a checkpoint that is same range and block as `stateUpdate` exists, return exitDeposit property.
+   * If inclusion proof for `stateUpdate` exists, return exit property.
+   * otherwise throw exception
    * @param stateUpdate
    */
   private async createExitProperty(
