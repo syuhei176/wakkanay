@@ -68,11 +68,17 @@ import {
 import { ethers } from 'ethers'
 import { CheckpointManager } from '../src/managers'
 import deciderConfig from './config.local'
-import { DeciderConfig, CompiledPredicate } from '@cryptoeconomicslab/ovm'
+import {
+  DeciderConfig,
+  CompiledPredicate,
+  Property
+} from '@cryptoeconomicslab/ovm'
 import {
   StateUpdate,
   Exit,
-  PlasmaContractConfig
+  PlasmaContractConfig,
+  Transaction,
+  TransactionReceipt
 } from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
 import { Balance } from '@cryptoeconomicslab/wallet'
@@ -85,8 +91,42 @@ import {
   IntervalTreeInclusionProof,
   AddressTreeInclusionProof
 } from '@cryptoeconomicslab/merkle-tree'
-import { IERC20DetailedContract } from '@cryptoeconomicslab/contract'
 setupContext({ coder: JsonCoder })
+
+// mock APIClient
+const mockSendTransaction = jest
+  .fn()
+  .mockImplementation((txs: Transaction[] | Transaction) => {
+    if (Array.isArray(txs)) {
+      const tx = txs[0]
+      return {
+        data: [
+          ovmContext.coder
+            .encode(
+              new TransactionReceipt(
+                Integer.from(1),
+                tx.maxBlockNumber,
+                [BigNumber.from(0)],
+                tx.range,
+                tx.depositContractAddress,
+                tx.from,
+                tx.getHash()
+              ).toStruct()
+            )
+            .toHexString()
+        ]
+      }
+    }
+  })
+jest.mock('../src/APIClient', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      syncState: jest.fn(),
+      inclusionProof: jest.fn(),
+      sendTransaction: mockSendTransaction
+    }
+  })
+})
 
 // mock wallet
 const MockWallet = jest.fn().mockImplementation(() => {
@@ -200,6 +240,48 @@ describe('LightClient', () => {
       await expect(
         client.deposit(20, Address.from('0x00000000000000000001').data)
       ).rejects.toEqual(new Error('Contract not found'))
+    })
+  })
+
+  describe('sendTransaction', () => {
+    let su: StateUpdate
+
+    beforeAll(() => {
+      mockSendTransaction.mockClear()
+      su = new StateUpdate(
+        Address.from(
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
+        ),
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(20)),
+        BigNumber.from(0),
+        client.ownershipProperty(Address.from(client.address))
+      )
+    })
+
+    test('call sendTransaction without exception', async () => {
+      await client['stateManager'].insertVerifiedStateUpdate(
+        Address.default(),
+        su
+      )
+
+      await client.sendTransaction(
+        10,
+        defaultAddress,
+        new Property(Address.default(), [])
+      )
+      expect(mockSendTransaction).toBeCalled()
+    })
+
+    test('sendTransaction throw exception of not enough amount', async () => {
+      await expect(
+        client.sendTransaction(
+          50,
+          defaultAddress,
+          new Property(Address.default(), [])
+        )
+      ).rejects.toEqual(new Error('Not enough amount'))
     })
   })
 
