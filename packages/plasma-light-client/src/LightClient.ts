@@ -353,38 +353,25 @@ export default class LightClient {
   private async createExitProperty(
     stateUpdate: StateUpdate
   ): Promise<Property> {
-    const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
+    const exitPredicate = this.deciderManager.compiledPredicateMap.get('Exit')
     const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
       'ExitDeposit'
     )
-    if (!predicate) throw new Error('Exit predicate not found')
+    if (!exitPredicate) throw new Error('Exit predicate not found')
     if (!exitDepositPredicate)
       throw new Error('ExitDeposit predicate not found')
 
     const { coder } = ovmContext
-    const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
-      b: coder.encode(stateUpdate.blockNumber),
-      token: coder.encode(stateUpdate.depositContractAddress),
-      range: coder.encode(stateUpdate.range.toStruct())
-    })
-    const quantified = await getWitnesses(this.witnessDb, hint)
-
     const inputsOfExitProperty = [coder.encode(stateUpdate.property.toStruct())]
-    if (quantified.length === 0) {
-      // making exitDeposit property
-      const checkpoints = await this.checkpointManager.getCheckpointsWithRange(
-        stateUpdate.depositContractAddress,
-        stateUpdate.range
-      )
-      if (checkpoints.length === 0) {
-        throw new Error(
-          'Client tried to exitDeposit but checkpoint is not found.'
-        )
-      }
-      // check stateUpdate is subrange of checkpoint
+    const checkpoints = await this.checkpointManager.getCheckpointsWithRange(
+      stateUpdate.depositContractAddress,
+      stateUpdate.range
+    )
+    if (checkpoints.length > 0) {
       const checkpointStateUpdate = StateUpdate.fromProperty(
         checkpoints[0].stateUpdate
       )
+      // check stateUpdate is subrange of checkpoint
       if (
         checkpointStateUpdate.depositContractAddress.data ===
           stateUpdate.depositContractAddress.data &&
@@ -393,19 +380,25 @@ export default class LightClient {
           stateUpdate.blockNumber.data
         )
       ) {
+        // making exitDeposit property
         inputsOfExitProperty.push(coder.encode(checkpoints[0].toStruct()))
-      } else {
-        throw new Error('invalid range')
+        return exitDepositPredicate.makeProperty(inputsOfExitProperty)
       }
-      return exitDepositPredicate.makeProperty(inputsOfExitProperty)
-    } else if (quantified.length === 1) {
-      // making exit property
-      const proof = quantified[0]
-      inputsOfExitProperty.push(proof)
-      return predicate.makeProperty(inputsOfExitProperty)
-    } else {
+    }
+    // making exit property
+    const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
+      b: coder.encode(stateUpdate.blockNumber),
+      token: coder.encode(stateUpdate.depositContractAddress),
+      range: coder.encode(stateUpdate.range.toStruct())
+    })
+    const quantified = await getWitnesses(this.witnessDb, hint)
+
+    if (quantified.length !== 1) {
       throw new Error('invalid range')
     }
+    const proof = quantified[0]
+    inputsOfExitProperty.push(proof)
+    return exitPredicate.makeProperty(inputsOfExitProperty)
   }
 
   /**
