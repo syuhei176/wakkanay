@@ -90,6 +90,15 @@ export class DoubleLayerTreeLeaf
       start: this.start
     }
   }
+
+  public static getParamType(): Struct {
+    return new Struct([
+      { key: 'address', value: Address.default() },
+      { key: 'start', value: BigNumber.default() },
+      { key: 'data', value: FixedBytes.default(32) }
+    ])
+  }
+
   public toStruct(): Struct {
     return new Struct([
       {

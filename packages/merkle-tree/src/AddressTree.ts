@@ -11,6 +11,7 @@ import {
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
 import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
+import { CodableF } from '@cryptoeconomicslab/primitives/lib/Codable'
 
 export class AddressTreeNode implements MerkleTreeNode<Address> {
   constructor(public address: Address, public data: FixedBytes) {
@@ -68,7 +69,10 @@ export class AddressTreeInclusionProof extends InclusionProof<
       { key: 'leafPosition', value: Integer.default() },
       {
         key: 'siblings',
-        value: List.default(Bytes, Bytes.default())
+        value: List.default(
+          { default: () => AddressTreeNode.getParamType() },
+          AddressTreeNode.getParamType()
+        )
       }
     ])
   }
@@ -76,13 +80,27 @@ export class AddressTreeInclusionProof extends InclusionProof<
   public static fromStruct(struct: Struct): AddressTreeInclusionProof {
     const leafIndex = struct.data[0].value as Address
     const leafPosition = struct.data[1].value as Integer
-    const siblings = struct.data[2].value as List<Bytes>
+    const siblings = struct.data[2].value as List<Struct>
 
     return new AddressTreeInclusionProof(
       leafIndex,
       leafPosition.data,
-      siblings.data.map(AddressTreeNode.decode)
+      siblings.data.map(AddressTreeNode.fromStruct)
     )
+  }
+
+  public toStruct(): Struct {
+    return new Struct([
+      { key: 'leafIndex', value: this.leafIndex },
+      { key: 'leafPosition', value: Integer.from(this.leafPosition) },
+      {
+        key: 'siblings',
+        value: List.from(
+          { default: () => AddressTreeNode.getParamType() },
+          this.siblings.map(s => s.toStruct())
+        )
+      }
+    ])
   }
 }
 

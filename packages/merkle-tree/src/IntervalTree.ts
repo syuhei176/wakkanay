@@ -13,6 +13,7 @@ import {
 } from './AbstractMerkleTree'
 import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
 import JSBI from 'jsbi'
+import { CodableF } from '@cryptoeconomicslab/primitives/lib/Codable'
 
 export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
   /**
@@ -72,7 +73,10 @@ export class IntervalTreeInclusionProof extends InclusionProof<
       { key: 'leafPosition', value: Integer.default() },
       {
         key: 'siblings',
-        value: List.default(Bytes, Bytes.default())
+        value: List.default(
+          { default: () => IntervalTreeNode.getParamType() },
+          IntervalTreeNode.getParamType()
+        )
       }
     ])
   }
@@ -80,13 +84,27 @@ export class IntervalTreeInclusionProof extends InclusionProof<
   public static fromStruct(struct: Struct): IntervalTreeInclusionProof {
     const leafIndex = struct.data[0].value as BigNumber
     const leafPosition = struct.data[1].value as Integer
-    const siblings = struct.data[2].value as List<Bytes>
+    const siblings = struct.data[2].value as List<Struct>
 
     return new IntervalTreeInclusionProof(
       leafIndex,
       leafPosition.data,
-      siblings.data.map(IntervalTreeNode.decode)
+      siblings.data.map(IntervalTreeNode.fromStruct)
     )
+  }
+
+  public toStruct(): Struct {
+    return new Struct([
+      { key: 'leafIndex', value: this.leafIndex },
+      { key: 'leafPosition', value: Integer.from(this.leafPosition) },
+      {
+        key: 'siblings',
+        value: List.from(
+          { default: () => IntervalTreeNode.getParamType() },
+          this.siblings.map(s => s.toStruct())
+        )
+      }
+    ])
   }
 }
 
