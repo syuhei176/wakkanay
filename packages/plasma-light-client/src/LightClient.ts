@@ -190,7 +190,7 @@ export default class LightClient {
   public async getBalance(): Promise<
     Array<{
       depositContractAddress: string
-      amount: number
+      amount: JSBI
       decimals: number
     }>
   > {
@@ -202,7 +202,7 @@ export default class LightClient {
       )
       return {
         depositContractAddress: addr,
-        amount: data.reduce((p, s) => p + Number(s.amount), 0),
+        amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
         decimals: this.tokenManager.getDecimal(Address.from(addr))
       }
     })
@@ -468,7 +468,7 @@ export default class LightClient {
    * @param to to whom transfer
    */
   public async transfer(
-    amount: number,
+    amount: number | string | JSBI,
     depositContractAddressString: string,
     toAddress: string
   ) {
@@ -489,7 +489,7 @@ export default class LightClient {
    * @param stateObject property defining deprecate condition of next state
    */
   public async sendTransaction(
-    amount: number,
+    amount: number | string | JSBI,
     depositContractAddressString: string,
     stateObject: Property
   ) {
