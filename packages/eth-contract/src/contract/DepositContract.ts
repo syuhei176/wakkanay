@@ -43,7 +43,7 @@ export class DepositContract implements IDepositContract {
       contractInterface: this.connection.interface
     })
   }
-  async deposit(amount: Integer, initialState: Property): Promise<void> {
+  async deposit(amount: BigNumber, initialState: Property): Promise<void> {
     return await this.connection.deposit(
       amount.data,
       [initialState.deciderAddress.data, initialState.inputs],

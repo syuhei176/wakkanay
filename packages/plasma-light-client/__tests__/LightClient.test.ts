@@ -229,11 +229,11 @@ describe('LightClient', () => {
 
       expect(mockApprove).toHaveBeenLastCalledWith(
         Address.default(),
-        Integer.from(20)
+        BigNumber.from(20)
       )
 
       expect(mockDeposit).toHaveBeenLastCalledWith(
-        Integer.from(20),
+        BigNumber.from(20),
         client.ownershipProperty(Address.from(client.address))
       )
     })

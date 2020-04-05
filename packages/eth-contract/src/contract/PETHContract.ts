@@ -1,6 +1,6 @@
 import * as ethers from 'ethers'
 import { IERC20DetailedContract } from '@cryptoeconomicslab/contract'
-import { Address, Integer } from '@cryptoeconomicslab/primitives'
+import { Address, BigNumber, Integer } from '@cryptoeconomicslab/primitives'
 
 export class PETHContract implements IERC20DetailedContract {
   public static abi = [
@@ -20,7 +20,7 @@ export class PETHContract implements IERC20DetailedContract {
     )
   }
 
-  public async approve(spender: Address, amount: Integer) {
+  public async approve(spender: Address, amount: BigNumber) {
     try {
       await this.connection.wrap(ethers.utils.parseEther(String(amount.data)), {
         value: ethers.utils.parseEther(String(amount.data))

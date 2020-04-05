@@ -445,7 +445,10 @@ export default class LightClient {
    * @param amount amount to deposit
    * @param depositContractAddress deposit contract address to deposit into
    */
-  public async deposit(amount: number, depositContractAddress: string) {
+  public async deposit(
+    amount: number | string | JSBI,
+    depositContractAddress: string
+  ) {
     const addr = Address.from(depositContractAddress)
     const myAddress = this.wallet.getAddress()
     const depositContract = this.getDepositContract(addr)
@@ -454,9 +457,12 @@ export default class LightClient {
       throw new Error('Contract not found')
     }
 
-    await erc20Contract.approve(depositContract.address, Integer.from(amount))
+    await erc20Contract.approve(
+      depositContract.address,
+      BigNumber.from(JSBI.BigInt(amount))
+    )
     await depositContract.deposit(
-      Integer.from(amount),
+      BigNumber.from(JSBI.BigInt(amount)),
       this.ownershipProperty(myAddress)
     )
   }
@@ -672,7 +678,10 @@ export default class LightClient {
    * @param amount amount to exit
    * @param depositContractAddress deposit contract address to exit
    */
-  public async exit(amount: number, depositContractAddress: string) {
+  public async exit(
+    amount: number | string | JSBI,
+    depositContractAddress: string
+  ) {
     const addr = Address.from(depositContractAddress)
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       addr,
