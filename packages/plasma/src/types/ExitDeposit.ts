@@ -6,33 +6,23 @@ import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import IExit from './IExit'
 
-export default class Exit implements IExit {
-  constructor(
-    readonly stateUpdate: StateUpdate,
-    readonly inclusionProof: DoubleLayerInclusionProof,
-    readonly id: Bytes
-  ) {}
+export default class ExitDeposit implements IExit {
+  constructor(readonly stateUpdate: StateUpdate, readonly id: Bytes) {}
 
   public toProperty(exitPredicateAddress: Address): Property {
     const { encode } = ovmContext.coder
     return new Property(exitPredicateAddress, [
-      encode(this.stateUpdate.property.toStruct()),
-      encode(this.inclusionProof.toStruct())
+      encode(this.stateUpdate.property.toStruct())
     ])
   }
 
-  public static fromProperty(property: Property): Exit {
+  public static fromProperty(property: Property): ExitDeposit {
     const { coder } = ovmContext
     const stateUpdate = StateUpdate.fromProperty(
       decodeStructable(Property, coder, property.inputs[0])
     )
-    const inclusionProof = decodeStructable(
-      DoubleLayerInclusionProof,
-      coder,
-      property.inputs[1]
-    )
     const id = Keccak256.hash(coder.encode(property.toStruct()))
-    return new Exit(stateUpdate, inclusionProof, id)
+    return new ExitDeposit(stateUpdate, id)
   }
 
   public get range(): Range {

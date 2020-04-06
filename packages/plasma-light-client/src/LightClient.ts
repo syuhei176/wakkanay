@@ -3,7 +3,9 @@ import {
   Transaction,
   TransactionReceipt,
   Checkpoint,
+  IExit,
   Exit,
+  ExitDeposit,
   PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import {
@@ -676,7 +678,7 @@ export default class LightClient {
    *
    * @param exit Exit object to finalize
    */
-  public async finalizeExit(exit: Exit) {
+  public async finalizeExit(exit: IExit) {
     const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
     if (!predicate) throw new Error('Exit predicate not found')
     const exitProperty = exit.toProperty(predicate.deployedAddress)
@@ -710,7 +712,7 @@ export default class LightClient {
   /**
    * Get pending exit list
    */
-  public async getExitlist(): Promise<Exit[]> {
+  public async getExitlist(): Promise<IExit[]> {
     const { coder } = ovmContext
     const exitDb = new RangeDb(
       await this.witnessDb.bucket(Bytes.fromString('exit'))
@@ -720,11 +722,17 @@ export default class LightClient {
         const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
         const iter = bucket.iter(JSBI.BigInt(0))
         let item = await iter.next()
-        const result: Exit[] = []
+        const result: IExit[] = []
         while (item !== null) {
-          result.push(
-            Exit.fromProperty(decodeStructable(Property, coder, item.value))
-          )
+          const p = decodeStructable(Property, coder, item.value)
+          if (
+            p.deciderAddress.data ===
+            this.deciderManager.getDeciderAddress('Exit').data
+          ) {
+            result.push(Exit.fromProperty(p))
+          } else {
+            result.push(ExitDeposit.fromProperty(p))
+          }
           item = await iter.next()
         }
         return result
