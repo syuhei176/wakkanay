@@ -51,6 +51,12 @@ export default class CheckpointManager {
     await bucket.del(checkpointId)
   }
 
+  /**
+   * @name insertCheckpointWithRange
+   * @description insert checkpoint to find checkpoint with rangee
+   * @param depositContractAddress deposit contract address of checkpoint
+   * @param checkpoint a checkpoint object to insert
+   */
   public async insertCheckpointWithRange(
     depositContractAddress: Address,
     checkpoint: Checkpoint
@@ -68,6 +74,12 @@ export default class CheckpointManager {
     )
   }
 
+  /**
+   * @name getCheckpointsWithRange
+   * @description get checkpoint with range
+   * @param depositContractAddress deposit contract address of checkpoint
+   * @param range a range where checkpoint is stored
+   */
   public async getCheckpointsWithRange(
     depositContractAddress: Address,
     range: Range

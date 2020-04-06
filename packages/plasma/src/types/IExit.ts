@@ -3,7 +3,8 @@ import { StateUpdate } from './'
 import { Property } from '@cryptoeconomicslab/ovm'
 
 /**
- * Interface of Exit
+ * @name IExit
+ * @description Interface of Exit. You can finalize exit with finalizeExit method.
  */
 export default interface IExit {
   readonly stateUpdate: StateUpdate
