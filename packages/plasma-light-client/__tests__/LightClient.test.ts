@@ -238,6 +238,20 @@ describe('LightClient', () => {
       )
     })
 
+    test('deposit with large number as string', async () => {
+      await client.deposit('10000000000000000', defaultAddress)
+
+      expect(mockApprove).toHaveBeenLastCalledWith(
+        Address.default(),
+        BigNumber.fromString('10000000000000000')
+      )
+
+      expect(mockDeposit).toHaveBeenLastCalledWith(
+        BigNumber.fromString('10000000000000000'),
+        client.ownershipProperty(Address.from(client.address))
+      )
+    })
+
     test('deposit calls to unregistered contract should fail', async () => {
       await expect(
         client.deposit(20, Address.from('0x00000000000000000001').data)
