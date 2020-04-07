@@ -26,7 +26,8 @@ import {
   RangeDb,
   getWitnesses,
   putWitness,
-  replaceHint
+  replaceHint,
+  RangeStore
 } from '@cryptoeconomicslab/db'
 import {
   ICommitmentContract,
@@ -45,6 +46,12 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import JSBI from 'jsbi'
+import UserAction, {
+  createDepositUserAction,
+  createExitUserAction,
+  createReceiveUserAction,
+  createSendUserAction
+} from './UserAction'
 
 import EventEmitter from 'event-emitter'
 import {
@@ -166,6 +173,12 @@ export default class LightClient {
     return await this.witnessDb.bucket(Bytes.fromString('claimedProperty'))
   }
 
+  private async getUserActionDb(blockNumber: BigNumber): Promise<RangeStore> {
+    const db = await this.witnessDb.bucket(Bytes.fromString('userAction'))
+    const bucket = await db.bucket(Bytes.fromString(blockNumber.raw))
+    return new RangeDb(bucket)
+  }
+
   /**
    * Get current balance of tokens in plasma.
    * All ERC20 tokens including Peth registered by `registerCustomToken` method or `registerToken` method are included.
@@ -266,6 +279,16 @@ export default class LightClient {
           su.depositContractAddress,
           su
         )
+        // store receive user action
+        const { range, blockNumber } = su
+        const owner = this.getOwner(su)
+        const action = createReceiveUserAction(range, owner, blockNumber)
+        const db = await this.getUserActionDb(blockNumber)
+        await db.put(
+          range.start.data,
+          range.end.data,
+          ovmContext.coder.encode(action.toStruct())
+        )
       })
       await Promise.all(promises)
       await this.syncManager.updateSyncedBlockNumber(blockNumber, root)
@@ -336,6 +359,18 @@ export default class LightClient {
             hint,
             Bytes.fromHexString(res.data.data)
           )
+
+          // store send user action
+          const { range, blockNumber } = su
+          const owner = this.getOwner(su)
+          const action = createSendUserAction(range, owner, blockNumber)
+          const db = await this.getUserActionDb(blockNumber)
+          await db.put(
+            range.start.data,
+            range.end.data,
+            ovmContext.coder.encode(action.toStruct())
+          )
+
           this.ee.emit(EmitterEvent.TRANSFER_COMPLETE, su)
         }
       })
@@ -525,6 +560,16 @@ export default class LightClient {
             depositContractAddress,
             stateUpdate
           )
+
+          // put deposited action
+          const { range, blockNumber } = stateUpdate
+          const action = createDepositUserAction(range, blockNumber)
+          const db = await this.getUserActionDb(blockNumber)
+          await db.put(
+            range.start.data,
+            range.end.data,
+            ovmContext.coder.encode(action.toStruct())
+          )
         }
         this.ee.emit(
           EmitterEvent.CHECKPOINT_FINALIZED,
@@ -616,6 +661,17 @@ export default class LightClient {
           const id = Keccak256.hash(propertyBytes)
           const propertyDb = await this.getClaimDb()
           propertyDb.put(id, propertyBytes)
+
+          // put exit action
+          const { range } = stateUpdate
+          const blockNumber = await this.commitmentContract.getCurrentBlock()
+          const action = createExitUserAction(range, blockNumber)
+          const db = await this.getUserActionDb(blockNumber)
+          await db.put(
+            range.start.data,
+            range.end.data,
+            ovmContext.coder.encode(action.toStruct())
+          )
         })
       )
     } else {
@@ -757,6 +813,34 @@ export default class LightClient {
         await db.del(gameId)
       }
     )
+  }
+
+  public async getAllUserActions(): Promise<UserAction[]> {
+    const result: UserAction[] = []
+    const currentBlockNumber = await this.commitmentContract.getCurrentBlock()
+    let blockNumber = JSBI.BigInt(0)
+    while (JSBI.greaterThan(blockNumber, currentBlockNumber.data)) {
+      const actions = await this.getUserActions(BigNumber.from(blockNumber))
+      result.concat(actions)
+      blockNumber = JSBI.add(blockNumber, JSBI.BigInt(1))
+    }
+    return result
+  }
+
+  public async getUserActions(blockNumber: BigNumber): Promise<UserAction[]> {
+    const bucket = await this.getUserActionDb(blockNumber)
+    const iter = bucket.iter(JSBI.BigInt(0))
+    let item = await iter.next()
+    const result: UserAction[] = []
+    while (item !== null) {
+      result.push(
+        UserAction.fromStruct(
+          ovmContext.coder.decode(UserAction.getParamTypes(), item.value)
+        )
+      )
+      item = await iter.next()
+    }
+    return result
   }
 
   //
