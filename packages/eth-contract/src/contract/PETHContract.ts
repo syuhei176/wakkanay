@@ -21,13 +21,16 @@ export class PETHContract implements IERC20DetailedContract {
   }
 
   public async approve(spender: Address, amount: BigNumber) {
+    const bigNumberifiedAmount = new ethers.utils.BigNumber(
+      amount.data.toString()
+    )
     try {
-      await this.connection.wrap(ethers.utils.parseEther(String(amount.data)), {
-        value: ethers.utils.parseEther(String(amount.data))
+      await this.connection.wrap(bigNumberifiedAmount, {
+        value: bigNumberifiedAmount
       })
-      await this.connection.approve(spender.data, amount.data)
+      await this.connection.approve(spender.data, bigNumberifiedAmount)
     } catch (e) {
-      await this.connection.unwrap(ethers.utils.parseEther(String(amount.data)))
+      await this.connection.unwrap(bigNumberifiedAmount)
       throw new Error(`Invalid call: ${e}`)
     }
   }
