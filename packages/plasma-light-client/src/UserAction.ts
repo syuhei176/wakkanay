@@ -1,4 +1,10 @@
-import { Range, Struct, Integer, Address } from '@cryptoeconomicslab/primitives'
+import {
+  BigNumber,
+  Range,
+  Struct,
+  Integer,
+  Address
+} from '@cryptoeconomicslab/primitives'
 import JSBI from 'jsbi'
 
 export enum ActionType {
@@ -8,23 +14,39 @@ export enum ActionType {
   Receive
 }
 
-export function createDepositUserAction(range: Range): UserAction {
-  return new UserAction(ActionType.Deposit, range, Address.default())
+export function createDepositUserAction(
+  range: Range,
+  blockNumber: BigNumber
+): UserAction {
+  return new UserAction(
+    ActionType.Deposit,
+    range,
+    Address.default(),
+    blockNumber
+  )
 }
 
-export function createExitUserAction(range: Range): UserAction {
-  return new UserAction(ActionType.Exit, range, Address.default())
+export function createExitUserAction(
+  range: Range,
+  blockNumber: BigNumber
+): UserAction {
+  return new UserAction(ActionType.Exit, range, Address.default(), blockNumber)
 }
 
-export function createSendUserAction(range: Range, to: Address): UserAction {
-  return new UserAction(ActionType.Send, range, to)
+export function createSendUserAction(
+  range: Range,
+  to: Address,
+  blockNumber: BigNumber
+): UserAction {
+  return new UserAction(ActionType.Send, range, to, blockNumber)
 }
 
 export function createReceiveUserAction(
   range: Range,
-  from: Address
+  from: Address,
+  blockNumber: BigNumber
 ): UserAction {
-  return new UserAction(ActionType.Receive, range, from)
+  return new UserAction(ActionType.Receive, range, from, blockNumber)
 }
 
 /**
@@ -34,7 +56,8 @@ export default class UserAction {
   constructor(
     readonly type: ActionType,
     readonly range: Range,
-    readonly counterParty: Address
+    readonly counterParty: Address,
+    readonly blockNumber: BigNumber
   ) {}
 
   public toStruct(): Struct {
@@ -47,6 +70,10 @@ export default class UserAction {
       {
         key: 'counterParty',
         value: this.counterParty
+      },
+      {
+        key: 'blockNumber',
+        value: this.blockNumber
       }
     ])
   }
@@ -61,6 +88,10 @@ export default class UserAction {
       {
         key: 'counterParty',
         value: Address.default()
+      },
+      {
+        key: 'blockNumber',
+        value: BigNumber.default()
       }
     ])
   }
@@ -69,7 +100,13 @@ export default class UserAction {
     const type = struct.data[0].value.raw
     const range = struct.data[1].value as Struct
     const counterParty = struct.data[2].value as Address
-    return new UserAction(type, Range.fromStruct(range), counterParty)
+    const blockNumber = struct.data[3].value as BigNumber
+    return new UserAction(
+      type,
+      Range.fromStruct(range),
+      counterParty,
+      blockNumber
+    )
   }
 
   public get amount(): JSBI {
