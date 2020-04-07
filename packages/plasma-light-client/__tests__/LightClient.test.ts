@@ -48,7 +48,8 @@ const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
 const MockCommitmentContract = jest
   .fn()
   .mockImplementation((addr: Address, eventDb: KeyValueStore) => ({
-    submitRoot: () => undefined
+    submitRoot: () => undefined,
+    getCurrentBlock: jest.fn().mockResolvedValue(BigNumber.from(1))
   }))
 
 const mockFinalizeExit = jest.fn()

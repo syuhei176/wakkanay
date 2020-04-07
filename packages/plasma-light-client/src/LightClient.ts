@@ -280,10 +280,10 @@ export default class LightClient {
           su
         )
         // store receive user action
-        const { range, blockNumber } = su
+        const { range } = su
         const owner = this.getOwner(su)
-        const action = createReceiveUserAction(range, owner, blockNumber)
-        const db = await this.getUserActionDb(blockNumber)
+        const action = createReceiveUserAction(range, owner, su.blockNumber)
+        const db = await this.getUserActionDb(su.blockNumber)
         await db.put(
           range.start.data,
           range.end.data,
@@ -361,10 +361,10 @@ export default class LightClient {
           )
 
           // store send user action
-          const { range, blockNumber } = su
+          const { range } = su
           const owner = this.getOwner(su)
-          const action = createSendUserAction(range, owner, blockNumber)
-          const db = await this.getUserActionDb(blockNumber)
+          const action = createSendUserAction(range, owner, su.blockNumber)
+          const db = await this.getUserActionDb(su.blockNumber)
           await db.put(
             range.start.data,
             range.end.data,
@@ -660,7 +660,7 @@ export default class LightClient {
           )
           const id = Keccak256.hash(propertyBytes)
           const propertyDb = await this.getClaimDb()
-          propertyDb.put(id, propertyBytes)
+          await propertyDb.put(id, propertyBytes)
 
           // put exit action
           const { range } = stateUpdate
