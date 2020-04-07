@@ -5,8 +5,7 @@ import DepositedRangeManager from '../src/managers/DepositedRangeManager'
 import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
 import { replaceHint, KeyValueStore } from '@cryptoeconomicslab/db'
-import { IndexedDbKeyValueStore } from '@cryptoeconomicslab/indexeddb-kvs'
-import 'fake-indexeddb/auto'
+import { LevelKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 
 const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
@@ -76,9 +75,11 @@ import {
 import {
   StateUpdate,
   Exit,
+  ExitDeposit,
   PlasmaContractConfig,
   Transaction,
-  TransactionReceipt
+  TransactionReceipt,
+  Checkpoint
 } from '@cryptoeconomicslab/plasma'
 import { putWitness } from '@cryptoeconomicslab/db'
 import { Balance } from '@cryptoeconomicslab/wallet'
@@ -153,7 +154,7 @@ const MockWallet = jest.fn().mockImplementation(() => {
 })
 
 async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
-  const kvs = new IndexedDbKeyValueStore(Bytes.fromString('root'))
+  const kvs = new LevelKeyValueStore(Bytes.fromString('root'))
   const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
   const wallet = new MockWallet()
   const eventDb = await kvs.bucket(Bytes.fromString('event'))
@@ -381,6 +382,29 @@ describe('LightClient', () => {
         new Range(BigNumber.from(0), BigNumber.from(20))
       )
       expect(exitingStateUpdate).toEqual([su1])
+    })
+
+    test('exit calls claimProperty with exitDeposit property', async () => {
+      // store checkpoint
+      const checkpoint = new Checkpoint(su1.property)
+      await client['checkpointManager'].insertCheckpointWithRange(
+        Address.default(),
+        checkpoint
+      )
+
+      const { coder } = ovmContext
+      await client.exit(20, defaultAddress)
+
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'ExitDeposit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su1.property.toStruct()),
+        coder.encode(checkpoint.toStruct())
+      ])
+      expect(mockClaimProperty).toHaveBeenLastCalledWith(exitProperty)
+      // check exit list
+      const exitList = await client.getExitlist()
+      expect(exitList).toEqual([ExitDeposit.fromProperty(exitProperty)])
     })
 
     test('exit with multiple range', async () => {

@@ -13,7 +13,7 @@ export default class Checkpoint {
   }
 
   public static fromStruct(struct: Struct): Checkpoint {
-    return new Checkpoint(Property.fromStruct(struct.data[1].value as Struct))
+    return new Checkpoint(Property.fromStruct(struct.data[0].value as Struct))
   }
 
   public toStruct(): Struct {

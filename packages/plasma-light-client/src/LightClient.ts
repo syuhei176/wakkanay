@@ -3,7 +3,9 @@ import {
   Transaction,
   TransactionReceipt,
   Checkpoint,
+  IExit,
   Exit,
+  ExitDeposit,
   PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
 import {
@@ -344,6 +346,64 @@ export default class LightClient {
   }
 
   /**
+   * create exit property from StateUpdate
+   * If a checkpoint that is same range and block as `stateUpdate` exists, return exitDeposit property.
+   * If inclusion proof for `stateUpdate` exists, return exit property.
+   * otherwise throw exception
+   * @param stateUpdate
+   */
+  private async createExitProperty(
+    stateUpdate: StateUpdate
+  ): Promise<Property> {
+    const exitPredicate = this.deciderManager.compiledPredicateMap.get('Exit')
+    const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
+      'ExitDeposit'
+    )
+    if (!exitPredicate) throw new Error('Exit predicate not found')
+    if (!exitDepositPredicate)
+      throw new Error('ExitDeposit predicate not found')
+
+    const { coder } = ovmContext
+    const inputsOfExitProperty = [coder.encode(stateUpdate.property.toStruct())]
+    const checkpoints = await this.checkpointManager.getCheckpointsWithRange(
+      stateUpdate.depositContractAddress,
+      stateUpdate.range
+    )
+    if (checkpoints.length > 0) {
+      const checkpointStateUpdate = StateUpdate.fromProperty(
+        checkpoints[0].stateUpdate
+      )
+      // check stateUpdate is subrange of checkpoint
+      if (
+        checkpointStateUpdate.depositContractAddress.data ===
+          stateUpdate.depositContractAddress.data &&
+        JSBI.equal(
+          checkpointStateUpdate.blockNumber.data,
+          stateUpdate.blockNumber.data
+        )
+      ) {
+        // making exitDeposit property
+        inputsOfExitProperty.push(coder.encode(checkpoints[0].toStruct()))
+        return exitDepositPredicate.makeProperty(inputsOfExitProperty)
+      }
+    }
+    // making exit property
+    const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
+      b: coder.encode(stateUpdate.blockNumber),
+      token: coder.encode(stateUpdate.depositContractAddress),
+      range: coder.encode(stateUpdate.range.toStruct())
+    })
+    const quantified = await getWitnesses(this.witnessDb, hint)
+
+    if (quantified.length !== 1) {
+      throw new Error('invalid range')
+    }
+    const proof = quantified[0]
+    inputsOfExitProperty.push(proof)
+    return exitPredicate.makeProperty(inputsOfExitProperty)
+  }
+
+  /**
    * Deposit given amount of token to corresponding deposit contract.
    * this method calls `approve` method of ERC20 contract and `deposit` method
    * of Deposit contract.
@@ -517,6 +577,10 @@ export default class LightClient {
           checkpointId,
           c
         )
+        await this.checkpointManager.insertCheckpointWithRange(
+          depositContractAddress,
+          c
+        )
 
         const stateUpdate = StateUpdate.fromProperty(checkpoint[0])
         const owner = this.getOwner(stateUpdate)
@@ -570,28 +634,11 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
-      if (!predicate) throw new Error('Exit predicate not found')
       const coder = ovmContext.coder
       await Promise.all(
         stateUpdates.map(async stateUpdate => {
-          const hint = replaceHint(
-            'proof.block${b}.range${token},RANGE,${range}',
-            {
-              b: coder.encode(stateUpdate.blockNumber),
-              token: coder.encode(stateUpdate.depositContractAddress),
-              range: coder.encode(stateUpdate.range.toStruct())
-            }
-          )
-          const quantified = await getWitnesses(this.witnessDb, hint)
-          if (quantified.length !== 1) {
-            throw new Error('invalid range')
-          }
-          const proof = quantified[0]
-          const exitProperty = predicate.makeProperty([
-            coder.encode(stateUpdate.property.toStruct()),
-            proof
-          ])
+          const exitProperty = await this.createExitProperty(stateUpdate)
+
           await this.adjudicationContract.claimProperty(exitProperty)
           const exitDb = new RangeDb(
             await this.witnessDb.bucket(Bytes.fromString('exit'))
@@ -631,7 +678,7 @@ export default class LightClient {
    *
    * @param exit Exit object to finalize
    */
-  public async finalizeExit(exit: Exit) {
+  public async finalizeExit(exit: IExit) {
     const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
     if (!predicate) throw new Error('Exit predicate not found')
     const exitProperty = exit.toProperty(predicate.deployedAddress)
@@ -665,7 +712,7 @@ export default class LightClient {
   /**
    * Get pending exit list
    */
-  public async getExitlist(): Promise<Exit[]> {
+  public async getExitlist(): Promise<IExit[]> {
     const { coder } = ovmContext
     const exitDb = new RangeDb(
       await this.witnessDb.bucket(Bytes.fromString('exit'))
@@ -675,11 +722,17 @@ export default class LightClient {
         const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
         const iter = bucket.iter(JSBI.BigInt(0))
         let item = await iter.next()
-        const result: Exit[] = []
+        const result: IExit[] = []
         while (item !== null) {
-          result.push(
-            Exit.fromProperty(decodeStructable(Property, coder, item.value))
-          )
+          const p = decodeStructable(Property, coder, item.value)
+          if (
+            p.deciderAddress.data ===
+            this.deciderManager.getDeciderAddress('Exit').data
+          ) {
+            result.push(Exit.fromProperty(p))
+          } else {
+            result.push(ExitDeposit.fromProperty(p))
+          }
           item = await iter.next()
         }
         return result
