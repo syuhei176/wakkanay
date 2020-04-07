@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/eth-coder",
-  "version": "0.0.40",
+  "version": "0.3.0",
   "description": "eth-coder",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,8 +29,8 @@
     "clean": "rm -rf lib docs"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.0.40",
-    "@cryptoeconomicslab/primitives": "^0.0.40"
+    "@cryptoeconomicslab/coder": "^0.3.0",
+    "@cryptoeconomicslab/primitives": "^0.3.0"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.5"
