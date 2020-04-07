@@ -17,7 +17,7 @@ export class DepositContract implements IDepositContract {
   readonly gasLimit: number
 
   public static abi = [
-    'event CheckpointFinalized(bytes32 checkpointId, tuple(tuple(uint256, uint256), tuple(address, bytes[])) checkpoint)',
+    'event CheckpointFinalized(bytes32 checkpointId, tuple(tuple(address, bytes[])) checkpoint)',
     'event ExitFinalized(bytes32 exitId)',
     'event DepositedRangeExtended(tuple(uint256, uint256) newRange)',
     'event DepositedRangeRemoved(tuple(uint256, uint256) removedRange)',
