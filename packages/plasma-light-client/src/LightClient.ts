@@ -318,7 +318,7 @@ export default class LightClient {
    */
   private async syncExit() {
     const blockNumber = await this.commitmentContract.getCurrentBlock()
-    const b = JSBI.BigInt(0)
+    let b = JSBI.BigInt(0)
 
     const exitPredicate = this.deciderManager.compiledPredicateMap.get('Exit')
     const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
@@ -335,8 +335,8 @@ export default class LightClient {
       .address(exitDepositPredicate.deployedAddress)
       .build()
 
-    const exits: Exit[] = []
-    const exitDeposits: ExitDeposit[] = []
+    let exits: Exit[] = []
+    let exitDeposits: ExitDeposit[] = []
 
     while (JSBI.lessThanOrEqual(b, blockNumber.data)) {
       const [exitProperties, exitDepositProperties] = await Promise.all([
@@ -349,33 +349,37 @@ export default class LightClient {
         Exit[],
         ExitDeposit[]
       ] = await Promise.all([
-        new Promise<Exit[]>(resolve => {
+        (async () => {
           const exits: Exit[] = []
           for (const property of exitProperties) {
             const exit = Exit.fromProperty(property)
-            const isDecided = this.adjudicationContract.isDecided(exit.id)
-            if (isDecided) continue
-            if (this.getOwner(exit.stateUpdate).data === this.address)
+            const isDecided = await this.adjudicationContract.isDecided(exit.id)
+            if (
+              !isDecided &&
+              this.getOwner(exit.stateUpdate).data === this.address
+            )
               exits.push(exit)
           }
-          resolve(exits)
-        }),
-        new Promise<ExitDeposit[]>(resolve => {
+          return exits
+        })(),
+        (async () => {
           const exitDeposits: ExitDeposit[] = []
           for (const property of exitDepositProperties) {
             const exit = ExitDeposit.fromProperty(property)
-            const isDecided = this.adjudicationContract.isDecided(exit.id)
-            if (isDecided) continue
-            if (this.getOwner(exit.stateUpdate).data === this.address)
+            const isDecided = await this.adjudicationContract.isDecided(exit.id)
+            if (
+              !isDecided &&
+              this.getOwner(exit.stateUpdate).data === this.address
+            )
               exitDeposits.push(exit)
           }
-          resolve(exitDeposits)
-        })
+          return exitDeposits
+        })()
       ])
 
-      exits.concat(_exits)
-      exitDeposits.concat(_exitDeposits)
-      JSBI.add(b, JSBI.BigInt(1))
+      exits = exits.concat(_exits)
+      exitDeposits = exitDeposits.concat(_exitDeposits)
+      b = JSBI.add(b, JSBI.BigInt(1))
     }
 
     await Promise.all([

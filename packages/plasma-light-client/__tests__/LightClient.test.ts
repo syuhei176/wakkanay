@@ -12,12 +12,15 @@ const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
 const mockIsDecidable = jest.fn().mockResolvedValue(true)
 const mockDecideClaimToTrue = jest.fn()
+const mockGetClaimedProperties = jest.fn().mockResolvedValue([])
+
 const MockAdjudicationContract = jest.fn().mockImplementation(() => {
   return {
     isDecided: mockIsDecided,
     isDecidable: mockIsDecidable,
     decideClaimToTrue: mockDecideClaimToTrue,
-    claimProperty: mockClaimProperty
+    claimProperty: mockClaimProperty,
+    getClaimedProperties: mockGetClaimedProperties
   }
 })
 
@@ -219,6 +222,58 @@ describe('LightClient', () => {
       const aggregatorEndpoint = 'http://test.com'
       const client = await initialize(aggregatorEndpoint)
       expect(client['aggregatorEndpoint']).toEqual(aggregatorEndpoint)
+    })
+  })
+
+  describe('sync', () => {
+    test('sync exit', async () => {
+      const { coder } = ovmContext
+      const su1 = new StateUpdate(
+        Address.from(
+          deciderConfig.deployedPredicateTable.StateUpdatePredicate
+            .deployedAddress
+        ),
+        Address.default(),
+        new Range(BigNumber.from(0), BigNumber.from(20)),
+        BigNumber.from(0),
+        client.ownershipProperty(Address.from(client.address))
+      )
+      // fake proof
+      const proof = new DoubleLayerInclusionProof(
+        new IntervalTreeInclusionProof(BigNumber.from(0), 0, []),
+        new AddressTreeInclusionProof(Address.default(), 0, [])
+      )
+
+      const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
+        'Exit'
+      ) as CompiledPredicate).makeProperty([
+        coder.encode(su1.property.toStruct()),
+        coder.encode(proof.toStruct())
+      ])
+
+      mockGetClaimedProperties.mockResolvedValueOnce([exitProperty])
+      mockIsDecided.mockResolvedValueOnce(false)
+
+      await client['stateManager'].insertVerifiedStateUpdate(
+        Address.default(),
+        su1
+      )
+
+      const hint = createInclusionProofHint(
+        su1.blockNumber,
+        su1.depositContractAddress,
+        su1.range
+      )
+      await putWitness(
+        client['witnessDb'],
+        hint,
+        coder.encode(proof.toStruct())
+      )
+
+      await client['syncExit']()
+
+      const exitList = await client.getExitList()
+      expect(exitList).toEqual([Exit.fromProperty(exitProperty)])
     })
   })
 
