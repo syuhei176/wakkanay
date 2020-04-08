@@ -20,7 +20,7 @@ export class ERC20Contract implements IERC20DetailedContract {
 
   public async approve(spender: Address, amount: BigNumber) {
     try {
-      await this.connection.approve(spender.data, amount.data)
+      await this.connection.approve(spender.data, amount.raw)
     } catch (e) {
       throw new Error(`Invalid call: ${e}`)
     }

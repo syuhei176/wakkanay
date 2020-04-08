@@ -32,7 +32,7 @@ export class CommitmentContract implements ICommitmentContract {
 
   async submit(blockNumber: BigNumber, root: FixedBytes) {
     return await this.connection.submitRoot(
-      blockNumber.data.toString(),
+      blockNumber.raw,
       root.toHexString(),
       {
         gasLimit: this.gasLimit

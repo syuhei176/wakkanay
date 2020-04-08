@@ -28,7 +28,7 @@ export class OwnershipPayoutContract implements IOwnershipPayoutContract {
     await this.connection.finalizeExit(
       depositContractAddress.data,
       [exitProperty.deciderAddress.data, exitProperty.inputs],
-      depositedRangeId.data.toString(),
+      depositedRangeId.raw,
       owner.data,
       {
         gasLimit: this.gasLimit

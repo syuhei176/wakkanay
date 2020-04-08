@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/eth-contract",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "eth-contract",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,7 +29,7 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "@cryptoeconomicslab/contract": "^0.3.0",
+    "@cryptoeconomicslab/contract": "^0.3.1",
     "@cryptoeconomicslab/db": "^0.3.0",
     "@cryptoeconomicslab/ovm": "^0.3.0",
     "ethers": "^4.0.46",
