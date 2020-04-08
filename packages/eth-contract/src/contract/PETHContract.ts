@@ -20,6 +20,11 @@ export class PETHContract implements IERC20DetailedContract {
     )
   }
 
+  /**
+   * @name approve
+   * @param spender address who is allowed to spend token
+   * @param amount amount of wei.
+   */
   public async approve(spender: Address, amount: BigNumber) {
     const bigNumberifiedAmount = new ethers.utils.BigNumber(
       amount.data.toString()

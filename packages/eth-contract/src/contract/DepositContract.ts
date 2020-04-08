@@ -43,6 +43,12 @@ export class DepositContract implements IDepositContract {
       contractInterface: this.connection.interface
     })
   }
+
+  /**
+   * Deposits amount of ETH with initial state
+   * @param amount Amount of ETH. The unit is wei.
+   * @param initialState Initial state of the range
+   */
   async deposit(amount: BigNumber, initialState: Property): Promise<void> {
     return await this.connection.deposit(
       amount.data,
