@@ -12,7 +12,8 @@ import {
   Property,
   CompiledPredicate,
   DeciderManager,
-  DeciderConfig
+  DeciderConfig,
+  PropertyFilterBuilder
 } from '@cryptoeconomicslab/ovm'
 import {
   Address,
@@ -231,6 +232,7 @@ export default class LightClient {
     })
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
+    await this.syncExit()
     this.watchAdjudicationContract()
   }
 
@@ -308,6 +310,80 @@ export default class LightClient {
     } finally {
       this._syncing = false
     }
+  }
+
+  /**
+   * sync exit db
+   * get exit properties which have not been finalized yet from adjudication contract
+   */
+  private async syncExit() {
+    const blockNumber = await this.commitmentContract.getCurrentBlock()
+    const b = JSBI.BigInt(0)
+
+    const exitPredicate = this.deciderManager.compiledPredicateMap.get('Exit')
+    const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
+      'ExitDeposit'
+    )
+    if (!exitPredicate) throw new Error('Exit predicate not found')
+    if (!exitDepositPredicate)
+      throw new Error('ExitDeposit predicate not found')
+
+    const exitFilter = new PropertyFilterBuilder()
+      .address(exitPredicate.deployedAddress)
+      .build()
+    const exitDepositFilter = new PropertyFilterBuilder()
+      .address(exitDepositPredicate.deployedAddress)
+      .build()
+
+    const exits: Exit[] = []
+    const exitDeposits: ExitDeposit[] = []
+
+    while (JSBI.lessThanOrEqual(b, blockNumber.data)) {
+      const [exitProperties, exitDepositProperties] = await Promise.all([
+        this.adjudicationContract.getClaimedProperties(exitFilter),
+        this.adjudicationContract.getClaimedProperties(exitDepositFilter)
+      ])
+
+      // filter undecided exit
+      const [_exits, _exitDeposits]: [
+        Exit[],
+        ExitDeposit[]
+      ] = await Promise.all([
+        new Promise<Exit[]>(resolve => {
+          const exits: Exit[] = []
+          for (const property of exitProperties) {
+            const exit = Exit.fromProperty(property)
+            const isDecided = this.adjudicationContract.isDecided(exit.id)
+            if (isDecided) continue
+            if (this.getOwner(exit.stateUpdate).data === this.address)
+              exits.push(exit)
+          }
+          resolve(exits)
+        }),
+        new Promise<ExitDeposit[]>(resolve => {
+          const exitDeposits: ExitDeposit[] = []
+          for (const property of exitDepositProperties) {
+            const exit = ExitDeposit.fromProperty(property)
+            const isDecided = this.adjudicationContract.isDecided(exit.id)
+            if (isDecided) continue
+            if (this.getOwner(exit.stateUpdate).data === this.address)
+              exitDeposits.push(exit)
+          }
+          resolve(exitDeposits)
+        })
+      ])
+
+      exits.concat(_exits)
+      exitDeposits.concat(_exitDeposits)
+      JSBI.add(b, JSBI.BigInt(1))
+    }
+
+    await Promise.all([
+      await Promise.all(exits.map(exit => this.saveExit(exit.stateUpdate))),
+      await Promise.all(
+        exitDeposits.map(exit => this.saveExit(exit.stateUpdate))
+      )
+    ])
   }
 
   private async verifyPendingStateUpdates(blockNumber: BigNumber) {
@@ -703,45 +779,7 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      const coder = ovmContext.coder
-      await Promise.all(
-        stateUpdates.map(async stateUpdate => {
-          const exitProperty = await this.createExitProperty(stateUpdate)
-
-          await this.adjudicationContract.claimProperty(exitProperty)
-          const propertyBytes = coder.encode(exitProperty.toStruct())
-          const exitDb = await this.getExitDb(
-            stateUpdate.depositContractAddress
-          )
-          await exitDb.put(
-            stateUpdate.range.start.data,
-            stateUpdate.range.end.data,
-            propertyBytes
-          )
-          await this.stateManager.removeVerifiedStateUpdate(
-            stateUpdate.depositContractAddress,
-            stateUpdate.range
-          )
-          await this.stateManager.insertExitStateUpdate(
-            stateUpdate.depositContractAddress,
-            stateUpdate
-          )
-          const id = Keccak256.hash(propertyBytes)
-          const claimDb = await this.getClaimDb()
-          await claimDb.put(id, propertyBytes)
-
-          // put exit action
-          const { range } = stateUpdate
-          const blockNumber = await this.commitmentContract.getCurrentBlock()
-          const action = createExitUserAction(range, blockNumber)
-          const db = await this.getUserActionDb(blockNumber)
-          await db.put(
-            range.start.data,
-            range.end.data,
-            ovmContext.coder.encode(action.toStruct())
-          )
-        })
-      )
+      await Promise.all(stateUpdates.map(this.saveExit.bind(this)))
     } else {
       throw new Error('Insufficient amount')
     }
@@ -881,6 +919,41 @@ export default class LightClient {
         const db = await this.getClaimDb()
         await db.del(gameId)
       }
+    )
+  }
+
+  private async saveExit(stateUpdate: StateUpdate) {
+    const { coder } = ovmContext
+    const exitProperty = await this.createExitProperty(stateUpdate)
+    await this.adjudicationContract.claimProperty(exitProperty)
+    const propertyBytes = coder.encode(exitProperty.toStruct())
+    const exitDb = await this.getExitDb(stateUpdate.depositContractAddress)
+    await exitDb.put(
+      stateUpdate.range.start.data,
+      stateUpdate.range.end.data,
+      propertyBytes
+    )
+    await this.stateManager.removeVerifiedStateUpdate(
+      stateUpdate.depositContractAddress,
+      stateUpdate.range
+    )
+    await this.stateManager.insertExitStateUpdate(
+      stateUpdate.depositContractAddress,
+      stateUpdate
+    )
+    const id = Keccak256.hash(propertyBytes)
+    const claimDb = await this.getClaimDb()
+    await claimDb.put(id, propertyBytes)
+
+    // put exit action
+    const { range } = stateUpdate
+    const blockNumber = await this.commitmentContract.getCurrentBlock()
+    const action = createExitUserAction(range, blockNumber)
+    const db = await this.getUserActionDb(blockNumber)
+    await db.put(
+      range.start.data,
+      range.end.data,
+      ovmContext.coder.encode(action.toStruct())
     )
   }
 

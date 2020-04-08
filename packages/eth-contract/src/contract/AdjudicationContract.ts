@@ -1,6 +1,10 @@
 import * as ethers from 'ethers'
 import { Bytes, Address, BigNumber, List } from '@cryptoeconomicslab/primitives'
-import { Property, ChallengeGame } from '@cryptoeconomicslab/ovm'
+import {
+  Property,
+  ChallengeGame,
+  IPropertyFilter
+} from '@cryptoeconomicslab/ovm'
 import { EventLog, IAdjudicationContract } from '@cryptoeconomicslab/contract'
 import { KeyValueStore } from '@cryptoeconomicslab/db'
 import EthEventWatcher from '../events'
@@ -125,6 +129,22 @@ export class AdjudicationContract implements IAdjudicationContract {
         gasLimit: this.gasLimit
       }
     )
+  }
+
+  async getClaimedProperties(
+    propertyFilter: IPropertyFilter
+  ): Promise<Property[]> {
+    const iface = new ethers.utils.Interface(AdjudicationContract.abi)
+    const filter = {
+      ...this.connection.filters.NewPropertyClaimed,
+      fromBlock: 0,
+      toBlock: 'latest'
+    }
+    const logs = await this.connection.provider.getLogs(filter)
+    return logs
+      .map(iface.parseLog)
+      .map(event => this.getProperty(event.values[1]))
+      .filter(propertyFilter.match)
   }
 
   subscribeAtomicPropositionDecided(

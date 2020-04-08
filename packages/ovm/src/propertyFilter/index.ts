@@ -1,4 +1,4 @@
-import PropertyFilter from './PropertyFilter'
+import PropertyFilter, { IPropertyFilter } from './PropertyFilter'
 import PropertyFilterBuilder from './PropertyFilterBuilder'
 
-export { PropertyFilter, PropertyFilterBuilder }
+export { IPropertyFilter, PropertyFilter, PropertyFilterBuilder }

@@ -1,5 +1,9 @@
 import { Bytes, BigNumber, List } from '@cryptoeconomicslab/primitives'
-import { ChallengeGame, Property } from '@cryptoeconomicslab/ovm'
+import {
+  ChallengeGame,
+  Property,
+  IPropertyFilter
+} from '@cryptoeconomicslab/ovm'
 
 export interface IAdjudicationContract {
   /**
@@ -61,6 +65,12 @@ export interface IAdjudicationContract {
    * @param decision
    */
   setPredicateDecision(gameId: Bytes, decision: boolean): Promise<void>
+
+  /**
+   * get claimed properties with given filter
+   * @param propertyFilter filtering property
+   */
+  getClaimedProperties(propertyFilter: IPropertyFilter): Promise<Property[]>
 
   /**
    * @name clallenge

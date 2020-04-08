@@ -2,6 +2,10 @@ import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { Property } from '../types'
 import { decodeProperty } from '../helpers'
 
+export interface IPropertyFilter {
+  match: (property: Property) => boolean
+}
+
 export default class PropertyFilter {
   constructor(
     readonly address: Address,
