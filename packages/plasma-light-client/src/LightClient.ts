@@ -19,7 +19,6 @@ import {
   Bytes,
   FixedBytes,
   BigNumber,
-  Integer,
   Range,
   List
 } from '@cryptoeconomicslab/primitives'
@@ -726,8 +725,8 @@ export default class LightClient {
             stateUpdate
           )
           const id = Keccak256.hash(propertyBytes)
-          const propertyDb = await this.getClaimDb()
-          await propertyDb.put(id, propertyBytes)
+          const claimDb = await this.getClaimDb()
+          await claimDb.put(id, propertyBytes)
 
           // put exit action
           const { range } = stateUpdate
@@ -786,7 +785,7 @@ export default class LightClient {
   /**
    * Get pending exit list
    */
-  public async getExitlist(): Promise<IExit[]> {
+  public async getExitList(): Promise<IExit[]> {
     const { coder } = ovmContext
     const exitDb = new RangeDb(
       await this.witnessDb.bucket(Bytes.fromString('exit'))

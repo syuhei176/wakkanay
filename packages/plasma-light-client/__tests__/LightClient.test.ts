@@ -427,7 +427,7 @@ describe('LightClient', () => {
       ])
       expect(mockClaimProperty).toHaveBeenLastCalledWith(exitProperty)
       // check exit list
-      const exitList = await client.getExitlist()
+      const exitList = await client.getExitList()
       expect(exitList).toEqual([ExitDeposit.fromProperty(exitProperty)])
     })
 
@@ -471,7 +471,7 @@ describe('LightClient', () => {
 
     test('exitList', async () => {
       await client.exit(25, defaultAddress)
-      const exitList = await client.getExitlist()
+      const exitList = await client.getExitList()
 
       const { coder } = ovmContext
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
