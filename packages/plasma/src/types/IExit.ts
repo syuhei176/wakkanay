@@ -10,6 +10,5 @@ export default interface IExit {
   readonly stateUpdate: StateUpdate
   readonly id: Bytes
   readonly range: Range
-
-  toProperty(exitPredicateAddress: Address): Property
+  readonly property: Property
 }

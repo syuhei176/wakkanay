@@ -8,14 +8,15 @@ import IExit from './IExit'
 
 export default class Exit implements IExit {
   constructor(
+    readonly exitPredicateAddress: Address,
     readonly stateUpdate: StateUpdate,
     readonly inclusionProof: DoubleLayerInclusionProof,
     readonly id: Bytes
   ) {}
 
-  public toProperty(exitPredicateAddress: Address): Property {
+  public get property(): Property {
     const { encode } = ovmContext.coder
-    return new Property(exitPredicateAddress, [
+    return new Property(this.exitPredicateAddress, [
       encode(this.stateUpdate.property.toStruct()),
       encode(this.inclusionProof.toStruct())
     ])
@@ -32,7 +33,7 @@ export default class Exit implements IExit {
       property.inputs[1]
     )
     const id = Keccak256.hash(coder.encode(property.toStruct()))
-    return new Exit(stateUpdate, inclusionProof, id)
+    return new Exit(property.deciderAddress, stateUpdate, inclusionProof, id)
   }
 
   public get range(): Range {

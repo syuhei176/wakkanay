@@ -1,5 +1,5 @@
 import StateUpdate from './StateUpdate'
-import { DoubleLayerInclusionProof } from '@cryptoeconomicslab/merkle-tree'
+import Checkpoint from './Checkpoint'
 import { Bytes, Address, Range } from '@cryptoeconomicslab/primitives'
 import { Property } from '@cryptoeconomicslab/ovm'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
@@ -7,12 +7,18 @@ import { Keccak256 } from '@cryptoeconomicslab/hash'
 import IExit from './IExit'
 
 export default class ExitDeposit implements IExit {
-  constructor(readonly stateUpdate: StateUpdate, readonly id: Bytes) {}
+  constructor(
+    readonly exitDepositPredicateAddress: Address,
+    readonly stateUpdate: StateUpdate,
+    readonly checkpoint: Checkpoint,
+    readonly id: Bytes
+  ) {}
 
-  public toProperty(exitPredicateAddress: Address): Property {
+  public get property(): Property {
     const { encode } = ovmContext.coder
-    return new Property(exitPredicateAddress, [
-      encode(this.stateUpdate.property.toStruct())
+    return new Property(this.exitDepositPredicateAddress, [
+      encode(this.stateUpdate.property.toStruct()),
+      encode(this.checkpoint.property.toStruct())
     ])
   }
 
@@ -21,8 +27,11 @@ export default class ExitDeposit implements IExit {
     const stateUpdate = StateUpdate.fromProperty(
       decodeStructable(Property, coder, property.inputs[0])
     )
+    const checkpoint = Checkpoint.fromProperty(
+      decodeStructable(Property, coder, property.inputs[1])
+    )
     const id = Keccak256.hash(coder.encode(property.toStruct()))
-    return new ExitDeposit(stateUpdate, id)
+    return new ExitDeposit(property.deciderAddress, stateUpdate, checkpoint, id)
   }
 
   public get range(): Range {

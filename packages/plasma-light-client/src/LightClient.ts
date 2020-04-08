@@ -418,7 +418,9 @@ export default class LightClient {
         )
       ) {
         // making exitDeposit property
-        inputsOfExitProperty.push(coder.encode(checkpoints[0].toStruct()))
+        inputsOfExitProperty.push(
+          coder.encode(checkpoints[0].property.toStruct())
+        )
         return exitDepositPredicate.makeProperty(inputsOfExitProperty)
       }
     }
@@ -612,7 +614,16 @@ export default class LightClient {
 
     depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Property]) => {
-        const c = new Checkpoint(checkpoint[0])
+        const checkpointPredicate = this.deciderManager.compiledPredicateMap.get(
+          'Checkpoint'
+        )
+        if (!checkpointPredicate) {
+          throw new Error('')
+        }
+        const c = new Checkpoint(
+          checkpointPredicate.deployedAddress,
+          checkpoint[0]
+        )
         await this.checkpointManager.insertCheckpoint(
           depositContractAddress,
           checkpointId,
@@ -744,9 +755,7 @@ export default class LightClient {
    * @param exit Exit object to finalize
    */
   public async finalizeExit(exit: IExit) {
-    const predicate = this.deciderManager.compiledPredicateMap.get('Exit')
-    if (!predicate) throw new Error('Exit predicate not found')
-    const exitProperty = exit.toProperty(predicate.deployedAddress)
+    const exitProperty = exit.property
     const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
       const decidable = await this.adjudicationContract.isDecidable(exit.id)

@@ -5,21 +5,13 @@ import {
   Range
 } from '@cryptoeconomicslab/primitives'
 import { Property } from '@cryptoeconomicslab/ovm'
-import { Exit, StateUpdate } from '../src'
+import { ExitDeposit, StateUpdate } from '../src'
 import Coder, { decodeStructable } from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
-import {
-  DoubleLayerInclusionProof,
-  IntervalTreeInclusionProof,
-  AddressTreeInclusionProof
-} from '@cryptoeconomicslab/merkle-tree'
+import { Checkpoint } from '../lib'
 setupContext({ coder: Coder })
 
-describe('Exit', () => {
-  const testInclusionProof = new DoubleLayerInclusionProof(
-    new IntervalTreeInclusionProof(BigNumber.from(0), 0, []),
-    new AddressTreeInclusionProof(Address.default(), 0, [])
-  )
+describe('ExitDeposit', () => {
   const testStateUpdate = new StateUpdate(
     Address.default(),
     Address.default(),
@@ -27,16 +19,21 @@ describe('Exit', () => {
     BigNumber.from(0),
     new Property(Address.default(), [Bytes.fromHexString('0x01')])
   )
-  const exitProperty = new Property(Address.default(), [
+  const testCheckpoint = new Checkpoint(
+    Address.default(),
+    testStateUpdate.property
+  )
+
+  const exitDepositProperty = new Property(Address.default(), [
     ovmContext.coder.encode(testStateUpdate.property.toStruct()),
-    ovmContext.coder.encode(testInclusionProof.toStruct())
+    ovmContext.coder.encode(testCheckpoint.property.toStruct())
   ])
 
   test('encode, decode', () => {
-    const exit = Exit.fromProperty(exitProperty)
+    const exit = ExitDeposit.fromProperty(exitDepositProperty)
     const encoded = ovmContext.coder.encode(exit.property.toStruct())
     const decoded = decodeStructable(Property, ovmContext.coder, encoded)
-    const decodedExit = Exit.fromProperty(decoded)
+    const decodedExit = ExitDeposit.fromProperty(decoded)
     expect(decodedExit).toEqual(exit)
   })
 })
