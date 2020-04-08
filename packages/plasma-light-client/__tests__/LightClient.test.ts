@@ -4,8 +4,9 @@ import SyncManager from '../src/managers/SyncManager'
 import DepositedRangeManager from '../src/managers/DepositedRangeManager'
 import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
-import { replaceHint, KeyValueStore } from '@cryptoeconomicslab/db'
+import { KeyValueStore } from '@cryptoeconomicslab/db'
 import { LevelKeyValueStore } from '@cryptoeconomicslab/level-kvs'
+import { createInclusionProofHint } from '../src/hintString'
 
 const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
@@ -359,26 +360,20 @@ describe('LightClient', () => {
         su2
       )
       // store inclusion proof
-      const hint1 = replaceHint(
-        'proof.block${b}.range${token},RANGE,${range}',
-        {
-          b: coder.encode(su1.blockNumber),
-          token: coder.encode(su1.depositContractAddress),
-          range: coder.encode(su1.range.toStruct())
-        }
+      const hint1 = createInclusionProofHint(
+        su1.blockNumber,
+        su1.depositContractAddress,
+        su1.range
       )
       await putWitness(
         client['witnessDb'],
         hint1,
         coder.encode(proof.toStruct())
       )
-      const hint2 = replaceHint(
-        'proof.block${b}.range${token},RANGE,${range}',
-        {
-          b: coder.encode(su2.blockNumber),
-          token: coder.encode(su2.depositContractAddress),
-          range: coder.encode(su2.range.toStruct())
-        }
+      const hint2 = createInclusionProofHint(
+        su2.blockNumber,
+        su2.depositContractAddress,
+        su2.range
       )
 
       await putWitness(

@@ -27,7 +27,6 @@ import {
   RangeDb,
   getWitnesses,
   putWitness,
-  replaceHint,
   RangeStore
 } from '@cryptoeconomicslab/db'
 import {
@@ -47,6 +46,7 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import JSBI from 'jsbi'
+import { createInclusionProofHint } from './hintString'
 import UserAction, {
   createDepositUserAction,
   createExitUserAction,
@@ -272,16 +272,12 @@ export default class LightClient {
           decodeStructable(Property, ovmContext.coder, Bytes.fromHexString(s))
         )
       )
-      const { coder } = ovmContext
       const promises = stateUpdates.map(async su => {
         const inclusionProof = await this.apiClient.inclusionProof(su)
-        const hint = replaceHint(
-          'proof.block${b}.range${token},RANGE,${range}',
-          {
-            b: coder.encode(blockNumber),
-            token: coder.encode(su.depositContractAddress),
-            range: coder.encode(su.range.toStruct())
-          }
+        const hint = createInclusionProofHint(
+          blockNumber,
+          su.depositContractAddress,
+          su.range
         )
         await putWitness(
           this.witnessDb,
@@ -359,13 +355,10 @@ export default class LightClient {
           )
 
           // store inclusionProof as witness
-          const hint = replaceHint(
-            'proof.block${b}.range${token},RANGE,${range}',
-            {
-              b: coder.encode(blockNumber),
-              token: coder.encode(su.depositContractAddress),
-              range: coder.encode(su.range.toStruct())
-            }
+          const hint = createInclusionProofHint(
+            blockNumber,
+            su.depositContractAddress,
+            su.range
           )
           await putWitness(
             this.witnessDb,
@@ -436,11 +429,11 @@ export default class LightClient {
       }
     }
     // making exit property
-    const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
-      b: coder.encode(stateUpdate.blockNumber),
-      token: coder.encode(stateUpdate.depositContractAddress),
-      range: coder.encode(stateUpdate.range.toStruct())
-    })
+    const hint = createInclusionProofHint(
+      stateUpdate.blockNumber,
+      stateUpdate.depositContractAddress,
+      stateUpdate.range
+    )
     const quantified = await getWitnesses(this.witnessDb, hint)
 
     if (quantified.length !== 1) {

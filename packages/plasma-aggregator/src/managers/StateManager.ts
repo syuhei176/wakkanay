@@ -15,13 +15,7 @@ import {
   BigNumber,
   Range
 } from '@cryptoeconomicslab/primitives'
-import {
-  RangeDb,
-  RangeStore,
-  KeyValueStore,
-  putWitness,
-  replaceHint
-} from '@cryptoeconomicslab/db'
+import { RangeDb, RangeStore, KeyValueStore } from '@cryptoeconomicslab/db'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
 import JSBI from 'jsbi'
 
