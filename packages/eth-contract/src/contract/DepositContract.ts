@@ -51,7 +51,7 @@ export class DepositContract implements IDepositContract {
    */
   async deposit(amount: BigNumber, initialState: Property): Promise<void> {
     return await this.connection.deposit(
-      amount.data.toString(),
+      amount.raw,
       [initialState.deciderAddress.data, initialState.inputs],
       {
         gasLimit: this.gasLimit
