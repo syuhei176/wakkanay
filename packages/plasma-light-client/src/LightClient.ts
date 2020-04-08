@@ -815,11 +815,14 @@ export default class LightClient {
     )
   }
 
+  /**
+   * get all user actions until currentBlockNumber
+   */
   public async getAllUserActions(): Promise<UserAction[]> {
     const result: UserAction[] = []
     const currentBlockNumber = await this.commitmentContract.getCurrentBlock()
     let blockNumber = JSBI.BigInt(0)
-    while (JSBI.greaterThan(blockNumber, currentBlockNumber.data)) {
+    while (JSBI.lessThanOrEqual(blockNumber, currentBlockNumber.data)) {
       const actions = await this.getUserActions(BigNumber.from(blockNumber))
       result.concat(actions)
       blockNumber = JSBI.add(blockNumber, JSBI.BigInt(1))
@@ -827,6 +830,10 @@ export default class LightClient {
     return result
   }
 
+  /**
+   * get user actions at given blockNumber
+   * @param blockNumber blockNumber to get userAction
+   */
   public async getUserActions(blockNumber: BigNumber): Promise<UserAction[]> {
     const bucket = await this.getUserActionDb(blockNumber)
     const iter = bucket.iter(JSBI.BigInt(0))
