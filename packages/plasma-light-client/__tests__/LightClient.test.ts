@@ -229,11 +229,25 @@ describe('LightClient', () => {
 
       expect(mockApprove).toHaveBeenLastCalledWith(
         Address.default(),
-        Integer.from(20)
+        BigNumber.from(20)
       )
 
       expect(mockDeposit).toHaveBeenLastCalledWith(
-        Integer.from(20),
+        BigNumber.from(20),
+        client.ownershipProperty(Address.from(client.address))
+      )
+    })
+
+    test('deposit with large number as string', async () => {
+      await client.deposit('10000000000000000', defaultAddress)
+
+      expect(mockApprove).toHaveBeenLastCalledWith(
+        Address.default(),
+        BigNumber.fromString('10000000000000000')
+      )
+
+      expect(mockDeposit).toHaveBeenLastCalledWith(
+        BigNumber.fromString('10000000000000000'),
         client.ownershipProperty(Address.from(client.address))
       )
     })

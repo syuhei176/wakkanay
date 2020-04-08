@@ -190,7 +190,7 @@ export default class LightClient {
   public async getBalance(): Promise<
     Array<{
       depositContractAddress: string
-      amount: number
+      amount: JSBI
       decimals: number
     }>
   > {
@@ -202,7 +202,7 @@ export default class LightClient {
       )
       return {
         depositContractAddress: addr,
-        amount: data.reduce((p, s) => p + Number(s.amount), 0),
+        amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
         decimals: this.tokenManager.getDecimal(Address.from(addr))
       }
     })
@@ -445,7 +445,10 @@ export default class LightClient {
    * @param amount amount to deposit
    * @param depositContractAddress deposit contract address to deposit into
    */
-  public async deposit(amount: number, depositContractAddress: string) {
+  public async deposit(
+    amount: number | string | JSBI,
+    depositContractAddress: string
+  ) {
     const addr = Address.from(depositContractAddress)
     const myAddress = this.wallet.getAddress()
     const depositContract = this.getDepositContract(addr)
@@ -454,9 +457,12 @@ export default class LightClient {
       throw new Error('Contract not found')
     }
 
-    await erc20Contract.approve(depositContract.address, Integer.from(amount))
+    await erc20Contract.approve(
+      depositContract.address,
+      BigNumber.from(JSBI.BigInt(amount))
+    )
     await depositContract.deposit(
-      Integer.from(amount),
+      BigNumber.from(JSBI.BigInt(amount)),
       this.ownershipProperty(myAddress)
     )
   }
@@ -468,7 +474,7 @@ export default class LightClient {
    * @param to to whom transfer
    */
   public async transfer(
-    amount: number,
+    amount: number | string | JSBI,
     depositContractAddressString: string,
     toAddress: string
   ) {
@@ -489,7 +495,7 @@ export default class LightClient {
    * @param stateObject property defining deprecate condition of next state
    */
   public async sendTransaction(
-    amount: number,
+    amount: number | string | JSBI,
     depositContractAddressString: string,
     stateObject: Property
   ) {
@@ -672,7 +678,10 @@ export default class LightClient {
    * @param amount amount to exit
    * @param depositContractAddress deposit contract address to exit
    */
-  public async exit(amount: number, depositContractAddress: string) {
+  public async exit(
+    amount: number | string | JSBI,
+    depositContractAddress: string
+  ) {
     const addr = Address.from(depositContractAddress)
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       addr,

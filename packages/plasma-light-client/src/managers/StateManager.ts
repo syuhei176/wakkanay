@@ -218,7 +218,7 @@ export default class StateManager {
    */
   public async resolveStateUpdate(
     depositContractAddress: Address,
-    amount: number
+    amount: number | string | JSBI
   ): Promise<StateUpdate[] | null> {
     const db = await this.getRangeDb(Kind.Verified, depositContractAddress)
     const stateUpdates: StateUpdate[] = []

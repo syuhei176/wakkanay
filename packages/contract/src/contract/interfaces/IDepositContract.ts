@@ -1,14 +1,20 @@
-import { Integer, Bytes, Address, Range } from '@cryptoeconomicslab/primitives'
+import {
+  Integer,
+  BigNumber,
+  Bytes,
+  Address,
+  Range
+} from '@cryptoeconomicslab/primitives'
 import { Property } from '@cryptoeconomicslab/ovm'
 
 export interface IDepositContract {
   address: Address
   /**
-   * Deposits amount of ETH with initial state
-   * @param amount Amount of ETH. Unit is GWEI
-   * @param initialState initial state of the range
+   * Deposits token with initial state
+   * @param amount Amount of token. e.g. The unit is wei in ethereum.
+   * @param initialState Initial state of the range
    */
-  deposit(amount: Integer, initialState: Property): Promise<void>
+  deposit(amount: BigNumber, initialState: Property): Promise<void>
   /**
    * Finalizes checkpoint claim
    * @param checkpoint Checkpoint property which has been decided true by Adjudicator Contract.
