@@ -170,6 +170,18 @@ export default class LightClient {
     return this.syncing
   }
 
+  private async getExitDb(
+    depositContractAddress: Address
+  ): Promise<RangeStore> {
+    const exitDb = new RangeDb(
+      await this.witnessDb.bucket(Bytes.fromString('exit'))
+    )
+    const bucket = await exitDb.bucket(
+      ovmContext.coder.encode(depositContractAddress)
+    )
+    return bucket
+  }
+
   private async getClaimDb(): Promise<KeyValueStore> {
     return await this.witnessDb.bucket(Bytes.fromString('claimedProperty'))
   }
@@ -704,14 +716,11 @@ export default class LightClient {
           const exitProperty = await this.createExitProperty(stateUpdate)
 
           await this.adjudicationContract.claimProperty(exitProperty)
-          const exitDb = new RangeDb(
-            await this.witnessDb.bucket(Bytes.fromString('exit'))
-          )
-          const bucket = await exitDb.bucket(
-            coder.encode(stateUpdate.depositContractAddress)
-          )
           const propertyBytes = coder.encode(exitProperty.toStruct())
-          await bucket.put(
+          const exitDb = await this.getExitDb(
+            stateUpdate.depositContractAddress
+          )
+          await exitDb.put(
             stateUpdate.range.start.data,
             stateUpdate.range.end.data,
             propertyBytes
@@ -787,13 +796,10 @@ export default class LightClient {
    */
   public async getExitList(): Promise<IExit[]> {
     const { coder } = ovmContext
-    const exitDb = new RangeDb(
-      await this.witnessDb.bucket(Bytes.fromString('exit'))
-    )
     const exitList = await Promise.all(
       Array.from(this.depositContracts.keys()).map(async addr => {
-        const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
-        const iter = bucket.iter(JSBI.BigInt(0))
+        const exitDb = await this.getExitDb(Address.from(addr))
+        const iter = exitDb.iter(JSBI.BigInt(0))
         let item = await iter.next()
         const result: IExit[] = []
         while (item !== null) {
