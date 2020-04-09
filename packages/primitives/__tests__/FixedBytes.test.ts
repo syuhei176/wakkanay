@@ -1,4 +1,4 @@
-import FixedBytes from '../src/FixedBytes'
+import { FixedBytes } from '../src'
 
 describe('FixedBytes', () => {
   describe('fromHexString', () => {
@@ -36,6 +36,18 @@ describe('FixedBytes', () => {
       const array = [0, 18, 52, 86, 120]
       const h = FixedBytes.from(5, Uint8Array.from(array))
       expect(h.toHexString()).toBe('0x0012345678')
+    })
+  })
+
+  describe('equals', () => {
+    const x = FixedBytes.fromHexString(2, '0x0000')
+    const y = FixedBytes.fromHexString(2, '0x0001')
+
+    test('succeed to equals', () => {
+      expect(x.equals(x)).toBeTruthy()
+    })
+    test('fail to equals', () => {
+      expect(x.equals(y)).toBeFalsy()
     })
   })
 })

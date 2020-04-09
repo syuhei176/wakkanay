@@ -29,4 +29,16 @@ describe('Range', () => {
       expect(range).toStrictEqual(new Range(start, end))
     })
   })
+
+  describe('equals', () => {
+    const x = new Range(BigNumber.from(0), BigNumber.from(10))
+    const y = new Range(BigNumber.from(10), BigNumber.from(20))
+
+    test('succeed to equals', () => {
+      expect(x.equals(x)).toBeTruthy()
+    })
+    test('fail to equals', () => {
+      expect(x.equals(y)).toBeFalsy()
+    })
+  })
 })

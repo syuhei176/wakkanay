@@ -30,4 +30,8 @@ export default class Address implements Codable {
   public toString() {
     return `Address(${this.data})`
   }
+
+  public equals(address: Address): boolean {
+    return this.raw === address.raw
+  }
 }

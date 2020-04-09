@@ -32,4 +32,8 @@ export default class List<T extends Codable> implements Codable {
   public toTypeString() {
     return `List<${this.data[0].toTypeString()}>`
   }
+
+  public equals(list: List<T>): boolean {
+    return JSON.stringify(this.raw) === JSON.stringify(list.raw)
+  }
 }

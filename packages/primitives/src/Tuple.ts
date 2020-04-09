@@ -22,4 +22,8 @@ export default class Tuple implements Codable {
   public toTypeString() {
     return `Tuple(${this.data.map(i => i.toTypeString())})`
   }
+
+  public equals(tuple: Tuple): boolean {
+    return JSON.stringify(this.data) === JSON.stringify(tuple.data)
+  }
 }

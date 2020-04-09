@@ -28,12 +28,14 @@ export default class Range {
       { key: 'end', value: this.end }
     ])
   }
+
   public static fromStruct(_struct: Struct): Range {
     return new Range(
       _struct.data[0].value as BigNumber,
       _struct.data[1].value as BigNumber
     )
   }
+
   public static getParamType(): Struct {
     return Struct.from([
       {
@@ -42,5 +44,9 @@ export default class Range {
       },
       { key: 'end', value: BigNumber.default() }
     ])
+  }
+
+  public equals(range: Range): boolean {
+    return this.start.equals(range.start) && this.end.equals(range.end)
   }
 }

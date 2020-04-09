@@ -58,4 +58,8 @@ export default class BigNumber implements Codable {
   public toTypeString(): string {
     return this.constructor.name
   }
+
+  public equals(bigNumber: BigNumber): boolean {
+    return this.raw === bigNumber.raw
+  }
 }

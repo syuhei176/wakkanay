@@ -29,4 +29,16 @@ describe('BigNumber', () => {
       expect(num.toHexString(false)).toStrictEqual('0123')
     })
   })
+
+  describe('equals', () => {
+    const x = BigNumber.from(1)
+    const y = BigNumber.from(10)
+
+    it('succeed to equals', () => {
+      expect(x.equals(x)).toBeTruthy()
+    })
+    it('fail to equals', () => {
+      expect(x.equals(y)).toBeFalsy()
+    })
+  })
 })
