@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/plasma-aggregator",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "description": "plasma aggregator",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -30,10 +30,10 @@
   },
   "dependencies": {
     "@cryptoeconomicslab/coder": "^0.3.0",
-    "@cryptoeconomicslab/contract": "^0.3.1",
+    "@cryptoeconomicslab/contract": "^0.3.3",
     "@cryptoeconomicslab/db": "^0.3.0",
-    "@cryptoeconomicslab/ovm": "^0.3.0",
-    "@cryptoeconomicslab/plasma": "^0.3.1",
+    "@cryptoeconomicslab/ovm": "^0.3.3",
+    "@cryptoeconomicslab/plasma": "^0.3.3",
     "@cryptoeconomicslab/wallet": "^0.3.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
