@@ -19,7 +19,6 @@ import {
   Bytes,
   FixedBytes,
   BigNumber,
-  Integer,
   Range,
   List
 } from '@cryptoeconomicslab/primitives'
@@ -28,7 +27,6 @@ import {
   RangeDb,
   getWitnesses,
   putWitness,
-  replaceHint,
   RangeStore
 } from '@cryptoeconomicslab/db'
 import {
@@ -48,6 +46,7 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import JSBI from 'jsbi'
+import { createInclusionProofHint } from './hintString'
 import UserAction, {
   createDepositUserAction,
   createExitUserAction,
@@ -171,6 +170,18 @@ export default class LightClient {
     return this.syncing
   }
 
+  private async getExitDb(
+    depositContractAddress: Address
+  ): Promise<RangeStore> {
+    const exitDb = new RangeDb(
+      await this.witnessDb.bucket(Bytes.fromString('exit'))
+    )
+    const bucket = await exitDb.bucket(
+      ovmContext.coder.encode(depositContractAddress)
+    )
+    return bucket
+  }
+
   private async getClaimDb(): Promise<KeyValueStore> {
     return await this.witnessDb.bucket(Bytes.fromString('claimedProperty'))
   }
@@ -261,16 +272,12 @@ export default class LightClient {
           decodeStructable(Property, ovmContext.coder, Bytes.fromHexString(s))
         )
       )
-      const { coder } = ovmContext
       const promises = stateUpdates.map(async su => {
         const inclusionProof = await this.apiClient.inclusionProof(su)
-        const hint = replaceHint(
-          'proof.block${b}.range${token},RANGE,${range}',
-          {
-            b: coder.encode(blockNumber),
-            token: coder.encode(su.depositContractAddress),
-            range: coder.encode(su.range.toStruct())
-          }
+        const hint = createInclusionProofHint(
+          blockNumber,
+          su.depositContractAddress,
+          su.range
         )
         await putWitness(
           this.witnessDb,
@@ -348,13 +355,10 @@ export default class LightClient {
           )
 
           // store inclusionProof as witness
-          const hint = replaceHint(
-            'proof.block${b}.range${token},RANGE,${range}',
-            {
-              b: coder.encode(blockNumber),
-              token: coder.encode(su.depositContractAddress),
-              range: coder.encode(su.range.toStruct())
-            }
+          const hint = createInclusionProofHint(
+            blockNumber,
+            su.depositContractAddress,
+            su.range
           )
           await putWitness(
             this.witnessDb,
@@ -425,11 +429,11 @@ export default class LightClient {
       }
     }
     // making exit property
-    const hint = replaceHint('proof.block${b}.range${token},RANGE,${range}', {
-      b: coder.encode(stateUpdate.blockNumber),
-      token: coder.encode(stateUpdate.depositContractAddress),
-      range: coder.encode(stateUpdate.range.toStruct())
-    })
+    const hint = createInclusionProofHint(
+      stateUpdate.blockNumber,
+      stateUpdate.depositContractAddress,
+      stateUpdate.range
+    )
     const quantified = await getWitnesses(this.witnessDb, hint)
 
     if (quantified.length !== 1) {
@@ -699,48 +703,7 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      const coder = ovmContext.coder
-      await Promise.all(
-        stateUpdates.map(async stateUpdate => {
-          const exitProperty = await this.createExitProperty(stateUpdate)
-
-          await this.adjudicationContract.claimProperty(exitProperty)
-          const exitDb = new RangeDb(
-            await this.witnessDb.bucket(Bytes.fromString('exit'))
-          )
-          const bucket = await exitDb.bucket(
-            coder.encode(stateUpdate.depositContractAddress)
-          )
-          const propertyBytes = coder.encode(exitProperty.toStruct())
-          await bucket.put(
-            stateUpdate.range.start.data,
-            stateUpdate.range.end.data,
-            propertyBytes
-          )
-          await this.stateManager.removeVerifiedStateUpdate(
-            stateUpdate.depositContractAddress,
-            stateUpdate.range
-          )
-          await this.stateManager.insertExitStateUpdate(
-            stateUpdate.depositContractAddress,
-            stateUpdate
-          )
-          const id = Keccak256.hash(propertyBytes)
-          const propertyDb = await this.getClaimDb()
-          await propertyDb.put(id, propertyBytes)
-
-          // put exit action
-          const { range } = stateUpdate
-          const blockNumber = await this.commitmentContract.getCurrentBlock()
-          const action = createExitUserAction(range, blockNumber)
-          const db = await this.getUserActionDb(blockNumber)
-          await db.put(
-            range.start.data,
-            range.end.data,
-            ovmContext.coder.encode(action.toStruct())
-          )
-        })
-      )
+      await Promise.all(stateUpdates.map(this.saveExit.bind(this)))
     } else {
       throw new Error('Insufficient amount')
     }
@@ -786,15 +749,12 @@ export default class LightClient {
   /**
    * Get pending exit list
    */
-  public async getExitlist(): Promise<IExit[]> {
+  public async getExitList(): Promise<IExit[]> {
     const { coder } = ovmContext
-    const exitDb = new RangeDb(
-      await this.witnessDb.bucket(Bytes.fromString('exit'))
-    )
     const exitList = await Promise.all(
       Array.from(this.depositContracts.keys()).map(async addr => {
-        const bucket = await exitDb.bucket(coder.encode(Address.from(addr)))
-        const iter = bucket.iter(JSBI.BigInt(0))
+        const exitDb = await this.getExitDb(Address.from(addr))
+        const iter = exitDb.iter(JSBI.BigInt(0))
         let item = await iter.next()
         const result: IExit[] = []
         while (item !== null) {
@@ -860,7 +820,11 @@ export default class LightClient {
           )
           if (stateUpdates.length > 0) {
             const decision = await this.deciderManager.decide(property)
-            if (!decision.outcome && decision.challenges.length > 0) {
+            if (this.getOwner(exit.stateUpdate).data === this.address) {
+              // exit initiated with this client. save exit into db
+              await this.saveExit(exit.stateUpdate)
+            } else if (!decision.outcome && decision.challenges.length > 0) {
+              // exit is others. need to challenge
               const challenge = decision.challenges[0]
               const challengingGameId = Keccak256.hash(
                 ovmContext.coder.encode(challenge.property.toStruct())
@@ -883,6 +847,41 @@ export default class LightClient {
         const db = await this.getClaimDb()
         await db.del(gameId)
       }
+    )
+  }
+
+  private async saveExit(stateUpdate: StateUpdate) {
+    const { coder } = ovmContext
+    const exitProperty = await this.createExitProperty(stateUpdate)
+    await this.adjudicationContract.claimProperty(exitProperty)
+    const propertyBytes = coder.encode(exitProperty.toStruct())
+    const exitDb = await this.getExitDb(stateUpdate.depositContractAddress)
+    await exitDb.put(
+      stateUpdate.range.start.data,
+      stateUpdate.range.end.data,
+      propertyBytes
+    )
+    await this.stateManager.removeVerifiedStateUpdate(
+      stateUpdate.depositContractAddress,
+      stateUpdate.range
+    )
+    await this.stateManager.insertExitStateUpdate(
+      stateUpdate.depositContractAddress,
+      stateUpdate
+    )
+    const id = Keccak256.hash(propertyBytes)
+    const claimDb = await this.getClaimDb()
+    await claimDb.put(id, propertyBytes)
+
+    // put exit action
+    const { range } = stateUpdate
+    const blockNumber = await this.commitmentContract.getCurrentBlock()
+    const action = createExitUserAction(range, blockNumber)
+    const db = await this.getUserActionDb(blockNumber)
+    await db.put(
+      range.start.data,
+      range.end.data,
+      ovmContext.coder.encode(action.toStruct())
     )
   }
 
