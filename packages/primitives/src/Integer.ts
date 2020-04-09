@@ -26,4 +26,8 @@ export default class Integer implements Codable {
   public toTypeString(): string {
     return this.constructor.name
   }
+
+  public equals(integer: Integer): boolean {
+    return this.raw === integer.raw
+  }
 }

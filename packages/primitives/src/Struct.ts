@@ -27,4 +27,8 @@ export default class Struct implements Codable {
       d => `${d.key}:${d.value.constructor.name}`
     )}}>`
   }
+
+  public equals(struct: Struct): boolean {
+    return JSON.stringify(this.data) === JSON.stringify(struct.data)
+  }
 }
