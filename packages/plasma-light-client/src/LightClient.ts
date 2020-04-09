@@ -209,7 +209,7 @@ export default class LightClient {
     const resultPromise = addrs.map(async addr => {
       const data = await this.stateManager.getVerifiedStateUpdates(
         Address.from(addr),
-        new Range(BigNumber.from(0), BigNumber.from(10000)) // TODO: get all stateUpdate method
+        new Range(BigNumber.from(0), BigNumber.MAX_NUMBER) // TODO: get all stateUpdate method
       )
       return {
         depositContractAddress: addr,
