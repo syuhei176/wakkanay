@@ -12,8 +12,7 @@ import {
   Property,
   CompiledPredicate,
   DeciderManager,
-  DeciderConfig,
-  PropertyFilterBuilder
+  DeciderConfig
 } from '@cryptoeconomicslab/ovm'
 import {
   Address,
@@ -232,7 +231,6 @@ export default class LightClient {
     })
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
-    await this.syncExit()
     this.watchAdjudicationContract()
   }
 
@@ -310,84 +308,6 @@ export default class LightClient {
     } finally {
       this._syncing = false
     }
-  }
-
-  /**
-   * sync exit db
-   * get exit properties which have not been finalized yet from adjudication contract
-   */
-  private async syncExit() {
-    const blockNumber = await this.commitmentContract.getCurrentBlock()
-    let b = JSBI.BigInt(0)
-
-    const exitPredicate = this.deciderManager.compiledPredicateMap.get('Exit')
-    const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
-      'ExitDeposit'
-    )
-    if (!exitPredicate) throw new Error('Exit predicate not found')
-    if (!exitDepositPredicate)
-      throw new Error('ExitDeposit predicate not found')
-
-    const exitFilter = new PropertyFilterBuilder()
-      .address(exitPredicate.deployedAddress)
-      .build()
-    const exitDepositFilter = new PropertyFilterBuilder()
-      .address(exitDepositPredicate.deployedAddress)
-      .build()
-
-    let exits: Exit[] = []
-    let exitDeposits: ExitDeposit[] = []
-
-    while (JSBI.lessThanOrEqual(b, blockNumber.data)) {
-      const [exitProperties, exitDepositProperties] = await Promise.all([
-        this.adjudicationContract.getClaimedProperties(exitFilter),
-        this.adjudicationContract.getClaimedProperties(exitDepositFilter)
-      ])
-
-      // filter undecided exit
-      const [_exits, _exitDeposits]: [
-        Exit[],
-        ExitDeposit[]
-      ] = await Promise.all([
-        (async () => {
-          const exits: Exit[] = []
-          for (const property of exitProperties) {
-            const exit = Exit.fromProperty(property)
-            const isDecided = await this.adjudicationContract.isDecided(exit.id)
-            if (
-              !isDecided &&
-              this.getOwner(exit.stateUpdate).data === this.address
-            )
-              exits.push(exit)
-          }
-          return exits
-        })(),
-        (async () => {
-          const exitDeposits: ExitDeposit[] = []
-          for (const property of exitDepositProperties) {
-            const exit = ExitDeposit.fromProperty(property)
-            const isDecided = await this.adjudicationContract.isDecided(exit.id)
-            if (
-              !isDecided &&
-              this.getOwner(exit.stateUpdate).data === this.address
-            )
-              exitDeposits.push(exit)
-          }
-          return exitDeposits
-        })()
-      ])
-
-      exits = exits.concat(_exits)
-      exitDeposits = exitDeposits.concat(_exitDeposits)
-      b = JSBI.add(b, JSBI.BigInt(1))
-    }
-
-    await Promise.all([
-      await Promise.all(exits.map(exit => this.saveExit(exit.stateUpdate))),
-      await Promise.all(
-        exitDeposits.map(exit => this.saveExit(exit.stateUpdate))
-      )
-    ])
   }
 
   private async verifyPendingStateUpdates(blockNumber: BigNumber) {
@@ -900,7 +820,11 @@ export default class LightClient {
           )
           if (stateUpdates.length > 0) {
             const decision = await this.deciderManager.decide(property)
-            if (!decision.outcome && decision.challenges.length > 0) {
+            if (this.getOwner(exit.stateUpdate).data === this.address) {
+              // exit initiated with this client. save exit into db
+              await this.saveExit(exit.stateUpdate)
+            } else if (!decision.outcome && decision.challenges.length > 0) {
+              // exit is others. need to challenge
               const challenge = decision.challenges[0]
               const challengingGameId = Keccak256.hash(
                 ovmContext.coder.encode(challenge.property.toStruct())
