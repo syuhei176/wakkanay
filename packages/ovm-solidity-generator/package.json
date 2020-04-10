@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/ovm-solidity-generator",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "description": "OVM transpiler",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -29,9 +29,9 @@
     "clean": "rm -rf lib docs"
   },
   "dependencies": {
-    "@cryptoeconomicslab/ovm-generator": "^0.3.0",
+    "@cryptoeconomicslab/ovm-generator": "^0.3.4",
     "@cryptoeconomicslab/ovm-parser": "^0.3.0",
-    "@cryptoeconomicslab/ovm-transpiler": "^0.3.0",
+    "@cryptoeconomicslab/ovm-transpiler": "^0.3.4",
     "ejs": "^3.0.1",
     "tslib": "^1.11.1"
   }
