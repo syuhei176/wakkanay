@@ -6,11 +6,13 @@ import {
   List,
   FixedBytes
 } from '@cryptoeconomicslab/primitives'
+import { CodableF } from '@cryptoeconomicslab/primitives/lib/Codable'
 
 export interface MerkleTreeNode<T> {
   readonly data: FixedBytes
   getInterval(): T
   encode(): Bytes
+  toStruct(): Struct
 }
 
 export interface MerkleTreeGenerator<I, T extends MerkleTreeNode<I>> {
@@ -38,18 +40,4 @@ export class InclusionProof<I extends Codable, T extends MerkleTreeNode<I>> {
     readonly leafPosition: number,
     readonly siblings: T[]
   ) {}
-
-  public toStruct(): Struct {
-    return new Struct([
-      { key: 'leafIndex', value: this.leafIndex },
-      { key: 'leafPosition', value: Integer.from(this.leafPosition) },
-      {
-        key: 'siblings',
-        value: List.from(
-          Bytes,
-          this.siblings.map(s => s.encode())
-        )
-      }
-    ])
-  }
 }
