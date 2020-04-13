@@ -1,12 +1,18 @@
 {
   "name": "root",
   "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
     "clean": "lerna run clean",
     "publish": "lerna run build && lerna publish",
     "test": "jest",
     "test:all": "npm test && npm run test:contract",
     "test:contract": "lerna run test --scope @cryptoeconomicslab/ovm-ethereum-generator",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "docker:build": "docker-compose build ganache && npm run docker:cp && docker-compose build postgres aggregator test",
+    "docker:cp": "docker cp $(docker create wakkanay_ganache):/HOME/ovm-contracts/build/out.config.json ./integration-test/aggregator/config.local.json && cp ./integration-test/aggregator/config.local.json ./integration-test/e2e-tests/config.local.json",
+    "docker:start": "docker-compose up ganache postgres aggregator",
+    "docker:test": "docker-compose up -d && docker-compose logs -f test && docker-compose down"
   },
   "devDependencies": {
     "@types/jest": "^24.9.0",

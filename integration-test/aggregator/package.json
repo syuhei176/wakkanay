@@ -1,0 +1,77 @@
+{
+  "name": "eth-plasma-aggregator",
+  "version": "0.0.1",
+  "description": "ethereum plasma aggregator",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build ./tsconfig.json",
+    "start": "node dist/index.js",
+    "build:check": "tsc --noEmit",
+    "test": "jest",
+    "lint": "eslint --ext ts,tsx src",
+    "lint:fix": "eslint --fix --ext ts,tsx src",
+    "clean": "rm -rf dist",
+    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls",
+    "prepare": "npm run build"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Cryptoeconomics Lab",
+    "url": "https://www.cryptoeconomicslab.com/"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/jest": "^25.1.4",
+    "@types/node": "^13.9.3",
+    "@types/pg": "^7.14.3",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
+    "eslint": "^6.7.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.1",
+    "jest": "^25.1.0",
+    "prettier": "^2.0.2",
+    "ts-jest": "^25.2.1",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@cryptoeconomicslab/context": "file:../wakkanay/packages/context",
+    "@cryptoeconomicslab/db": "file:../wakkanay/packages/db",
+    "@cryptoeconomicslab/eth-coder": "file:../wakkanay/packages/eth-coder",
+    "@cryptoeconomicslab/eth-contract": "file:../wakkanay/packages/eth-contract",
+    "@cryptoeconomicslab/eth-wallet": "file:../wakkanay/packages/eth-wallet",
+    "@cryptoeconomicslab/level-kvs": "0.0.6",
+    "@cryptoeconomicslab/plasma-aggregator": "file:../wakkanay/packages/plasma-aggregator",
+    "@cryptoeconomicslab/postgres-kvs": "0.0.4",
+    "@cryptoeconomicslab/primitives": "file:../wakkanay/packages/primitives",
+    "@sentry/node": "^5.15.0",
+    "dotenv": "^8.2.0",
+    "ethers": "^4.0.46",
+    "pg": "^7.18.2",
+    "tslib": "^1.11.1"
+  },
+  "jest": {
+    "clearMocks": true,
+    "transform": {
+      "^.+\\.ts?$": "ts-jest"
+    },
+    "testMatch": [
+      "**/__tests__/**/?(*.)+(spec|test).(ts|js)",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json",
+        "resolveJsonModule": true
+      }
+    }
+  }
+}
