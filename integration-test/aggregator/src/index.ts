@@ -17,8 +17,10 @@ import Aggregator, {
   BlockManager,
   StateManager
 } from '@cryptoeconomicslab/plasma-aggregator'
-import fs from 'fs'
 import Sentry from '@sentry/node'
+
+import contractConfig from './config.local.json'
+
 if (process.env.SENTRY_ENDPOINT) {
   Sentry.init({
     dsn: process.env.SENTRY_ENDPOINT
@@ -74,7 +76,7 @@ const instantiate = async (
     witnessDb,
     depositContractFactory,
     commitmentContractFactory,
-    loadConfigFile(process.env.CONFIG_FILE || 'config.local.json'),
+    contractConfig as any,
     {
       isSubmitter,
       blockInterval,
@@ -90,14 +92,10 @@ async function main() {
     Number(process.env.BLOCK_INTERVAL)
   )
   aggregator.registerToken(
-    Address.from(process.env.DEPOSIT_CONTRACT_ADDRESS as string)
+    Address.from(contractConfig.payoutContracts.DepositContract)
   )
   aggregator.run()
   console.log('aggregator is running on port ', process.env.PORT)
-}
-
-function loadConfigFile(filePath: string): any {
-  return JSON.parse(fs.readFileSync(filePath).toString())
 }
 
 main()
