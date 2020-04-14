@@ -12,8 +12,8 @@ export class AdjudicationContract implements IAdjudicationContract {
   public static abi = [
     'event AtomicPropositionDecided(bytes32 gameId, bool decision)',
     'event NewPropertyClaimed(uint256 gameId, tuple(address, bytes[]) property, uint256 createdBlock)',
-    'event GameChallenged(bytes32 gameId, bytes32 challengeGameId)',
-    'event GameDecided(bytes32 gameId, bool decision)',
+    'event ClaimChallenged(bytes32 gameId, bytes32 challengeGameId)',
+    'event ClaimDecided(bytes32 gameId, bool decision)',
     'event ChallengeRemoved(bytes32 gameId, bytes32 challengeGameId)',
     'function getGame(bytes32 gameId) view returns(tuple(tuple(address, bytes[]), bytes[], bool, uint256))',
     'function isDecided(bytes32 gameId) view returns(bool)',
