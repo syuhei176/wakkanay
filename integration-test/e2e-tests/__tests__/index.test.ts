@@ -7,7 +7,7 @@ import JSBI from 'jsbi'
 
 import config from '../config.local.json'
 
-jest.setTimeout(30000)
+jest.setTimeout(50000)
 
 function sleep(ms: number) {
   return new Promise(resolve => {
@@ -17,28 +17,100 @@ function sleep(ms: number) {
 
 describe('light client', () => {
   let lightClient: LightClient
-  beforeAll(async () => {
-    const kvs = new LevelKeyValueStore(Bytes.fromString('plasma_light_client'))
-    const wallet = new ethers.Wallet(
-      '0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f',
-      new ethers.providers.JsonRpcProvider('http://ganache:8545')
+  let recieverLightClient: LightClient
+
+  beforeEach(async () => {
+    const kvs1 = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_1')
     )
+    const kvs2 = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_2')
+    )
+    const provider = new ethers.providers.JsonRpcProvider('http://ganache:8545')
+    const senderWallet = ethers.Wallet.createRandom().connect(provider)
+    const recieverWallet = ethers.Wallet.createRandom().connect(provider)
+    const defaultWallet1 = new ethers.Wallet(
+      '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
+      provider
+    )
+    const defaultWallet2 = new ethers.Wallet(
+      '0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f',
+      provider
+    )
+    await defaultWallet1.sendTransaction({
+      to: senderWallet.address,
+      value: ethers.utils.parseEther('1.0')
+    })
+    await defaultWallet2.sendTransaction({
+      to: recieverWallet.address,
+      value: ethers.utils.parseEther('1.0')
+    })
 
     lightClient = await initializeLightClient({
-      wallet,
-      kvs,
+      wallet: recieverWallet,
+      kvs: kvs1,
       config: config as any,
       aggregatorEndpoint: 'http://aggregator:3000'
     })
+    recieverLightClient = await initializeLightClient({
+      wallet: senderWallet,
+      kvs: kvs2,
+      config: config as any,
+      aggregatorEndpoint: 'http://aggregator:3000'
+    })
+    await lightClient.start()
+    await recieverLightClient.start()
   })
 
-  test('deposit', async () => {
-    await lightClient.start()
-    await lightClient.deposit(10, config.payoutContracts.DepositContract)
+  describe('deposit', () => {
+    test('deposit', async () => {
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
 
-    await sleep(10000)
+      await sleep(10000)
 
-    const balance = await lightClient.getBalance()
-    expect(JSBI.equal(balance[0].amount, JSBI.BigInt(10))).toBeTruthy()
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(10))).toBeTruthy()
+    })
+
+    test('deposit after deposit', async () => {
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(20))).toBeTruthy()
+    })
+
+    test('deposit after transfer', async () => {
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+      await lightClient.transfer(
+        10,
+        config.payoutContracts.DepositContract,
+        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
+      )
+      await sleep(10000)
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(10))).toBeTruthy()
+    })
+
+    test('deposit after exit', async () => {
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+      await lightClient.exit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(10))).toBeTruthy()
+
+      const exitList = await lightClient.getExitList()
+      expect(exitList.length).toBe(1)
+    })
   })
 })
