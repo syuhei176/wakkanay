@@ -1,0 +1,33 @@
+version: '3'
+services:
+  ganache:
+    build: integration-test/chain
+    ports:
+    - "8545:8545"
+    environment:
+      DOCKER: 'true'
+  postgres:
+    image: postgres
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+  aggregator:
+    build: 
+      context: .
+      dockerfile: integration-test/aggregator/Dockerfile
+    ports:
+    - "3000:3000"
+    depends_on: 
+    - ganache
+    - postgres
+  test:
+    build: 
+      context: .
+      dockerfile: integration-test/e2e-tests/Dockerfile
+    depends_on:
+    - ganache
+    - aggregator
+    volumes:
+      - ./integration-test/e2e-tests/__tests__:/HOME/e2e-tests/__tests__
+    
