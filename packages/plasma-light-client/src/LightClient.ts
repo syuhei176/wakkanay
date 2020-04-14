@@ -703,7 +703,13 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      await Promise.all(stateUpdates.map(this.saveExit.bind(this)))
+      await Promise.all(
+        stateUpdates.map(async stateUpdate => {
+          const exitProperty = await this.createExitProperty(stateUpdate)
+          await this.adjudicationContract.claimProperty(exitProperty)
+          await this.saveExit(stateUpdate)
+        })
+      )
     } else {
       throw new Error('Insufficient amount')
     }
@@ -853,7 +859,6 @@ export default class LightClient {
   private async saveExit(stateUpdate: StateUpdate) {
     const { coder } = ovmContext
     const exitProperty = await this.createExitProperty(stateUpdate)
-    await this.adjudicationContract.claimProperty(exitProperty)
     const propertyBytes = coder.encode(exitProperty.toStruct())
     const exitDb = await this.getExitDb(stateUpdate.depositContractAddress)
     await exitDb.put(

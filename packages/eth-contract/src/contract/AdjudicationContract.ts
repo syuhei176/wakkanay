@@ -11,9 +11,9 @@ export class AdjudicationContract implements IAdjudicationContract {
   readonly gasLimit: number
   public static abi = [
     'event AtomicPropositionDecided(bytes32 gameId, bool decision)',
-    'event NewPropertyClaimed(uint256 gameId, tuple(address, bytes[]) property, uint256 createdBlock)',
-    'event GameChallenged(bytes32 gameId, bytes32 challengeGameId)',
-    'event GameDecided(bytes32 gameId, bool decision)',
+    'event NewPropertyClaimed(bytes32 gameId, tuple(address, bytes[]) property, uint256 createdBlock)',
+    'event ClaimChallenged(bytes32 gameId, bytes32 challengeGameId)',
+    'event ClaimDecided(bytes32 gameId, bool decision)',
     'event ChallengeRemoved(bytes32 gameId, bytes32 challengeGameId)',
     'function getGame(bytes32 gameId) view returns(tuple(tuple(address, bytes[]), bytes[], bool, uint256))',
     'function isDecided(bytes32 gameId) view returns(bool)',
@@ -49,7 +49,7 @@ export class AdjudicationContract implements IAdjudicationContract {
         Bytes.fromHexString(challenge)
       ),
       challengeGame[2],
-      BigNumber.from(challengeGame[2].toString())
+      BigNumber.from(challengeGame[3].toString())
     )
   }
 
@@ -131,8 +131,13 @@ export class AdjudicationContract implements IAdjudicationContract {
     handler: (gameId: Bytes, decision: boolean) => void
   ): void {
     this.eventWatcher.subscribe('AtomicPropositionDecided', (log: EventLog) => {
-      const [gameId, decision] = log.values
+      const gameId = log.values[0]
+      const decision = log.values[1]
       handler(Bytes.fromHexString(gameId), decision)
+    })
+    this.eventWatcher.cancel()
+    this.eventWatcher.start(() => {
+      /* do nothing */
     })
   }
 
@@ -144,12 +149,18 @@ export class AdjudicationContract implements IAdjudicationContract {
     ) => void
   ): void {
     this.eventWatcher.subscribe('NewPropertyClaimed', (log: EventLog) => {
-      const [gameId, property, createdBlock] = log.values
+      const gameId = log.values[0]
+      const property = log.values[1]
+      const createdBlock = log.values[2]
       handler(
         Bytes.fromHexString(gameId),
         this.getProperty(property),
         BigNumber.fromString(createdBlock.toString())
       )
+    })
+    this.eventWatcher.cancel()
+    this.eventWatcher.start(() => {
+      /* do nothing */
     })
   }
 
@@ -157,8 +168,13 @@ export class AdjudicationContract implements IAdjudicationContract {
     handler: (gameId: Bytes, challengeGameId: Bytes) => void
   ): void {
     this.eventWatcher.subscribe('ClaimChallenged', (log: EventLog) => {
-      const [gameId, challengeGameId] = log.values
+      const gameId = log.values[0]
+      const challengeGameId = log.values[1]
       handler(Bytes.fromHexString(gameId), Bytes.fromHexString(challengeGameId))
+    })
+    this.eventWatcher.cancel()
+    this.eventWatcher.start(() => {
+      /* do nothing */
     })
   }
 
@@ -166,8 +182,13 @@ export class AdjudicationContract implements IAdjudicationContract {
     handler: (gameId: Bytes, decision: boolean) => void
   ): void {
     this.eventWatcher.subscribe('ClaimDecided', (log: EventLog) => {
-      const [gameId, decision] = log.values
+      const gameId = log.values[0]
+      const decision = log.values[1]
       handler(Bytes.fromHexString(gameId), decision)
+    })
+    this.eventWatcher.cancel()
+    this.eventWatcher.start(() => {
+      /* do nothing */
     })
   }
 
@@ -175,8 +196,13 @@ export class AdjudicationContract implements IAdjudicationContract {
     handler: (gameId: Bytes, challengeGameId: Bytes) => void
   ): void {
     this.eventWatcher.subscribe('ChallengeRemoved', (log: EventLog) => {
-      const [gameId, challengeGameId] = log.values
+      const gameId = log.values[0]
+      const challengeGameId = log.values[1]
       handler(Bytes.fromHexString(gameId), Bytes.fromHexString(challengeGameId))
+    })
+    this.eventWatcher.cancel()
+    this.eventWatcher.start(() => {
+      /* do nothing */
     })
   }
 

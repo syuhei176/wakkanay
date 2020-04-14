@@ -67,7 +67,7 @@ export class CommitmentContract implements ICommitmentContract {
     })
     this.eventWatcher.cancel()
     this.eventWatcher.start(() => {
-      console.log('event polled')
+      // do nothing
     })
   }
 }
