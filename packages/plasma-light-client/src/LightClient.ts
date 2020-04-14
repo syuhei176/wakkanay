@@ -484,7 +484,12 @@ export default class LightClient {
     depositContractAddressString: string,
     toAddress: string
   ) {
-    console.log('transfer :', amount, depositContractAddressString, toAddress)
+    console.log(
+      'transfer :',
+      amount.toString(),
+      depositContractAddressString,
+      toAddress
+    )
     const to = Address.from(toAddress)
     const ownershipStateObject = this.ownershipProperty(to)
     await this.sendTransaction(
