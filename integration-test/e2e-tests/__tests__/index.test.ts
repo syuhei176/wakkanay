@@ -113,4 +113,119 @@ describe('light client', () => {
       expect(exitList.length).toBe(1)
     })
   })
+
+  describe('transfer', () => {
+    beforeEach(async () => {
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+    })
+
+    test('transfer after deposit', async () => {
+      await lightClient.deposit(10, config.payoutContracts.DepositContract)
+      await sleep(10000)
+      await lightClient.transfer(
+        15,
+        config.payoutContracts.DepositContract,
+        recieverLightClient.address
+      )
+      await sleep(15000)
+
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(5))).toBeTruthy()
+      const recieverBalance = await recieverLightClient.getBalance()
+      console.log(recieverBalance[0].amount.toString())
+      expect(
+        JSBI.equal(recieverBalance[0].amount, JSBI.BigInt(15))
+      ).toBeTruthy()
+    })
+
+    test('transfer after transfer', async () => {
+      await lightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
+      )
+      await sleep(10000)
+      await lightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
+      )
+      await sleep(10000)
+
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(4))).toBeTruthy()
+    })
+
+    test('transfer after exit', async () => {
+      await lightClient.exit(3, config.payoutContracts.DepositContract)
+      await sleep(10000)
+      await lightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        recieverLightClient.address
+      )
+      await sleep(15000)
+
+      const balance = await lightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(4))).toBeTruthy()
+      const recieverBalance = await recieverLightClient.getBalance()
+      expect(JSBI.equal(recieverBalance[0].amount, JSBI.BigInt(3))).toBeTruthy()
+    })
+
+    test('receive', async () => {
+      await lightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        recieverLightClient.address
+      )
+      await sleep(10000)
+
+      const balance = await recieverLightClient.getBalance()
+      console.log(balance[0].amount.toString())
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(3))).toBeTruthy()
+    })
+
+    test('transfer after receiving a range', async () => {
+      await lightClient.transfer(
+        6,
+        config.payoutContracts.DepositContract,
+        recieverLightClient.address
+      )
+      await sleep(15000)
+      await recieverLightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
+      )
+      await sleep(10000)
+
+      const balance = await recieverLightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(3))).toBeTruthy()
+    })
+
+    test('transfer after receiving 2 ranges', async () => {
+      await lightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        recieverLightClient.address
+      )
+      await sleep(10000)
+      await lightClient.transfer(
+        3,
+        config.payoutContracts.DepositContract,
+        recieverLightClient.address
+      )
+      await sleep(15000)
+      await recieverLightClient.transfer(
+        5,
+        config.payoutContracts.DepositContract,
+        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
+      )
+      await sleep(10000)
+
+      const balance = await recieverLightClient.getBalance()
+      expect(JSBI.equal(balance[0].amount, JSBI.BigInt(1))).toBeTruthy()
+    })
+  })
 })
