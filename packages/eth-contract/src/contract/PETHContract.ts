@@ -41,6 +41,18 @@ export class PETHContract implements IERC20DetailedContract {
   }
 
   /**
+   * unwrapping PETH
+   * @name unwrap
+   * @param amount amount of wei.
+   */
+  public async unwrap(amount: BigNumber) {
+    const bigNumberifiedAmount = new ethers.utils.BigNumber(
+      amount.data.toString()
+    )
+    await this.connection.unwrap(bigNumberifiedAmount)
+  }
+
+  /**
    * decimals method returns decimal value of PlasmaETH token.
    * @returns return Integer object of decimal value. It returns 18.
    */
