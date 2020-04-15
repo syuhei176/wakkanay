@@ -15,14 +15,26 @@ setupContext({ coder: JsonCoder })
 // mock
 jest.mock('@cryptoeconomicslab/eth-contract', () => {
   const {
-    DepositContract,
     ERC20Contract,
     CommitmentContract,
     AdjudicationContract,
     OwnershipPayoutContract
   } = jest.requireActual('@cryptoeconomicslab/eth-contract')
   return {
-    DepositContract,
+    DepositContract: jest.fn().mockImplementation(address => {
+      return {
+        address: address.data,
+        subscribeCheckpointFinalized: jest
+          .fn()
+          .mockImplementation(async () => {}),
+        subscribeDepositedRangeExtended: jest
+          .fn()
+          .mockImplementation(async () => {}),
+        subscribeDepositedRangeRemoved: jest
+          .fn()
+          .mockImplementation(async () => {})
+      }
+    }),
     ERC20Contract,
     CommitmentContract,
     AdjudicationContract,

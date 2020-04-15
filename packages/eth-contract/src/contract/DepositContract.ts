@@ -76,7 +76,7 @@ export class DepositContract implements IDepositContract {
     )
   }
 
-  subscribeCheckpointFinalized(
+  async subscribeCheckpointFinalized(
     handler: (checkpointId: Bytes, checkpoint: [Property]) => void
   ) {
     this.eventWatcher.subscribe('CheckpointFinalized', (log: EventLog) => {
@@ -90,23 +90,23 @@ export class DepositContract implements IDepositContract {
       handler(Bytes.fromHexString(checkpointId), [stateUpdate])
     })
     this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
+    await this.eventWatcher.start(() => {
       // do nothing
     })
   }
 
-  subscribeExitFinalized(handler: (exitId: Bytes) => void) {
+  async subscribeExitFinalized(handler: (exitId: Bytes) => void) {
     this.eventWatcher.subscribe('ExitFinalized', (log: EventLog) => {
       const [exitId] = log.values
       handler(Bytes.fromHexString(exitId))
     })
     this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
+    await this.eventWatcher.start(() => {
       // do nothing
     })
   }
 
-  subscribeDepositedRangeExtended(handler: (range: Range) => void) {
+  async subscribeDepositedRangeExtended(handler: (range: Range) => void) {
     this.eventWatcher.subscribe('DepositedRangeExtended', (log: EventLog) => {
       const rawRange = log.values.newRange
       const start = BigNumber.fromHexString(rawRange[0].toHexString())
@@ -114,12 +114,12 @@ export class DepositContract implements IDepositContract {
       handler(new Range(start, end))
     })
     this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
+    await this.eventWatcher.start(() => {
       // do nothing
     })
   }
 
-  subscribeDepositedRangeRemoved(handler: (range: Range) => void) {
+  async subscribeDepositedRangeRemoved(handler: (range: Range) => void) {
     this.eventWatcher.subscribe('DepositedRangeRemoved', (log: EventLog) => {
       const rawRange = log.values.removedRange
       const start = BigNumber.fromHexString(rawRange[0].toHexString())
@@ -127,7 +127,7 @@ export class DepositContract implements IDepositContract {
       handler(new Range(start, end))
     })
     this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
+    await this.eventWatcher.start(() => {
       // do nothing
     })
   }

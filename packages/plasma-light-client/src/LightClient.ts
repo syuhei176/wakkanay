@@ -607,21 +607,25 @@ export default class LightClient {
       erc20Contract
     )
 
-    depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
-      await this.depositedRangeManager.extendRange(
-        depositContractAddress,
-        range
-      )
-    })
+    await depositContract.subscribeDepositedRangeExtended(
+      async (range: Range) => {
+        await this.depositedRangeManager.extendRange(
+          depositContractAddress,
+          range
+        )
+      }
+    )
 
-    depositContract.subscribeDepositedRangeRemoved(async (range: Range) => {
-      await this.depositedRangeManager.removeRange(
-        depositContractAddress,
-        range
-      )
-    })
+    await depositContract.subscribeDepositedRangeRemoved(
+      async (range: Range) => {
+        await this.depositedRangeManager.removeRange(
+          depositContractAddress,
+          range
+        )
+      }
+    )
 
-    depositContract.subscribeCheckpointFinalized(
+    await depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Property]) => {
         const checkpointPredicate = this.deciderManager.compiledPredicateMap.get(
           'Checkpoint'
@@ -708,13 +712,13 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      await Promise.all(
-        stateUpdates.map(async stateUpdate => {
-          const exitProperty = await this.createExitProperty(stateUpdate)
-          await this.adjudicationContract.claimProperty(exitProperty)
-          await this.saveExit(stateUpdate)
-        })
-      )
+      // resolve promises in serial to avoid an error of ethers.js on calling claimProperty
+      // "the tx doesn't have the correct nonce."
+      for (let stateUpdate of stateUpdates) {
+        const exitProperty = await this.createExitProperty(stateUpdate)
+        await this.adjudicationContract.claimProperty(exitProperty)
+        await this.saveExit(stateUpdate)
+      }
     } else {
       throw new Error('Insufficient amount')
     }
