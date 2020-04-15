@@ -102,14 +102,26 @@ export class DoubleLayerTreeLeaf
   public toStruct(): Struct {
     return new Struct([
       {
-        key: 'data',
-        value: this.data
-      },
-      {
         key: 'address',
         value: this.address
+      },
+      {
+        key: 'start',
+        value: this.start
+      },
+      {
+        key: 'data',
+        value: this.data
       }
     ])
+  }
+
+  public static fromStruct(struct: Struct): DoubleLayerTreeLeaf {
+    return new DoubleLayerTreeLeaf(
+      struct.data[0].value as Address,
+      struct.data[1].value as BigNumber,
+      struct.data[2].value as FixedBytes
+    )
   }
 }
 
