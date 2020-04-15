@@ -9,7 +9,7 @@ import parseUnits = ethers.utils.parseUnits
 
 import config from '../config.local.json'
 
-jest.setTimeout(50000)
+jest.setTimeout(80000)
 
 function sleep(ms: number) {
   return new Promise(resolve => {
@@ -22,19 +22,36 @@ function parseUnitsToJsbi(amount: string) {
 }
 
 describe('light client', () => {
-  let lightClient: LightClient
-  let recieverLightClient: LightClient
+  let aliceLightClient: LightClient
+  let bobLightClient: LightClient
+  let senderWallet: ethers.Wallet
+  let recieverWallet: ethers.Wallet
+
+  async function increaseBlock() {
+    for (let i = 0; i < 10; i++) {
+      await senderWallet.sendTransaction({
+        to: senderWallet.address,
+        value: parseEther('0.00001')
+      })
+    }
+  }
+
+  async function checkBalance(lightClient: LightClient, amount: string) {
+    const balance = await lightClient.getBalance()
+    expect(JSBI.equal(balance[0].amount, parseUnitsToJsbi(amount))).toBeTruthy()
+  }
+
+  async function finalizeExit(lightClient: LightClient) {
+    const exitList = await lightClient.getExitList()
+    for (let i = 0; i < exitList.length; i++) {
+      await lightClient.finalizeExit(exitList[i])
+    }
+  }
 
   beforeEach(async () => {
-    const kvs1 = new LevelKeyValueStore(
-      Bytes.fromString('plasma_light_client_1')
-    )
-    const kvs2 = new LevelKeyValueStore(
-      Bytes.fromString('plasma_light_client_2')
-    )
     const provider = new ethers.providers.JsonRpcProvider('http://ganache:8545')
-    const senderWallet = ethers.Wallet.createRandom().connect(provider)
-    const recieverWallet = ethers.Wallet.createRandom().connect(provider)
+    senderWallet = ethers.Wallet.createRandom().connect(provider)
+    recieverWallet = ethers.Wallet.createRandom().connect(provider)
     const defaultWallet1 = new ethers.Wallet(
       '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
       provider
@@ -43,6 +60,13 @@ describe('light client', () => {
       '0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f',
       provider
     )
+    const kvs1 = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_' + defaultWallet1.address)
+    )
+    const kvs2 = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_' + defaultWallet2.address)
+    )
+
     await defaultWallet1.sendTransaction({
       to: senderWallet.address,
       value: parseEther('1.0')
@@ -52,282 +76,252 @@ describe('light client', () => {
       value: parseEther('1.0')
     })
 
-    lightClient = await initializeLightClient({
-      wallet: recieverWallet,
+    aliceLightClient = await initializeLightClient({
+      wallet: senderWallet,
       kvs: kvs1,
       config: config as any,
       aggregatorEndpoint: 'http://aggregator:3000'
     })
-    recieverLightClient = await initializeLightClient({
-      wallet: senderWallet,
+    bobLightClient = await initializeLightClient({
+      wallet: recieverWallet,
       kvs: kvs2,
       config: config as any,
       aggregatorEndpoint: 'http://aggregator:3000'
     })
-    await lightClient.start()
-    await recieverLightClient.start()
+    await aliceLightClient.start()
+    await bobLightClient.start()
   })
 
-  describe('deposit', () => {
-    test('deposit', async () => {
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
+  /**
+   * basic scenario
+   * Alice deposit 0.1 ETH
+   * Alice transfer 0.1 ETH to Bob
+   * Bob attemts exit 0.1 ETH
+   */
+  test('user deposits, transfers and attempts exit asset', async () => {
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
 
-      await sleep(10000)
+    await checkBalance(aliceLightClient, '0.1')
 
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.1'))
-      ).toBeTruthy()
-    })
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await sleep(20000)
 
-    test('deposit after deposit', async () => {
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
+    await checkBalance(aliceLightClient, '0.0')
+    await checkBalance(bobLightClient, '0.1')
 
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.2'))
-      ).toBeTruthy()
-    })
+    await bobLightClient.exit(
+      parseUnitsToJsbi('0.05'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
 
-    test('deposit after transfer', async () => {
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract,
-        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
-      )
-      await sleep(10000)
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
+    await checkBalance(bobLightClient, '0.05')
 
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.1'))
-      ).toBeTruthy()
-    })
+    const exitList = await bobLightClient.getExitList()
+    expect(exitList.length).toBe(1)
 
-    test('deposit after exit', async () => {
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
-      await lightClient.exit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
+    await increaseBlock()
 
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.1'))
-      ).toBeTruthy()
-
-      const exitList = await lightClient.getExitList()
-      expect(exitList.length).toBe(1)
-    })
+    await finalizeExit(bobLightClient)
+    // TODO: check L1 balance, but needs to calculate gas cost
   })
 
-  describe('transfer', () => {
-    beforeEach(async () => {
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
+  /**
+   * exit deposit scenario
+   * Alice deposits 0.1 ETH
+   * Alice exit 0.05 ETH
+   */
+  test('user attempts exit depositted asset', async () => {
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.1')
+
+    await aliceLightClient.exit(
+      parseUnitsToJsbi('0.05'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.05')
+
+    const exitList = await aliceLightClient.getExitList()
+    expect(exitList.length).toBe(1)
+
+    await increaseBlock()
+
+    await finalizeExit(aliceLightClient)
+  })
+
+  /**
+   * multiple transfers scenario
+   * Alice and Bob deposit 0.5 ETH
+   * Alice sends 0.2 ETH to Bob by 2 transactions
+   * Bob sends 0.1 ETH to Alice by 1 transaction
+   * exit all asset
+   */
+  test('multiple transfers in same block', async () => {
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract
+    )
+    await bobLightClient.deposit(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract
+    )
+
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.5')
+    await checkBalance(bobLightClient, '0.5')
+
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await bobLightClient.transfer(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract,
+      aliceLightClient.address
+    )
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+
+    await sleep(20000)
+
+    await checkBalance(aliceLightClient, '0.4')
+    await checkBalance(bobLightClient, '0.6')
+
+    await aliceLightClient.exit(
+      parseUnitsToJsbi('0.4'),
+      config.payoutContracts.DepositContract
+    )
+    await bobLightClient.exit(
+      parseUnitsToJsbi('0.6'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.0')
+    await checkBalance(bobLightClient, '0.0')
+
+    await increaseBlock()
+
+    await finalizeExit(aliceLightClient)
+    await finalizeExit(bobLightClient)
+  })
+
+  /**
+   * deposit after withdraw scenario
+   * Alice deposits 0.5 ETH
+   * Alice sends 0.5 ETH to Bob
+   * Bob attemts exit 0.3 ETH
+   * Bob withdraw 0.2 ETH
+   * Alice deposit 0.1 ETH
+   * Bob deposit 0.8 ETH
+   */
+  test('deposit after withdraw', async () => {
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.5')
+
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await sleep(20000)
+
+    await checkBalance(aliceLightClient, '0.0')
+    await checkBalance(bobLightClient, '0.5')
+
+    await bobLightClient.exit(
+      parseUnitsToJsbi('0.2'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(bobLightClient, '0.3')
+
+    await increaseBlock()
+    await finalizeExit(bobLightClient)
+
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract
+    )
+    await bobLightClient.deposit(
+      parseUnitsToJsbi('0.8'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.1')
+    await checkBalance(bobLightClient, '1.1')
+  })
+
+  /**
+   * transfer after error
+   * Alice deposit 0.2 ETH
+   * Alice tries to send 0.5 ETH to Bob, but gets error
+   * Alice tries to exit 0.5 ETH, but gets error
+   * Alice sends 0.1 ETH to Bob
+   */
+  test('transfer after error', async () => {
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.2'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    await checkBalance(aliceLightClient, '0.2')
+    await checkBalance(bobLightClient, '0.0')
+
+    await expect(
+      aliceLightClient.transfer(
+        parseUnitsToJsbi('0.5'),
+        config.payoutContracts.DepositContract,
+        bobLightClient.address
+      )
+    ).rejects.toEqual(new Error('Not enough amount'))
+
+    await expect(
+      aliceLightClient.exit(
+        parseUnitsToJsbi('0.5'),
         config.payoutContracts.DepositContract
       )
-      await sleep(10000)
-    })
+    ).rejects.toEqual(new Error('Insufficient amount'))
 
-    test('transfer after deposit', async () => {
-      await lightClient.deposit(
-        parseUnitsToJsbi('0.1'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.15'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(20000)
+    await checkBalance(aliceLightClient, '0.2')
+    await checkBalance(bobLightClient, '0.0')
 
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.05'))
-      ).toBeTruthy()
-      const recieverBalance = await recieverLightClient.getBalance()
-      expect(
-        JSBI.equal(recieverBalance[0].amount, parseUnitsToJsbi('0.15'))
-      ).toBeTruthy()
-    })
+    aliceLightClient.transfer(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await sleep(20000)
 
-    test('transfer after transfer', async () => {
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
-      )
-      await sleep(10000)
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
-      )
-      await sleep(10000)
-
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.04'))
-      ).toBeTruthy()
-    })
-
-    test('transfer after exit', async () => {
-      await lightClient.exit(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract
-      )
-      await sleep(10000)
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(20000)
-
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.04'))
-      ).toBeTruthy()
-      const recieverBalance = await recieverLightClient.getBalance()
-      expect(
-        JSBI.equal(recieverBalance[0].amount, parseUnitsToJsbi('0.03'))
-      ).toBeTruthy()
-    })
-
-    test('transfer in same block', async () => {
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.01'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.01'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.01'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(20000)
-
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.07'))
-      ).toBeTruthy()
-      const recieverBalance = await recieverLightClient.getBalance()
-      expect(
-        JSBI.equal(recieverBalance[0].amount, parseUnitsToJsbi('0.03'))
-      ).toBeTruthy()
-    })
-
-    test('receive', async () => {
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(10000)
-
-      const balance = await recieverLightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.03'))
-      ).toBeTruthy()
-    })
-
-    test('transfer after receiving a range', async () => {
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.06'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(20000)
-      await recieverLightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
-      )
-      await sleep(10000)
-
-      const balance = await recieverLightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.03'))
-      ).toBeTruthy()
-    })
-
-    test('transfer after receiving 2 ranges', async () => {
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(10000)
-      await lightClient.transfer(
-        parseUnitsToJsbi('0.03'),
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(20000)
-      await recieverLightClient.transfer(
-        parseUnitsToJsbi('0.05'),
-        config.payoutContracts.DepositContract,
-        '0x627306090abaB3A6e1400e9345bC60c78a8BEf57'
-      )
-      await sleep(10000)
-
-      const balance = await recieverLightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, parseUnitsToJsbi('0.01'))
-      ).toBeTruthy()
-    })
-
-    test('transfer small amount', async () => {
-      await lightClient.transfer(
-        1,
-        config.payoutContracts.DepositContract,
-        recieverLightClient.address
-      )
-      await sleep(20000)
-
-      const balance = await lightClient.getBalance()
-      expect(
-        JSBI.equal(balance[0].amount, JSBI.BigInt('99999999999999999'))
-      ).toBeTruthy()
-      const recieverBalance = await recieverLightClient.getBalance()
-      expect(JSBI.equal(recieverBalance[0].amount, JSBI.BigInt(1))).toBeTruthy()
-    })
+    await checkBalance(aliceLightClient, '0.1')
+    await checkBalance(bobLightClient, '0.1')
   })
 })
