@@ -161,7 +161,7 @@ export default class StateManager {
     addr: Address,
     blockNumber?: BigNumber
   ) {
-    return (await this.db.get(JSBI.BigInt(0), JSBI.BigInt(10000)))
+    return (await this.db.get(JSBI.BigInt(0), BigNumber.MAX_NUMBER.data))
       .map(StateUpdate.fromRangeRecord)
       .filter(su =>
         blockNumber ? JSBI.equal(su.blockNumber.data, blockNumber.data) : true
