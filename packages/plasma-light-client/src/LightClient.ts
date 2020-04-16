@@ -921,12 +921,12 @@ export default class LightClient {
    * get all user actions until currentBlockNumber
    */
   public async getAllUserActions(): Promise<UserAction[]> {
-    const result: UserAction[] = []
+    let result: UserAction[] = []
     const currentBlockNumber = await this.commitmentContract.getCurrentBlock()
     let blockNumber = JSBI.BigInt(0)
     while (JSBI.lessThanOrEqual(blockNumber, currentBlockNumber.data)) {
       const actions = await this.getUserActions(BigNumber.from(blockNumber))
-      result.concat(actions)
+      result = result.concat(actions)
       blockNumber = JSBI.add(blockNumber, JSBI.BigInt(1))
     }
     return result
