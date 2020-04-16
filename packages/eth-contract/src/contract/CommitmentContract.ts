@@ -55,19 +55,26 @@ export class CommitmentContract implements ICommitmentContract {
   }
 
   subscribeBlockSubmitted(
-    handler: (blockNumber: BigNumber, root: FixedBytes) => void
+    handler: (blockNumber: BigNumber, root: FixedBytes) => Promise<void>
   ) {
-    this.eventWatcher.subscribe('BlockSubmitted', (log: EventLog) => {
+    this.eventWatcher.subscribe('BlockSubmitted', async (log: EventLog) => {
       const blockNumber = log.values[0]
       const root = log.values[1]
-      handler(
+      await handler(
         BigNumber.fromString(blockNumber.toString()),
         FixedBytes.fromHexString(32, root)
       )
     })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
+  }
+
+  async startSubscribing() {
+    this.unsubscribeAll()
+    await this.eventWatcher.start(() => {
       // do nothing
     })
+  }
+
+  unsubscribeAll() {
+    this.eventWatcher.cancel()
   }
 }

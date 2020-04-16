@@ -2,7 +2,7 @@ import EventLog from '../types/EventLog'
 
 export type EventHandler = (event: EventLog) => void
 export type CompletedHandler = () => void
-export type ErrorHandler = (err: Error) => void
+export type ErrorHandler = (err: Error) => Promise<void>
 
 export interface IEventWatcher {
   subscribe(event: string, handler: EventHandler): void

@@ -224,14 +224,28 @@ export default class LightClient {
    * start LiteClient process.
    */
   public async start() {
-    this.commitmentContract.subscribeBlockSubmitted((blockNumber, root) => {
-      console.log('new block submitted event:', root.toHexString())
-      this.syncState(blockNumber, root)
-      this.verifyPendingStateUpdates(blockNumber)
-    })
+    this.commitmentContract.subscribeBlockSubmitted(
+      async (blockNumber, root) => {
+        console.log('new block submitted event:', root.toHexString())
+        this.syncState(blockNumber, root)
+        this.verifyPendingStateUpdates(blockNumber)
+      }
+    )
+    await this.commitmentContract.startSubscribing()
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
-    this.watchAdjudicationContract()
+    await this.watchAdjudicationContract()
+  }
+
+  public stop() {
+    this.adjudicationContract.unsubscribeAll()
+    this.commitmentContract.unsubscribeAll()
+    Object.keys(this.depositContracts).forEach(async addr => {
+      const depositContract = this.depositContracts.get(addr)
+      if (depositContract) {
+        depositContract.unsubscribeAll()
+      }
+    })
   }
 
   /**
@@ -311,7 +325,7 @@ export default class LightClient {
   }
 
   private async verifyPendingStateUpdates(blockNumber: BigNumber) {
-    console.group('VERIFY PENDING STATE UPDATES: ', blockNumber)
+    console.group('VERIFY PENDING STATE UPDATES: ', blockNumber.raw)
     Object.keys(this.depositContracts).forEach(async addr => {
       const pendingStateUpdates = await this.stateManager.getPendingStateUpdates(
         Address.from(addr),
@@ -607,25 +621,21 @@ export default class LightClient {
       erc20Contract
     )
 
-    await depositContract.subscribeDepositedRangeExtended(
-      async (range: Range) => {
-        await this.depositedRangeManager.extendRange(
-          depositContractAddress,
-          range
-        )
-      }
-    )
+    depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
+      await this.depositedRangeManager.extendRange(
+        depositContractAddress,
+        range
+      )
+    })
 
-    await depositContract.subscribeDepositedRangeRemoved(
-      async (range: Range) => {
-        await this.depositedRangeManager.removeRange(
-          depositContractAddress,
-          range
-        )
-      }
-    )
+    depositContract.subscribeDepositedRangeRemoved(async (range: Range) => {
+      await this.depositedRangeManager.removeRange(
+        depositContractAddress,
+        range
+      )
+    })
 
-    await depositContract.subscribeCheckpointFinalized(
+    depositContract.subscribeCheckpointFinalized(
       async (checkpointId: Bytes, checkpoint: [Property]) => {
         const checkpointPredicate = this.deciderManager.compiledPredicateMap.get(
           'Checkpoint'
@@ -672,6 +682,7 @@ export default class LightClient {
         )
       }
     )
+    await depositContract.startSubscribing()
   }
 
   /**
@@ -714,7 +725,7 @@ export default class LightClient {
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
       // resolve promises in serial to avoid an error of ethers.js on calling claimProperty
       // "the tx doesn't have the correct nonce."
-      for (let stateUpdate of stateUpdates) {
+      for (const stateUpdate of stateUpdates) {
         const exitProperty = await this.createExitProperty(stateUpdate)
         await this.adjudicationContract.claimProperty(exitProperty)
         await this.saveExit(stateUpdate)
@@ -790,7 +801,7 @@ export default class LightClient {
     return Array.prototype.concat.apply([], exitList)
   }
 
-  private watchAdjudicationContract() {
+  private async watchAdjudicationContract() {
     this.adjudicationContract.subscribeClaimChallenged(
       async (gameId, challengeGameId) => {
         const db = await this.getClaimDb()
@@ -819,7 +830,12 @@ export default class LightClient {
 
     this.adjudicationContract.subscribeNewPropertyClaimed(
       async (gameId, property, createdBlock) => {
-        console.log('property is claimed', gameId, property, createdBlock)
+        console.log(
+          'property is claimed',
+          gameId.toHexString(),
+          property.deciderAddress.data,
+          createdBlock
+        )
         if (
           property.deciderAddress.data ===
           this.deciderManager.getDeciderAddress('Exit').data
@@ -863,6 +879,8 @@ export default class LightClient {
         await db.del(gameId)
       }
     )
+
+    await this.adjudicationContract.startSubscribing()
   }
 
   private async saveExit(stateUpdate: StateUpdate) {
