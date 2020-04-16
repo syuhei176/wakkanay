@@ -98,6 +98,7 @@ import {
   IntervalTreeInclusionProof,
   AddressTreeInclusionProof
 } from '@cryptoeconomicslab/merkle-tree'
+import { createDepositUserAction } from '../src/UserAction'
 setupContext({ coder: JsonCoder })
 
 // mock APIClient
@@ -559,6 +560,23 @@ describe('LightClient', () => {
       await expect(client.finalizeExit(exit)).rejects.toEqual(
         new Error(`Exit property is not decidable`)
       )
+    })
+  })
+
+  describe('getAllUserActions', () => {
+    test('get an action', async () => {
+      const range = new Range(BigNumber.from(0), BigNumber.from(100))
+      const blockNumber = BigNumber.from(1)
+      const action = createDepositUserAction(range, blockNumber)
+      const db = await client['getUserActionDb'](blockNumber)
+      await db.put(
+        range.start.data,
+        range.end.data,
+        ovmContext.coder.encode(action.toStruct())
+      )
+
+      const actions = await client.getAllUserActions()
+      expect(actions).toEqual([action])
     })
   })
 
