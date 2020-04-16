@@ -221,7 +221,7 @@ export default class LightClient {
   }
 
   /**
-   * start LiteClient process.
+   * start LightClient process.
    */
   public async start() {
     this.commitmentContract.subscribeBlockSubmitted(
@@ -237,6 +237,9 @@ export default class LightClient {
     await this.watchAdjudicationContract()
   }
 
+  /**
+   * stop LightClient process
+   */
   public stop() {
     this.adjudicationContract.unsubscribeAll()
     this.commitmentContract.unsubscribeAll()
