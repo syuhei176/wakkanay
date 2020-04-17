@@ -4,9 +4,9 @@ import { Decision } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
 
 /**
- * SampleDecider decide depending on first input.
+ * BoolDecider decide depending on first input.
  */
-export class SampleDecider implements Decider {
+export class BoolDecider implements Decider {
   public async decide(
     manager: DeciderManager,
     inputs: Bytes[],

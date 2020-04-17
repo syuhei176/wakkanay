@@ -3,7 +3,7 @@ import {
   AndDecider,
   ForAllSuchThatDecider,
   NotDecider,
-  SampleDecider,
+  BoolDecider,
   LessThanDecider,
   ThereExistsSuchThatDecider,
   GreaterThanDecider,
@@ -74,7 +74,7 @@ export function initializeDeciderManager() {
   const deciderManager = new DeciderManager(witnessDb, JsonCoder)
   deciderManager.setDecider(
     SampleDeciderAddress,
-    new SampleDecider(),
+    new BoolDecider(),
     AtomicPredicate.Bool
   )
   deciderManager.setDecider(

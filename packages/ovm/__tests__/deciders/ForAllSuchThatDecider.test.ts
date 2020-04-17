@@ -65,7 +65,7 @@ describe('ForAllsuchThatDecider', () => {
       }
     ])
     expect(decision.traceInfo?.toString()).toEqual(
-      'ForAllSuchThat:0x223022,SampleDecider:[]'
+      'ForAllSuchThat:0x223022,BoolDecider:[]'
     )
   })
 
