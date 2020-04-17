@@ -95,6 +95,6 @@ export interface IAdjudicationContract {
   subscribeChallengeRemoved(
     handler: (gameId: Bytes, challengeGameId: Bytes) => void
   ): void
-  startSubscribing(): void
+  startWatchingEvents(): void
   unsubscribeAll(): void
 }

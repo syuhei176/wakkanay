@@ -231,7 +231,7 @@ export default class LightClient {
         this.verifyPendingStateUpdates(blockNumber)
       }
     )
-    await this.commitmentContract.startSubscribing()
+    await this.commitmentContract.startWatchingEvents()
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
     await this.watchAdjudicationContract()
@@ -685,7 +685,7 @@ export default class LightClient {
         )
       }
     )
-    await depositContract.startSubscribing()
+    await depositContract.startWatchingEvents()
   }
 
   /**
@@ -883,7 +883,7 @@ export default class LightClient {
       }
     )
 
-    await this.adjudicationContract.startSubscribing()
+    await this.adjudicationContract.startWatchingEvents()
   }
 
   private async saveExit(stateUpdate: StateUpdate) {

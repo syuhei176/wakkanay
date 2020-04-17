@@ -193,7 +193,7 @@ export class AdjudicationContract implements IAdjudicationContract {
     )
   }
 
-  async startSubscribing() {
+  async startWatchingEvents() {
     this.unsubscribeAll()
     await this.eventWatcher.start(() => {
       /* do nothing */

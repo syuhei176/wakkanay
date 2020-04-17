@@ -336,6 +336,6 @@ export default class Aggregator {
     depositContract.subscribeCheckpointFinalized(
       this.depositHandlerFactory(depositContract.address)
     )
-    depositContract.startSubscribing()
+    depositContract.startWatchingEvents()
   }
 }

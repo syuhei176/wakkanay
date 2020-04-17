@@ -35,7 +35,7 @@ const MockDepositContract = jest
       subscribeDepositedRangeExtended: jest.fn(),
       subscribeDepositedRangeRemoved: jest.fn(),
       subscribeCheckpointFinalized: jest.fn(),
-      startSubscribing: jest.fn()
+      startWatchingEvents: jest.fn()
     }
   })
 

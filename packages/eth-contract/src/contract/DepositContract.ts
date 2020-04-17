@@ -125,7 +125,7 @@ export class DepositContract implements IDepositContract {
     )
   }
 
-  async startSubscribing() {
+  async startWatchingEvents() {
     this.unsubscribeAll()
     await this.eventWatcher.start(() => {
       // do nothing

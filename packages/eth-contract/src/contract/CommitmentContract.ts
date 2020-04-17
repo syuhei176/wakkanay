@@ -67,7 +67,7 @@ export class CommitmentContract implements ICommitmentContract {
     })
   }
 
-  async startSubscribing() {
+  async startWatchingEvents() {
     this.unsubscribeAll()
     await this.eventWatcher.start(() => {
       // do nothing

@@ -33,7 +33,7 @@ jest.mock('@cryptoeconomicslab/eth-contract', () => {
         subscribeDepositedRangeRemoved: jest
           .fn()
           .mockImplementation(async () => {}),
-        startSubscribing: jest.fn()
+        startWatchingEvents: jest.fn()
       }
     }),
     ERC20Contract,

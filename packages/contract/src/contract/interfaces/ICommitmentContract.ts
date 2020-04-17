@@ -11,7 +11,7 @@ export interface ICommitmentContract {
     handler: (blockNumber: BigNumber, root: FixedBytes) => Promise<void>
   ): void
 
-  startSubscribing(): void
+  startWatchingEvents(): void
 
   unsubscribeAll(): void
 }
