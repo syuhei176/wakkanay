@@ -52,6 +52,17 @@ describe('light client', () => {
     return formatUnitsFromJsbi(balance[0].amount)
   }
 
+  async function getL1PETHBalance(lightClient: LightClient) {
+    const abi = ['function balanceOf(address) view returns (uint256)']
+    const connection = new ethers.Contract(
+      config.PlasmaETH,
+      abi,
+      lightClient['wallet']['ethersWallet']
+    )
+    const balance = await connection.getBalance(lightClient.address)
+    return formatUnits(balance, 18)
+  }
+
   async function finalizeExit(lightClient: LightClient) {
     const exitList = await lightClient.getExitList()
     for (let i = 0; i < exitList.length; i++) {
@@ -148,8 +159,9 @@ describe('light client', () => {
 
     await increaseBlock()
 
+    expect(await getL1PETHBalance(bobLightClient)).toEqual('0.0')
     await finalizeExit(bobLightClient)
-    // TODO: check L1 balance, but needs to calculate gas cost
+    expect(await getL1PETHBalance(bobLightClient)).toEqual('0.05')
 
     const aliceActions = await aliceLightClient.getAllUserActions()
     const bobActions = await bobLightClient.getAllUserActions()
@@ -192,7 +204,9 @@ describe('light client', () => {
 
     await increaseBlock()
 
+    expect(await getL1PETHBalance(aliceLightClient)).toEqual('0.0')
     await finalizeExit(aliceLightClient)
+    expect(await getL1PETHBalance(aliceLightClient)).toEqual('0.05')
   })
 
   /**
@@ -254,8 +268,12 @@ describe('light client', () => {
 
     await increaseBlock()
 
+    expect(await getL1PETHBalance(aliceLightClient)).toEqual('0.0')
+    expect(await getL1PETHBalance(bobLightClient)).toEqual('0.0')
     await finalizeExit(aliceLightClient)
     await finalizeExit(bobLightClient)
+    expect(await getL1PETHBalance(aliceLightClient)).toEqual('0.4')
+    expect(await getL1PETHBalance(bobLightClient)).toEqual('0.6')
   })
 
   /**
@@ -296,7 +314,10 @@ describe('light client', () => {
     expect(await getBalance(bobLightClient)).toEqual('0.3')
 
     await increaseBlock()
+
+    expect(await getL1PETHBalance(bobLightClient)).toEqual('0.0')
     await finalizeExit(bobLightClient)
+    expect(await getL1PETHBalance(bobLightClient)).toEqual('0.2')
 
     await aliceLightClient.deposit(
       parseUnitsToJsbi('0.1'),
