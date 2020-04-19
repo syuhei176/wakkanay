@@ -367,6 +367,80 @@ def Tx(tx, token, range, block) := IsTx(tx, token, range, block)
         }
       ])
     })
+
+    test('Optimizing ThereExistsSuchThat Quantifier', () => {
+      // related issue is https://github.com/cryptoeconomicslab/wakkanay/issues/267
+      const input: PropertyDef[] = [
+        {
+          annotations: [],
+          name: 'OptimisingThereExistsSuchThatTest',
+          inputDefs: ['message', 'owner'],
+          body: {
+            type: 'PropertyNode',
+            predicate: 'ThereExistsSuchThat',
+            inputs: [
+              {
+                type: 'PropertyNode',
+                predicate: 'SignedBy',
+                inputs: ['message', 'owner']
+              },
+              'sig',
+              {
+                type: 'PropertyNode',
+                predicate: 'And',
+                inputs: [
+                  {
+                    type: 'PropertyNode',
+                    predicate: 'Bool',
+                    inputs: ['sig']
+                  },
+                  {
+                    type: 'PropertyNode',
+                    predicate: 'Bool',
+                    inputs: ['sig']
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+      const parser = new Parser()
+      const library: PropertyDef[] = parser.parse(`
+@library
+@quantifier("signatures,KEY,\${message}")
+def SignedBy(sig, message, owner) := IsValidSignature(message, sig, owner)
+      `).declarations
+      const output = applyLibraries(input, library)
+      expect(output).toStrictEqual([
+        {
+          annotations: [],
+          name: 'OptimisingThereExistsSuchThatTest',
+          inputDefs: ['message', 'owner'],
+          body: {
+            type: 'PropertyNode',
+            predicate: 'ThereExistsSuchThat',
+            inputs: [
+              'signatures,KEY,${message}',
+              'sig',
+              {
+                type: 'PropertyNode',
+                predicate: 'And',
+                inputs: [
+                  {
+                    type: 'PropertyNode',
+                    predicate: 'IsValidSignature',
+                    inputs: ['message', 'sig', 'owner']
+                  },
+                  { type: 'PropertyNode', predicate: 'Bool', inputs: ['sig'] },
+                  { type: 'PropertyNode', predicate: 'Bool', inputs: ['sig'] }
+                ]
+              }
+            ]
+          }
+        }
+      ])
+    })
   })
 
   describe('replaceInputs', () => {
