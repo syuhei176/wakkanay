@@ -6,6 +6,11 @@ const transactionA = '0x000001'
 const transactionB = '0x000002'
 const signature = '0x000003'
 
+/**
+ * @description This is the test case for Quantifier Translator optimization.
+ *     See more detail about optimization at https://github.com/cryptoeconomicslab/research/tree/master/ovm-game-tree#challenge-rules
+ * @param wallet
+ */
 export const createTestCaseOfNotNotP = (wallet: ethers.Wallet) => {
   return {
     name: '!(SignedBy(a, b).any()) or IsValidSignature(a, b, c)',
