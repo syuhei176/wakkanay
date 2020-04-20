@@ -8,6 +8,10 @@ export interface ICommitmentContract {
   getRoot(blockNumber: BigNumber): Promise<FixedBytes>
 
   subscribeBlockSubmitted(
-    handler: (blockNumber: BigNumber, root: FixedBytes) => void
+    handler: (blockNumber: BigNumber, root: FixedBytes) => Promise<void>
   ): void
+
+  startWatchingEvents(): void
+
+  unsubscribeAll(): void
 }

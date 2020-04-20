@@ -221,17 +221,34 @@ export default class LightClient {
   }
 
   /**
-   * start LiteClient process.
+   * start LightClient process.
    */
   public async start() {
-    this.commitmentContract.subscribeBlockSubmitted((blockNumber, root) => {
-      console.log('new block submitted event:', root.toHexString())
-      this.syncState(blockNumber, root)
-      this.verifyPendingStateUpdates(blockNumber)
-    })
+    this.commitmentContract.subscribeBlockSubmitted(
+      async (blockNumber, root) => {
+        console.log('new block submitted event:', root.toHexString())
+        this.syncState(blockNumber, root)
+        this.verifyPendingStateUpdates(blockNumber)
+      }
+    )
+    await this.commitmentContract.startWatchingEvents()
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
-    this.watchAdjudicationContract()
+    await this.watchAdjudicationContract()
+  }
+
+  /**
+   * stop LightClient process
+   */
+  public stop() {
+    this.adjudicationContract.unsubscribeAll()
+    this.commitmentContract.unsubscribeAll()
+    Object.keys(this.depositContracts).forEach(async addr => {
+      const depositContract = this.depositContracts.get(addr)
+      if (depositContract) {
+        depositContract.unsubscribeAll()
+      }
+    })
   }
 
   /**
@@ -311,7 +328,7 @@ export default class LightClient {
   }
 
   private async verifyPendingStateUpdates(blockNumber: BigNumber) {
-    console.group('VERIFY PENDING STATE UPDATES: ', blockNumber)
+    console.group('VERIFY PENDING STATE UPDATES: ', blockNumber.raw)
     Object.keys(this.depositContracts).forEach(async addr => {
       const pendingStateUpdates = await this.stateManager.getPendingStateUpdates(
         Address.from(addr),
@@ -484,7 +501,12 @@ export default class LightClient {
     depositContractAddressString: string,
     toAddress: string
   ) {
-    console.log('transfer :', amount, depositContractAddressString, toAddress)
+    console.log(
+      'transfer :',
+      amount.toString(),
+      depositContractAddressString,
+      toAddress
+    )
     const to = Address.from(toAddress)
     const ownershipStateObject = this.ownershipProperty(to)
     await this.sendTransaction(
@@ -663,6 +685,7 @@ export default class LightClient {
         )
       }
     )
+    await depositContract.startWatchingEvents()
   }
 
   /**
@@ -703,13 +726,13 @@ export default class LightClient {
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-      await Promise.all(
-        stateUpdates.map(async stateUpdate => {
-          const exitProperty = await this.createExitProperty(stateUpdate)
-          await this.adjudicationContract.claimProperty(exitProperty)
-          await this.saveExit(stateUpdate)
-        })
-      )
+      // resolve promises in serial to avoid an error of ethers.js on calling claimProperty
+      // "the tx doesn't have the correct nonce."
+      for (const stateUpdate of stateUpdates) {
+        const exitProperty = await this.createExitProperty(stateUpdate)
+        await this.adjudicationContract.claimProperty(exitProperty)
+        await this.saveExit(stateUpdate)
+      }
     } else {
       throw new Error('Insufficient amount')
     }
@@ -781,7 +804,7 @@ export default class LightClient {
     return Array.prototype.concat.apply([], exitList)
   }
 
-  private watchAdjudicationContract() {
+  private async watchAdjudicationContract() {
     this.adjudicationContract.subscribeClaimChallenged(
       async (gameId, challengeGameId) => {
         const db = await this.getClaimDb()
@@ -810,7 +833,12 @@ export default class LightClient {
 
     this.adjudicationContract.subscribeNewPropertyClaimed(
       async (gameId, property, createdBlock) => {
-        console.log('property is claimed', gameId, property, createdBlock)
+        console.log(
+          'property is claimed',
+          gameId.toHexString(),
+          property.deciderAddress.data,
+          createdBlock
+        )
         if (
           property.deciderAddress.data ===
           this.deciderManager.getDeciderAddress('Exit').data
@@ -854,6 +882,8 @@ export default class LightClient {
         await db.del(gameId)
       }
     )
+
+    await this.adjudicationContract.startWatchingEvents()
   }
 
   private async saveExit(stateUpdate: StateUpdate) {
@@ -894,12 +924,12 @@ export default class LightClient {
    * get all user actions until currentBlockNumber
    */
   public async getAllUserActions(): Promise<UserAction[]> {
-    const result: UserAction[] = []
+    let result: UserAction[] = []
     const currentBlockNumber = await this.commitmentContract.getCurrentBlock()
     let blockNumber = JSBI.BigInt(0)
     while (JSBI.lessThanOrEqual(blockNumber, currentBlockNumber.data)) {
       const actions = await this.getUserActions(BigNumber.from(blockNumber))
-      result.concat(actions)
+      result = result.concat(actions)
       blockNumber = JSBI.add(blockNumber, JSBI.BigInt(1))
     }
     return result

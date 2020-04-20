@@ -315,7 +315,7 @@ export default class Aggregator {
    */
   private depositHandlerFactory(
     depositContractAddress: Address
-  ): (checkpointId: Bytes, checkpoint: [Property]) => void {
+  ): (checkpointId: Bytes, checkpoint: [Property]) => Promise<void> {
     return async (checkpointId: Bytes, checkpoint: [Property]) => {
       const blockNumber = await this.blockManager.getCurrentBlockNumber()
       const stateUpdate = checkpoint[0]
@@ -336,5 +336,6 @@ export default class Aggregator {
     depositContract.subscribeCheckpointFinalized(
       this.depositHandlerFactory(depositContract.address)
     )
+    depositContract.startWatchingEvents()
   }
 }

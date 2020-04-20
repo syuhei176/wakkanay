@@ -31,15 +31,21 @@ export interface IDepositContract {
    * subscribe to checkpoint finalized event
    */
   subscribeCheckpointFinalized(
-    handler: (checkpointId: Bytes, checkpoint: [Property]) => void
+    handler: (checkpointId: Bytes, checkpoint: [Property]) => Promise<void>
   ): void
 
   /**
    * subscribe to exit finalized event
    */
-  subscribeExitFinalized(handler: (exitId: Bytes) => void): void
+  subscribeExitFinalized(handler: (exitId: Bytes) => Promise<void>): void
 
-  subscribeDepositedRangeExtended(handler: (range: Range) => void): void
+  subscribeDepositedRangeExtended(
+    handler: (range: Range) => Promise<void>
+  ): void
 
-  subscribeDepositedRangeRemoved(handler: (range: Range) => void): void
+  subscribeDepositedRangeRemoved(handler: (range: Range) => Promise<void>): void
+
+  startWatchingEvents(): void
+
+  unsubscribeAll(): void
 }

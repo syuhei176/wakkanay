@@ -8,6 +8,7 @@ import {
   IEventWatcher,
   CompletedHandler
 } from '@cryptoeconomicslab/contract'
+import { Log } from 'ethers/providers'
 type Provider = ethers.providers.Provider
 
 export interface EventWatcherOptions {
@@ -51,6 +52,13 @@ export default class EventWatcher implements IEventWatcher {
     this.contractInterface = contractInterface
   }
 
+  private getEventId(txHash: string, logIndex: number) {
+    return Bytes.concat([
+      Bytes.fromHexString(txHash),
+      Bytes.fromString(logIndex.toString())
+    ])
+  }
+
   public subscribe(event: string, handler: EventHandler) {
     // FIXME: add multiple handlers to one event
     this.checkingEvents.set(event, handler)
@@ -73,6 +81,8 @@ export default class EventWatcher implements IEventWatcher {
         errorHandler(e)
       }
     }
+    // clear timeout handler to keep only one event handler run at same time
+    this.cancel()
     this.timer = setTimeout(async () => {
       await this.start(handler, errorHandler)
     }, this.options.interval || DEFAULT_INTERVAL)
@@ -94,36 +104,36 @@ export default class EventWatcher implements IEventWatcher {
       fromBlock: fromBlockNumber,
       toBlock: blockNumber
     })
+    for (const event of events) {
+      if (event.transactionHash && event.logIndex !== undefined) {
+        const seen = await this.eventDb.getSeen(
+          this.getEventId(event.transactionHash, event.logIndex)
+        )
+        if (seen) {
+          continue
+        }
+      } else {
+        continue
+      }
+      const logDesc = this.contractInterface.parseLog(event)
+      if (!logDesc) {
+        continue
+      }
 
-    const filtered = events
-      .filter(async e => {
-        if (e.transactionHash) {
-          const seen = await this.eventDb.getSeen(
-            Bytes.fromHexString(e.transactionHash)
+      const handler = this.checkingEvents.get(logDesc.name)
+      if (handler) {
+        await handler(logDesc)
+        if (event.transactionHash && event.logIndex !== undefined) {
+          await this.eventDb.addSeen(
+            this.getEventId(event.transactionHash, event.logIndex)
           )
-          return !seen
-        } else {
-          return false
         }
-      })
-      .map(e => {
-        const logDesc = this.contractInterface.parseLog(e)
-        if (!logDesc) return false
-        const handler = this.checkingEvents.get(logDesc.name)
-        if (handler) {
-          handler(logDesc)
-        }
-        if (e.transactionHash) {
-          this.eventDb.addSeen(Bytes.fromHexString(e.transactionHash))
-        }
-        return true
-      })
+      }
+    }
     await this.eventDb.setLastLoggedBlock(
       Bytes.fromString(this.contractAddress),
       blockNumber
     )
-    if (filtered.length > 0) {
-      completedHandler()
-    }
+    completedHandler()
   }
 }

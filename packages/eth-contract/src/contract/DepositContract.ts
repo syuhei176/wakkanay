@@ -77,58 +77,62 @@ export class DepositContract implements IDepositContract {
   }
 
   subscribeCheckpointFinalized(
-    handler: (checkpointId: Bytes, checkpoint: [Property]) => void
+    handler: (checkpointId: Bytes, checkpoint: [Property]) => Promise<void>
   ) {
-    this.eventWatcher.subscribe('CheckpointFinalized', (log: EventLog) => {
-      const checkpointId = log.values[0]
-      const checkpoint = log.values[1]
-      const stateUpdate = new Property(
-        Address.from(checkpoint[0][0]),
-        checkpoint[0][1].map(Bytes.fromHexString)
-      )
+    this.eventWatcher.subscribe(
+      'CheckpointFinalized',
+      async (log: EventLog) => {
+        const checkpointId = log.values[0]
+        const checkpoint = log.values[1]
+        const stateUpdate = new Property(
+          Address.from(checkpoint[0][0]),
+          checkpoint[0][1].map(Bytes.fromHexString)
+        )
 
-      handler(Bytes.fromHexString(checkpointId), [stateUpdate])
-    })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      // do nothing
-    })
+        await handler(Bytes.fromHexString(checkpointId), [stateUpdate])
+      }
+    )
   }
 
-  subscribeExitFinalized(handler: (exitId: Bytes) => void) {
-    this.eventWatcher.subscribe('ExitFinalized', (log: EventLog) => {
+  subscribeExitFinalized(handler: (exitId: Bytes) => Promise<void>) {
+    this.eventWatcher.subscribe('ExitFinalized', async (log: EventLog) => {
       const [exitId] = log.values
-      handler(Bytes.fromHexString(exitId))
+      await handler(Bytes.fromHexString(exitId))
     })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
+  }
+
+  subscribeDepositedRangeExtended(handler: (range: Range) => Promise<void>) {
+    this.eventWatcher.subscribe(
+      'DepositedRangeExtended',
+      async (log: EventLog) => {
+        const rawRange = log.values.newRange
+        const start = BigNumber.fromHexString(rawRange[0].toHexString())
+        const end = BigNumber.fromHexString(rawRange[1].toHexString())
+        await handler(new Range(start, end))
+      }
+    )
+  }
+
+  subscribeDepositedRangeRemoved(handler: (range: Range) => Promise<void>) {
+    this.eventWatcher.subscribe(
+      'DepositedRangeRemoved',
+      async (log: EventLog) => {
+        const rawRange = log.values.removedRange
+        const start = BigNumber.fromHexString(rawRange[0].toHexString())
+        const end = BigNumber.fromHexString(rawRange[1].toHexString())
+        await handler(new Range(start, end))
+      }
+    )
+  }
+
+  async startWatchingEvents() {
+    this.unsubscribeAll()
+    await this.eventWatcher.start(() => {
       // do nothing
     })
   }
 
-  subscribeDepositedRangeExtended(handler: (range: Range) => void) {
-    this.eventWatcher.subscribe('DepositedRangeExtended', (log: EventLog) => {
-      const rawRange = log.values.newRange
-      const start = BigNumber.fromHexString(rawRange[0].toHexString())
-      const end = BigNumber.fromHexString(rawRange[1].toHexString())
-      handler(new Range(start, end))
-    })
+  unsubscribeAll() {
     this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      // do nothing
-    })
-  }
-
-  subscribeDepositedRangeRemoved(handler: (range: Range) => void) {
-    this.eventWatcher.subscribe('DepositedRangeRemoved', (log: EventLog) => {
-      const rawRange = log.values.removedRange
-      const start = BigNumber.fromHexString(rawRange[0].toHexString())
-      const end = BigNumber.fromHexString(rawRange[1].toHexString())
-      handler(new Range(start, end))
-    })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      // do nothing
-    })
   }
 }

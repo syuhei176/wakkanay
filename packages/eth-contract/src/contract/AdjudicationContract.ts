@@ -135,10 +135,6 @@ export class AdjudicationContract implements IAdjudicationContract {
       const decision = log.values[1]
       handler(Bytes.fromHexString(gameId), decision)
     })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      /* do nothing */
-    })
   }
 
   subscribeNewPropertyClaimed(
@@ -158,10 +154,6 @@ export class AdjudicationContract implements IAdjudicationContract {
         BigNumber.fromString(createdBlock.toString())
       )
     })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      /* do nothing */
-    })
   }
 
   subscribeClaimChallenged(
@@ -171,10 +163,6 @@ export class AdjudicationContract implements IAdjudicationContract {
       const gameId = log.values[0]
       const challengeGameId = log.values[1]
       handler(Bytes.fromHexString(gameId), Bytes.fromHexString(challengeGameId))
-    })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      /* do nothing */
     })
   }
 
@@ -186,10 +174,6 @@ export class AdjudicationContract implements IAdjudicationContract {
       const decision = log.values[1]
       handler(Bytes.fromHexString(gameId), decision)
     })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      /* do nothing */
-    })
   }
 
   subscribeChallengeRemoved(
@@ -200,10 +184,6 @@ export class AdjudicationContract implements IAdjudicationContract {
       const challengeGameId = log.values[1]
       handler(Bytes.fromHexString(gameId), Bytes.fromHexString(challengeGameId))
     })
-    this.eventWatcher.cancel()
-    this.eventWatcher.start(() => {
-      /* do nothing */
-    })
   }
 
   private getProperty(property: any): Property {
@@ -211,5 +191,16 @@ export class AdjudicationContract implements IAdjudicationContract {
       Address.from(property[0]),
       property[1].map((i: string) => Bytes.fromHexString(i))
     )
+  }
+
+  async startWatchingEvents() {
+    this.unsubscribeAll()
+    await this.eventWatcher.start(() => {
+      /* do nothing */
+    })
+  }
+
+  unsubscribeAll() {
+    this.eventWatcher.cancel()
   }
 }

@@ -101,6 +101,24 @@ describe('DepositedRangeManager', () => {
     ])
   })
 
+  test('removeRange completely', async () => {
+    await depositedRangeManager.extendRange(
+      Address.default(),
+      new Range(BigNumber.from(0), BigNumber.from(100))
+    )
+    await depositedRangeManager.removeRange(
+      Address.default(),
+      new Range(BigNumber.from(0), BigNumber.from(50))
+    )
+    await depositedRangeManager.removeRange(
+      Address.default(),
+      new Range(BigNumber.from(50), BigNumber.from(100))
+    )
+    const bucket = await depositedRangeManager['getBucket'](Address.default())
+    const ranges = await bucket.get(JSBI.BigInt(0), JSBI.BigInt(1000))
+    expect(ranges).toStrictEqual([])
+  })
+
   test('getDepositedRangeId', async () => {
     await depositedRangeManager.extendRange(
       Address.default(),
