@@ -20,12 +20,7 @@ export function isCompiledPredicate(predicate: string) {
 
 export function isAtomicPredicate(predicate: string) {
   return (
-    // These 4 predicates are for unit test
-    predicate == 'Foo' ||
-    predicate == 'Bar' ||
-    predicate == 'A' ||
-    predicate == 'B' ||
-    // end of predicates for unit test
+    predicate == 'Bool' ||
     predicate == 'Equal' ||
     predicate == 'IsLessThan' ||
     predicate == 'IsValidSignature' ||

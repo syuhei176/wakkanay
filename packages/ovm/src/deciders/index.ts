@@ -1,4 +1,4 @@
-export * from './atomic/SampleDecider'
+export * from './atomic/BoolDecider'
 export * from './atomic/IsHashPreimageDecider'
 export * from './atomic/IsValidSignatureDecider'
 export * from './atomic/EqualDecider'

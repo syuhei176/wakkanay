@@ -14,7 +14,7 @@ import {
   initializeDeciderManager,
   ForAllSuchThatDeciderAddress,
   AndDeciderAddress,
-  SampleDeciderAddress as FooDeciderAddress,
+  SampleDeciderAddress as BoolDeciderAddress,
   EqualDeciderAddress,
   IsContainedDeciderAddress
 } from '../helpers/initiateDeciderManager'
@@ -34,8 +34,8 @@ describe('CompiledPredicate', () => {
   const deciderManager = initializeDeciderManager()
   const encodeProperty = (property: Property) =>
     Coder.encode(property.toStruct())
-  const encodeFooDecider = (input: Bytes) =>
-    encodeProperty(new Property(FooDeciderAddress, [input]))
+  const encodeBoolDecider = (input: Bytes) =>
+    encodeProperty(new Property(BoolDeciderAddress, [input]))
 
   describe('decompileProperty', () => {
     const testOriginalProperty = {
@@ -94,13 +94,13 @@ describe('CompiledPredicate', () => {
     it('compiled predicate using logical connective', async () => {
       const compiledPredicateAnd = CompiledPredicate.fromSource(
         TestPredicateAddress,
-        'def test(a, b) := Foo(a) and Foo(b)'
+        'def test(a, b) := Bool(a) and Bool(b)'
       )
       const testOriginalProperty = {
         deciderAddress: AndDeciderAddress,
         inputs: [
-          encodeFooDecider(Coder.encode(BigNumber.from(301))),
-          encodeFooDecider(Coder.encode(BigNumber.from(302)))
+          encodeBoolDecider(Coder.encode(BigNumber.from(301))),
+          encodeBoolDecider(Coder.encode(BigNumber.from(302)))
         ]
       }
       const property = compiledPredicateAnd.decompileProperty(
@@ -121,14 +121,14 @@ describe('CompiledPredicate', () => {
       const testOriginalProperty = {
         deciderAddress: AndDeciderAddress,
         inputs: [
-          encodeFooDecider(Coder.encode(BigNumber.from(301))),
-          encodeFooDecider(Coder.encode(BigNumber.from(302)))
+          encodeBoolDecider(Coder.encode(BigNumber.from(301))),
+          encodeBoolDecider(Coder.encode(BigNumber.from(302)))
         ]
       }
       const property = compiledPredicateAnd.decompileProperty(
         new Property(TestPredicateAddress, [
-          encodeFooDecider(Coder.encode(BigNumber.from(301))),
-          encodeFooDecider(Coder.encode(BigNumber.from(302)))
+          encodeBoolDecider(Coder.encode(BigNumber.from(301))),
+          encodeBoolDecider(Coder.encode(BigNumber.from(302)))
         ]),
         deciderManager.shortnameMap
       )
@@ -192,7 +192,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
   describe('createAtomicPropositionCall', () => {
     const compiledPredicateAnd = CompiledPredicate.fromSource(
       TestPredicateAddress,
-      'def test(a) := Foo(a) and Foo($b) and Foo(self.address)'
+      'def test(a) := Bool(a) and Bool($b) and Bool(self.address)'
     )
     const definition = compiledPredicateAnd.compiled.contracts[0]
     const compiledProperty = new Property(TestPredicateAddress, [
@@ -212,7 +212,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
             constantTable: {}
           }
         )
-      ).toEqual(encodeFooDecider(Coder.encode(BigNumber.from(301))))
+      ).toEqual(encodeBoolDecider(Coder.encode(BigNumber.from(301))))
     })
 
     it('throw exception because not enough inputs', async () => {
@@ -243,7 +243,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
             constantTable: { b: Coder.encode(b) }
           }
         )
-      ).toEqual(encodeFooDecider(Coder.encode(b)))
+      ).toEqual(encodeBoolDecider(Coder.encode(b)))
     })
 
     it('create atomic proposition call with self input', async () => {
@@ -258,14 +258,14 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
           }
         )
       ).toEqual(
-        encodeFooDecider(Bytes.fromHexString(TestPredicateAddress.data))
+        encodeBoolDecider(Bytes.fromHexString(TestPredicateAddress.data))
       )
     })
 
     it('create InputPredicateCall with extra inputs', () => {
       const compiledPredicate = CompiledPredicate.fromSource(
         TestPredicateAddress,
-        'def test(a, b) := Foo(a) and a(b)'
+        'def test(a, b) := Bool(a) and a(b)'
       )
       const definition = compiledPredicate.compiled.contracts[0]
       const predicateCall = definition.inputs[1] as AtomicProposition
@@ -297,7 +297,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
     it('creating InputPredicateCall does not support ConstantInput as extra', () => {
       const compiledPredicate = CompiledPredicate.fromSource(
         TestPredicateAddress,
-        'def test(a) := Foo(a) and a($Constant)'
+        'def test(a) := Bool(a) and a($Constant)'
       )
       const definition = compiledPredicate.compiled.contracts[0]
       const predicateCall = definition.inputs[1] as AtomicProposition

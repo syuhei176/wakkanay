@@ -16,8 +16,12 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'And',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
-                { type: 'PropertyNode', predicate: 'Bar', inputs: ['b'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
+                {
+                  type: 'PropertyNode',
+                  predicate: 'IsValidSignature',
+                  inputs: ['b']
+                }
               ]
             }
           }
@@ -38,14 +42,17 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Bar' },
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'IsValidSignature'
+                    },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 2, children: [] }
                     ]
@@ -68,8 +75,12 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'Or',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
-                { type: 'PropertyNode', predicate: 'Bar', inputs: ['b'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
+                {
+                  type: 'PropertyNode',
+                  predicate: 'IsValidSignature',
+                  inputs: ['b']
+                }
               ]
             }
           }
@@ -90,14 +101,17 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Bar' },
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'IsValidSignature'
+                    },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 2, children: [] }
                     ]
@@ -120,7 +134,7 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'Not',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] }
               ]
             }
           }
@@ -141,7 +155,7 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
@@ -164,9 +178,9 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'ForAllSuchThat',
               inputs: [
-                { type: 'PropertyNode', predicate: 'A', inputs: ['a'] },
+                { type: 'PropertyNode', predicate: 'Equal', inputs: ['a'] },
                 'b',
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['b'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['b'] }
               ]
             }
           }
@@ -187,7 +201,7 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'A' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Equal' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
@@ -195,7 +209,7 @@ describe('ContractCompiler', () => {
                   'b',
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       {
                         type: 'VariableInput',
@@ -224,7 +238,7 @@ describe('ContractCompiler', () => {
               inputs: [
                 'hint:hint:hint',
                 'a',
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] }
               ]
             }
           }
@@ -247,7 +261,7 @@ describe('ContractCompiler', () => {
                   'a',
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       {
                         type: 'VariableInput',
@@ -276,8 +290,12 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'And',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a.0'] },
-                { type: 'PropertyNode', predicate: 'Bar', inputs: ['a.1'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a.0'] },
+                {
+                  type: 'PropertyNode',
+                  predicate: 'IsValidSignature',
+                  inputs: ['a.1']
+                }
               ]
             }
           }
@@ -298,14 +316,17 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [0] }
                     ]
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Bar' },
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'IsValidSignature'
+                    },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [1] }
                     ]
@@ -330,8 +351,12 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'And',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a.0'] },
-                { type: 'PropertyNode', predicate: 'Bar', inputs: ['a.1.2'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a.0'] },
+                {
+                  type: 'PropertyNode',
+                  predicate: 'IsValidSignature',
+                  inputs: ['a.1.2']
+                }
               ]
             }
           }
@@ -352,14 +377,17 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [0] }
                     ]
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Bar' },
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'IsValidSignature'
+                    },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [1, 2] }
                     ]
@@ -384,9 +412,13 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'ThereExistsSuchThat',
               inputs: [
-                { type: 'PropertyNode', predicate: 'B', inputs: [] },
+                { type: 'PropertyNode', predicate: 'Bool', inputs: [] },
                 'b',
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['b.0', 'a'] }
+                {
+                  type: 'PropertyNode',
+                  predicate: 'Bool',
+                  inputs: ['b.0', 'a']
+                }
               ]
             }
           }
@@ -407,13 +439,13 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'B' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: []
                   },
                   'b',
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       {
                         type: 'VariableInput',
@@ -447,7 +479,11 @@ describe('ContractCompiler', () => {
                   predicate: 'Equal',
                   inputs: ['a.address', 'self.address']
                 },
-                { type: 'PropertyNode', predicate: 'Bar', inputs: ['a.0'] }
+                {
+                  type: 'PropertyNode',
+                  predicate: 'IsValidSignature',
+                  inputs: ['a.0']
+                }
               ]
             }
           }
@@ -483,7 +519,10 @@ describe('ContractCompiler', () => {
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Bar' },
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'IsValidSignature'
+                    },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [0] }
                     ]
@@ -510,7 +549,7 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'And',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
                 { type: 'PropertyNode', predicate: 'b', inputs: [] }
               ]
             }
@@ -532,7 +571,7 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
@@ -567,7 +606,7 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'ForAllSuchThat',
               inputs: [
-                { type: 'PropertyNode', predicate: 'A', inputs: ['a'] },
+                { type: 'PropertyNode', predicate: 'Equal', inputs: ['a'] },
                 'b',
                 { type: 'PropertyNode', predicate: 'b', inputs: [] }
               ]
@@ -590,7 +629,7 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'A' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Equal' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
@@ -619,7 +658,7 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'ThereExistsSuchThat',
               inputs: [
-                { type: 'PropertyNode', predicate: 'A', inputs: [] },
+                { type: 'PropertyNode', predicate: 'Equal', inputs: [] },
                 'a',
                 { type: 'PropertyNode', predicate: 'a', inputs: [] }
               ]
@@ -642,7 +681,7 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'A' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Equal' },
                     inputs: []
                   },
                   'a',
@@ -669,7 +708,7 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'ThereExistsSuchThat',
               inputs: [
-                { type: 'PropertyNode', predicate: 'B', inputs: [] },
+                { type: 'PropertyNode', predicate: 'Bool', inputs: [] },
                 'b',
                 { type: 'PropertyNode', predicate: 'a', inputs: ['b'] }
               ]
@@ -692,7 +731,7 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'B' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: []
                   },
                   'b',
@@ -739,7 +778,7 @@ describe('ContractCompiler', () => {
                   predicate: 'LibraryPredicate',
                   inputs: ['a']
                 },
-                { type: 'PropertyNode', predicate: 'Foo', inputs: [] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: [] }
               ]
             }
           }
@@ -772,7 +811,7 @@ describe('ContractCompiler', () => {
                     type: 'AtomicProposition',
                     predicate: {
                       type: 'AtomicPredicateCall',
-                      source: 'Foo'
+                      source: 'Bool'
                     },
                     inputs: []
                   }
@@ -793,7 +832,7 @@ describe('ContractCompiler', () => {
     })
 
     describe('deep nest', () => {
-      test('Foo(a) or (Foo(b) and Foo(c))', () => {
+      test('Bool(a) or (Bool(b) and Bool(c))', () => {
         const input: PropertyDef[] = [
           {
             annotations: [],
@@ -807,11 +846,11 @@ describe('ContractCompiler', () => {
                   type: 'PropertyNode',
                   predicate: 'And',
                   inputs: [
-                    { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
-                    { type: 'PropertyNode', predicate: 'Foo', inputs: ['b'] }
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['b'] }
                   ]
                 },
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['c'] }
+                { type: 'PropertyNode', predicate: 'Bool', inputs: ['c'] }
               ]
             }
           }
@@ -832,14 +871,14 @@ describe('ContractCompiler', () => {
                 inputs: [
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 1, children: [] }
                     ]
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 2, children: [] }
                     ]
@@ -869,7 +908,7 @@ describe('ContractCompiler', () => {
                   },
                   {
                     type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
+                    predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 3, children: [] }
                     ]
@@ -883,26 +922,8 @@ describe('ContractCompiler', () => {
         ])
       })
 
-      test('Foo(a).any(c -> Bool(b) and Bool(c))', () => {
+      test('Bool(a).any(c -> Bool(b) and Bool(c))', () => {
         const input: PropertyDef[] = [
-          {
-            name: 'Foo',
-            inputDefs: ['a'],
-            body: {
-              type: 'PropertyNode',
-              predicate: 'And',
-              inputs: [
-                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
-                { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] }
-              ]
-            },
-            annotations: [
-              {
-                type: 'Annotation',
-                body: { name: 'quantifier', args: ['bucket${a},type,${a}'] }
-              }
-            ]
-          },
           {
             name: 'deepNestTest',
             inputDefs: ['a', 'b'],
@@ -910,12 +931,13 @@ describe('ContractCompiler', () => {
               type: 'PropertyNode',
               predicate: 'ThereExistsSuchThat',
               inputs: [
-                { type: 'PropertyNode', predicate: 'Foo', inputs: ['a'] },
+                'hint',
                 'c',
                 {
                   type: 'PropertyNode',
                   predicate: 'And',
                   inputs: [
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['a'] },
                     { type: 'PropertyNode', predicate: 'Bool', inputs: ['b'] },
                     { type: 'PropertyNode', predicate: 'Bool', inputs: ['c'] }
                   ]
@@ -929,45 +951,6 @@ describe('ContractCompiler', () => {
         expect(output).toStrictEqual([
           {
             type: 'CompiledPredicate',
-            name: 'Foo',
-            inputDefs: ['a'],
-            contracts: [
-              {
-                type: 'IntermediateCompiledPredicate',
-                originalPredicateName: 'Foo',
-                name: 'FooA',
-                connective: 'And',
-                inputDefs: ['FooA', 'a'],
-                inputs: [
-                  {
-                    type: 'AtomicProposition',
-                    predicate: {
-                      type: 'CompiledPredicateCall',
-                      source: 'Bool'
-                    },
-                    inputs: [
-                      { type: 'NormalInput', inputIndex: 1, children: [] }
-                    ]
-                  },
-                  {
-                    type: 'AtomicProposition',
-                    predicate: {
-                      type: 'CompiledPredicateCall',
-                      source: 'Bool'
-                    },
-                    inputs: [
-                      { type: 'NormalInput', inputIndex: 1, children: [] }
-                    ]
-                  }
-                ],
-                propertyInputs: []
-              }
-            ],
-            entryPoint: 'FooA',
-            constants: [{ varType: 'address', name: 'Bool' }]
-          },
-          {
-            type: 'CompiledPredicate',
             name: 'DeepNestTest',
             inputDefs: ['a', 'b'],
             contracts: [
@@ -976,12 +959,12 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'DeepNestTest',
                 name: 'DeepNestTestTA',
                 connective: 'And',
-                inputDefs: ['DeepNestTestTA', 'b', 'c'],
+                inputDefs: ['DeepNestTestTA', 'a', 'b', 'c'],
                 inputs: [
                   {
                     type: 'AtomicProposition',
                     predicate: {
-                      type: 'CompiledPredicateCall',
+                      type: 'AtomicPredicateCall',
                       source: 'Bool'
                     },
                     inputs: [
@@ -991,11 +974,21 @@ describe('ContractCompiler', () => {
                   {
                     type: 'AtomicProposition',
                     predicate: {
-                      type: 'CompiledPredicateCall',
+                      type: 'AtomicPredicateCall',
                       source: 'Bool'
                     },
                     inputs: [
                       { type: 'NormalInput', inputIndex: 2, children: [] }
+                    ]
+                  },
+                  {
+                    type: 'AtomicProposition',
+                    predicate: {
+                      type: 'AtomicPredicateCall',
+                      source: 'Bool'
+                    },
+                    inputs: [
+                      { type: 'NormalInput', inputIndex: 3, children: [] }
                     ]
                   }
                 ],
@@ -1008,13 +1001,7 @@ describe('ContractCompiler', () => {
                 connective: 'ThereExistsSuchThat',
                 inputDefs: ['DeepNestTestT', 'a', 'b'],
                 inputs: [
-                  {
-                    type: 'AtomicProposition',
-                    predicate: { type: 'AtomicPredicateCall', source: 'Foo' },
-                    inputs: [
-                      { type: 'NormalInput', inputIndex: 1, children: [] }
-                    ]
-                  },
+                  'hint',
                   'c',
                   {
                     type: 'AtomicProposition',
@@ -1024,6 +1011,7 @@ describe('ContractCompiler', () => {
                     },
                     inputs: [
                       { type: 'LabelInput', label: 'DeepNestTestTA' },
+                      { type: 'NormalInput', inputIndex: 1, children: [] },
                       { type: 'NormalInput', inputIndex: 2, children: [] },
                       { type: 'VariableInput', placeholder: 'c', children: [] }
                     ],
@@ -1033,8 +1021,7 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'DeepNestTestT',
-            constants: [{ varType: 'address', name: 'Bool' }]
+            entryPoint: 'DeepNestTestT'
           }
         ])
       })

@@ -1,0 +1,158 @@
+import { transpile } from '../src/Transpiler'
+import { Program } from '@cryptoeconomicslab/ovm-parser'
+import Coder from '@cryptoeconomicslab/coder'
+import { setupContext } from '@cryptoeconomicslab/context'
+setupContext({ coder: Coder })
+
+describe('Transpiler', () => {
+  describe('transpile', () => {
+    test('return transpiled object', () => {
+      const program: Program = {
+        imports: [
+          {
+            path: 'BoolQuantifier',
+            module: 'BoolQuantifier'
+          }
+        ],
+        declarations: [
+          {
+            name: 'deepNestTest',
+            inputDefs: ['a', 'b'],
+            body: {
+              type: 'PropertyNode',
+              predicate: 'ThereExistsSuchThat',
+              inputs: [
+                {
+                  type: 'PropertyNode',
+                  predicate: 'BoolQuantifier',
+                  inputs: ['a']
+                },
+                'c',
+                {
+                  type: 'PropertyNode',
+                  predicate: 'And',
+                  inputs: [
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['b'] },
+                    { type: 'PropertyNode', predicate: 'Bool', inputs: ['c'] }
+                  ]
+                }
+              ]
+            },
+            annotations: []
+          }
+        ]
+      }
+
+      const compiledPredicates = transpile(program, _import => {
+        return {
+          imports: [],
+          declarations: [
+            {
+              name: 'BoolQuantifier',
+              inputDefs: ['a', 'b'],
+              body: {
+                type: 'PropertyNode',
+                predicate: 'Bool',
+                inputs: ['a', 'b']
+              },
+              annotations: [
+                { type: 'Annotation', body: { name: 'library', args: [] } },
+                {
+                  type: 'Annotation',
+                  body: { name: 'quantifier', args: ['hint'] }
+                }
+              ]
+            }
+          ]
+        }
+      })
+      expect(compiledPredicates).toEqual([
+        {
+          type: 'CompiledPredicate',
+          name: 'DeepNestTest',
+          inputDefs: ['a', 'b'],
+          contracts: [
+            {
+              type: 'IntermediateCompiledPredicate',
+              originalPredicateName: 'DeepNestTest',
+              name: 'DeepNestTestTA2A',
+              connective: 'And',
+              inputDefs: ['DeepNestTestTA2A', 'b', 'c'],
+              inputs: [
+                {
+                  type: 'AtomicProposition',
+                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
+                  inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
+                },
+                {
+                  type: 'AtomicProposition',
+                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
+                  inputs: [{ type: 'NormalInput', inputIndex: 2, children: [] }]
+                }
+              ],
+              propertyInputs: []
+            },
+            {
+              type: 'IntermediateCompiledPredicate',
+              originalPredicateName: 'DeepNestTest',
+              name: 'DeepNestTestTA',
+              connective: 'And',
+              inputDefs: ['DeepNestTestTA', 'c', 'a', 'b'],
+              inputs: [
+                {
+                  type: 'AtomicProposition',
+                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
+                  inputs: [
+                    { type: 'NormalInput', inputIndex: 1, children: [] },
+                    { type: 'NormalInput', inputIndex: 2, children: [] }
+                  ]
+                },
+                {
+                  type: 'AtomicProposition',
+                  predicate: {
+                    type: 'AtomicPredicateCall',
+                    source: 'DeepNestTestTA2A'
+                  },
+                  inputs: [
+                    { type: 'LabelInput', label: 'DeepNestTestTA2A' },
+                    { type: 'NormalInput', inputIndex: 3, children: [] },
+                    { type: 'NormalInput', inputIndex: 1, children: [] }
+                  ],
+                  isCompiled: true
+                }
+              ],
+              propertyInputs: []
+            },
+            {
+              type: 'IntermediateCompiledPredicate',
+              originalPredicateName: 'DeepNestTest',
+              name: 'DeepNestTestT',
+              connective: 'ThereExistsSuchThat',
+              inputDefs: ['DeepNestTestT', 'a', 'b'],
+              inputs: [
+                'hint',
+                'c',
+                {
+                  type: 'AtomicProposition',
+                  predicate: {
+                    type: 'AtomicPredicateCall',
+                    source: 'DeepNestTestTA'
+                  },
+                  inputs: [
+                    { type: 'LabelInput', label: 'DeepNestTestTA' },
+                    { type: 'VariableInput', placeholder: 'c', children: [] },
+                    { type: 'NormalInput', inputIndex: 1, children: [] },
+                    { type: 'NormalInput', inputIndex: 2, children: [] }
+                  ],
+                  isCompiled: true
+                }
+              ],
+              propertyInputs: []
+            }
+          ],
+          entryPoint: 'DeepNestTestT'
+        }
+      ])
+    })
+  })
+})
