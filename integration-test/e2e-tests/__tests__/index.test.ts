@@ -28,6 +28,8 @@ function formatUnitsFromJsbi(amount: JSBI) {
 }
 
 describe('light client', () => {
+  const nodeEndpoint = 'http://ganache:8545'
+  const aggregatorEndpoint = 'http://aggregator:3000'
   let aliceLightClient: LightClient
   let bobLightClient: LightClient
   let senderWallet: ethers.Wallet
@@ -73,7 +75,7 @@ describe('light client', () => {
   }
 
   beforeEach(async () => {
-    const provider = new ethers.providers.JsonRpcProvider('http://ganache:8545')
+    const provider = new ethers.providers.JsonRpcProvider(nodeEndpoint)
     senderWallet = ethers.Wallet.createRandom().connect(provider)
     recieverWallet = ethers.Wallet.createRandom().connect(provider)
     const defaultWallet1 = new ethers.Wallet(
@@ -104,13 +106,13 @@ describe('light client', () => {
       wallet: senderWallet,
       kvs: kvs1,
       config: config as any,
-      aggregatorEndpoint: 'http://aggregator:3000'
+      aggregatorEndpoint
     })
     bobLightClient = await initializeLightClient({
       wallet: recieverWallet,
       kvs: kvs2,
       config: config as any,
-      aggregatorEndpoint: 'http://aggregator:3000'
+      aggregatorEndpoint
     })
     await aliceLightClient.start()
     await bobLightClient.start()
