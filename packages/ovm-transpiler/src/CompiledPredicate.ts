@@ -8,6 +8,7 @@ export interface CompiledPredicate {
   contracts: IntermediateCompiledPredicate[]
   constants?: ConstantVariable[]
   entryPoint: string
+  entryPointOfDecide?: string
 }
 
 export interface ConstantVariable {
@@ -29,6 +30,8 @@ export interface IntermediateCompiledPredicate {
   inputDefs: string[]
   inputs: (AtomicProposition | Placeholder)[]
   propertyInputs: NormalInput[]
+  // This IntermediateCompiledPredicate has decide method or not
+  hasDecideMethod: boolean
 }
 
 export interface AtomicProposition {

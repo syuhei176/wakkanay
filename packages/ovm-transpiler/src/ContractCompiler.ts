@@ -42,12 +42,21 @@ function createCompiledPredicatesForProperty(
     name,
     inputDefs: p.inputDefs,
     contracts: newContracts,
-    entryPoint: newContracts[newContracts.length - 1].name
+    entryPoint: newContracts[newContracts.length - 1].name,
+    entryPointOfDecide: getEntryPointOfDecide(newContracts)
   }
   if (constants.length > 0) {
     result.constants = constants
   }
   return result
+}
+
+function getEntryPointOfDecide(newContracts: IntermediateCompiledPredicate[]) {
+  for (let i = newContracts.length - 1; i >= 0; i--) {
+    if (newContracts[i].hasDecideMethod) {
+      return newContracts[i].name
+    }
+  }
 }
 
 /**
@@ -75,12 +84,11 @@ function traverseLogicalConnnective(
   newInputDefs = [makeContractName(originalPredicateName, suffix)].concat(
     newInputDefs
   )
-  const newContract = createCompiledPredicate(
-    property,
-    newInputDefs,
-    originalPredicateName,
-    suffix
-  )
+  let hasDecideMethod = true
+  if (property.predicate === 'ForAllSuchThat' || property.predicate === 'Not') {
+    // can't decide ForAllSuchThat or Not with witness
+    hasDecideMethod = false
+  }
   const children: (AtomicProposition | Placeholder)[] = []
   const compiledPredicates = property.inputs.reduce<
     IntermediateCompiledPredicate[]
@@ -113,6 +121,13 @@ function traverseLogicalConnnective(
       return acc
     }
   }, [])
+  const newContract = createCompiledPredicate(
+    property,
+    newInputDefs,
+    originalPredicateName,
+    suffix,
+    hasDecideMethod && compiledPredicates.every(c => c.hasDecideMethod)
+  )
   newContract.inputs = children
   newContract.propertyInputs = getPropertyInputIndexes(children)
   return compiledPredicates.concat([newContract])
@@ -122,7 +137,8 @@ function createCompiledPredicate(
   property: PropertyNode,
   newInputDefs: string[],
   originalPredicateName: string,
-  suffix: string
+  suffix: string,
+  hasDecideMethod: boolean
 ): IntermediateCompiledPredicate {
   return {
     type: 'IntermediateCompiledPredicate',
@@ -133,7 +149,8 @@ function createCompiledPredicate(
     ),
     inputDefs: newInputDefs,
     inputs: [],
-    propertyInputs: []
+    propertyInputs: [],
+    hasDecideMethod
   }
 }
 
