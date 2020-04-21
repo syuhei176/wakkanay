@@ -4,7 +4,7 @@ import JsonCoder, { Coder } from '@cryptoeconomicslab/coder'
 import { Decider } from './interfaces/Decider'
 import { Property, Decision, FreeVariable } from './types'
 import { initialize, DeciderConfig } from './load'
-import { CompiledPredicate } from './decompiler'
+import { CompiledPredicate, CompiledDecider } from './decompiler'
 import { TraceInfoCreator } from './Tracer'
 
 export interface DeciderManagerInterface {
@@ -15,6 +15,7 @@ export interface DeciderManagerInterface {
   ): Promise<Decision>
   getDeciderAddress(shortname: string): Address
   getStorageDb(): Promise<KeyValueStore>
+  decompile(property: Property): Property
 }
 
 /**
@@ -120,6 +121,14 @@ export class DeciderManager implements DeciderManagerInterface {
     } else {
       throw new Error('Decider not found')
     }
+  }
+
+  public decompile(property: Property) {
+    const decider = this.getDecider(property.deciderAddress)
+    if (decider instanceof CompiledDecider) {
+      return decider.decompile(this, property.inputs)
+    }
+    return property
   }
 }
 
