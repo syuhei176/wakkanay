@@ -77,6 +77,7 @@ describe('Transpiler', () => {
               originalPredicateName: 'DeepNestTest',
               name: 'DeepNestTestTA',
               connective: 'And',
+              hasDecideMethod: true,
               inputDefs: ['DeepNestTestTA', 'c', 'a', 'b'],
               inputs: [
                 {
@@ -105,6 +106,7 @@ describe('Transpiler', () => {
               originalPredicateName: 'DeepNestTest',
               name: 'DeepNestTestT',
               connective: 'ThereExistsSuchThat',
+              hasDecideMethod: true,
               inputDefs: ['DeepNestTestT', 'a', 'b'],
               inputs: [
                 'hint',
@@ -127,7 +129,8 @@ describe('Transpiler', () => {
               propertyInputs: []
             }
           ],
-          entryPoint: 'DeepNestTestT'
+          entryPoint: 'DeepNestTestT',
+          entryPointOfDecide: 'DeepNestTestT'
         }
       ])
     })

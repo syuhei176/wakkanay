@@ -100,28 +100,7 @@ contract NotTest {
         }
     }
 
-    /**
-     * @dev check the property is true
-     */
-    function decide(bytes[] memory _inputs, bytes[] memory _witness) public view returns(bool) {
-        if(!utils.isLabel(_inputs[0])) {
-            return decideNotTestN(_inputs, _witness);
-        }
-        bytes32 input0 = keccak256(utils.getInputValue(_inputs[0]));
-        bytes[] memory subInputs = utils.subArray(_inputs, 1, _inputs.length);
-        if(input0 == keccak256(NotTestN)) {
-            return decideNotTestN(subInputs, _witness);
-        }
-    }
 
-    function decideTrue(bytes[] memory _inputs, bytes[] memory _witness) public {
-        require(decide(_inputs, _witness), "must be true");
-        types.Property memory property = types.Property({
-            predicateAddress: address(this),
-            inputs: _inputs
-        });
-        adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
-    }
 
     /**
      * Gets child of NotTestN(NotTestN,a).
@@ -137,12 +116,6 @@ contract NotTest {
         }));
 
         return abi.decode(property, (types.Property));
-    }
-    /**
-     * Decides NotTestN(NotTestN,a).
-     */
-    function decideNotTestN(bytes[] memory _inputs, bytes[] memory _witness) public view returns (bool) {
-        return false;
     }
 
 }

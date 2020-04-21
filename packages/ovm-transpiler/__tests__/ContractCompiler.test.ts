@@ -38,6 +38,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'AndTest',
                 name: 'AndTestA',
                 connective: LogicalConnective.And,
+                hasDecideMethod: true,
                 inputDefs: ['AndTestA', 'a', 'b'],
                 inputs: [
                   {
@@ -61,7 +62,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'AndTestA'
+            entryPoint: 'AndTestA',
+            entryPointOfDecide: 'AndTestA'
           }
         ])
       })
@@ -97,6 +99,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'OrTest',
                 name: 'OrTestO',
                 connective: LogicalConnective.Or,
+                hasDecideMethod: true,
                 inputDefs: ['OrTestO', 'a', 'b'],
                 inputs: [
                   {
@@ -120,7 +123,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'OrTestO'
+            entryPoint: 'OrTestO',
+            entryPointOfDecide: 'OrTestO'
           }
         ])
       })
@@ -151,6 +155,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'NotTest',
                 name: 'NotTestN',
                 connective: LogicalConnective.Not,
+                hasDecideMethod: false,
                 inputDefs: ['NotTestN', 'a'],
                 inputs: [
                   {
@@ -164,7 +169,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'NotTestN'
+            entryPoint: 'NotTestN',
+            entryPointOfDecide: undefined
           }
         ])
       })
@@ -197,6 +203,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'ForallTest',
                 name: 'ForallTestF',
                 connective: LogicalConnective.ForAllSuchThat,
+                hasDecideMethod: false,
                 inputDefs: ['ForallTestF', 'a'],
                 inputs: [
                   {
@@ -222,7 +229,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'ForallTestF'
+            entryPoint: 'ForallTestF',
+            entryPointOfDecide: undefined
           }
         ])
       })
@@ -255,6 +263,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'ThereTest',
                 name: 'ThereTestT',
                 connective: LogicalConnective.ThereExistsSuchThat,
+                hasDecideMethod: true,
                 inputDefs: ['ThereTestT'],
                 inputs: [
                   'hint:hint:hint',
@@ -274,7 +283,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'ThereTestT'
+            entryPoint: 'ThereTestT',
+            entryPointOfDecide: 'ThereTestT'
           }
         ])
       })
@@ -312,6 +322,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'BindAndTest',
                 name: 'BindAndTestA',
                 connective: LogicalConnective.And,
+                hasDecideMethod: true,
                 inputDefs: ['BindAndTestA', 'a'],
                 inputs: [
                   {
@@ -337,7 +348,8 @@ describe('ContractCompiler', () => {
                 ]
               }
             ],
-            entryPoint: 'BindAndTestA'
+            entryPoint: 'BindAndTestA',
+            entryPointOfDecide: 'BindAndTestA'
           }
         ])
       })
@@ -373,6 +385,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'Bind2Test',
                 name: 'Bind2TestA',
                 connective: LogicalConnective.And,
+                hasDecideMethod: true,
                 inputDefs: ['Bind2TestA', 'a'],
                 inputs: [
                   {
@@ -398,7 +411,8 @@ describe('ContractCompiler', () => {
                 ]
               }
             ],
-            entryPoint: 'Bind2TestA'
+            entryPoint: 'Bind2TestA',
+            entryPointOfDecide: 'Bind2TestA'
           }
         ])
       })
@@ -435,6 +449,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'BindValTest',
                 name: 'BindValTestT',
                 connective: LogicalConnective.ThereExistsSuchThat,
+                hasDecideMethod: true,
                 inputDefs: ['BindValTestT', 'a'],
                 inputs: [
                   {
@@ -459,7 +474,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'BindValTestT'
+            entryPoint: 'BindValTestT',
+            entryPointOfDecide: 'BindValTestT'
           }
         ])
       })
@@ -500,6 +516,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'BindAddrTest',
                 name: 'BindAddrTestA',
                 connective: LogicalConnective.And,
+                hasDecideMethod: true,
                 inputDefs: ['BindAddrTestA', 'a'],
                 inputs: [
                   {
@@ -533,7 +550,8 @@ describe('ContractCompiler', () => {
                 ]
               }
             ],
-            entryPoint: 'BindAddrTestA'
+            entryPoint: 'BindAddrTestA',
+            entryPointOfDecide: 'BindAddrTestA'
           }
         ])
       })
@@ -567,6 +585,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'EvalTest',
                 name: 'EvalTestA',
                 connective: LogicalConnective.And,
+                hasDecideMethod: true,
                 inputDefs: ['EvalTestA', 'a', 'b'],
                 inputs: [
                   {
@@ -592,7 +611,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'EvalTestA'
+            entryPoint: 'EvalTestA',
+            entryPointOfDecide: 'EvalTestA'
           }
         ])
       })
@@ -625,6 +645,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'ForValTest',
                 name: 'ForValTestF',
                 connective: LogicalConnective.ForAllSuchThat,
+                hasDecideMethod: false,
                 inputDefs: ['ForValTestF', 'a'],
                 inputs: [
                   {
@@ -644,7 +665,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'ForValTestF'
+            entryPoint: 'ForValTestF',
+            entryPointOfDecide: undefined
           }
         ])
       })
@@ -677,6 +699,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'ThereValTest',
                 name: 'ThereValTestT',
                 connective: LogicalConnective.ThereExistsSuchThat,
+                hasDecideMethod: true,
                 inputDefs: ['ThereValTestT'],
                 inputs: [
                   {
@@ -694,7 +717,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'ThereValTestT'
+            entryPoint: 'ThereValTestT',
+            entryPointOfDecide: 'ThereValTestT'
           }
         ])
       })
@@ -727,6 +751,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'ThereValTest',
                 name: 'ThereValTestT',
                 connective: LogicalConnective.ThereExistsSuchThat,
+                hasDecideMethod: true,
                 inputDefs: ['ThereValTestT', 'a'],
                 inputs: [
                   {
@@ -757,7 +782,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'ThereValTestT'
+            entryPoint: 'ThereValTestT',
+            entryPointOfDecide: 'ThereValTestT'
           }
         ])
       })
@@ -795,6 +821,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'LibraryTest',
                 name: 'LibraryTestA',
                 connective: LogicalConnective.And,
+                hasDecideMethod: true,
                 inputDefs: ['LibraryTestA', 'a', 'b'],
                 inputs: [
                   {
@@ -825,7 +852,8 @@ describe('ContractCompiler', () => {
                 varType: 'address'
               }
             ],
-            entryPoint: 'LibraryTestA'
+            entryPoint: 'LibraryTestA',
+            entryPointOfDecide: 'LibraryTestA'
           }
         ])
       })
@@ -867,6 +895,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'DeepNestTest',
                 name: 'DeepNestTestO1A',
                 connective: 'And',
+                hasDecideMethod: true,
                 inputDefs: ['DeepNestTestO1A', 'a', 'b'],
                 inputs: [
                   {
@@ -891,6 +920,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'DeepNestTest',
                 name: 'DeepNestTestO',
                 connective: 'Or',
+                hasDecideMethod: true,
                 inputDefs: ['DeepNestTestO', 'a', 'b', 'c'],
                 inputs: [
                   {
@@ -917,7 +947,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'DeepNestTestO'
+            entryPoint: 'DeepNestTestO',
+            entryPointOfDecide: 'DeepNestTestO'
           }
         ])
       })
@@ -959,6 +990,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'DeepNestTest',
                 name: 'DeepNestTestTA',
                 connective: 'And',
+                hasDecideMethod: true,
                 inputDefs: ['DeepNestTestTA', 'a', 'b', 'c'],
                 inputs: [
                   {
@@ -999,6 +1031,7 @@ describe('ContractCompiler', () => {
                 originalPredicateName: 'DeepNestTest',
                 name: 'DeepNestTestT',
                 connective: 'ThereExistsSuchThat',
+                hasDecideMethod: true,
                 inputDefs: ['DeepNestTestT', 'a', 'b'],
                 inputs: [
                   'hint',
@@ -1021,7 +1054,8 @@ describe('ContractCompiler', () => {
                 propertyInputs: []
               }
             ],
-            entryPoint: 'DeepNestTestT'
+            entryPoint: 'DeepNestTestT',
+            entryPointOfDecide: 'DeepNestTestT'
           }
         ])
       })

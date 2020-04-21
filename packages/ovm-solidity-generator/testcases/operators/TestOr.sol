@@ -100,28 +100,7 @@ contract OrTest {
         }
     }
 
-    /**
-     * @dev check the property is true
-     */
-    function decide(bytes[] memory _inputs, bytes[] memory _witness) public view returns(bool) {
-        if(!utils.isLabel(_inputs[0])) {
-            return decideOrTestO(_inputs, _witness);
-        }
-        bytes32 input0 = keccak256(utils.getInputValue(_inputs[0]));
-        bytes[] memory subInputs = utils.subArray(_inputs, 1, _inputs.length);
-        if(input0 == keccak256(OrTestO)) {
-            return decideOrTestO(subInputs, _witness);
-        }
-    }
 
-    function decideTrue(bytes[] memory _inputs, bytes[] memory _witness) public {
-        require(decide(_inputs, _witness), "must be true");
-        types.Property memory property = types.Property({
-            predicateAddress: address(this),
-            inputs: _inputs
-        });
-        adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
-    }
 
     /**
      * Gets child of OrTestO(OrTestO,a,b).
@@ -159,34 +138,6 @@ contract OrTest {
             predicateAddress: andAddress,
             inputs: andInputs
         });
-    }
-    /**
-     * Decides OrTestO(OrTestO,a,b).
-     */
-    function decideOrTestO(bytes[] memory _inputs, bytes[] memory _witness) public view returns (bool) {
-        // check Or
-        uint256 orIndex = abi.decode(_witness[0], (uint256));
-        if(orIndex == 0) {
-
-            bytes[] memory childInputs0 = new bytes[](1);
-            childInputs0[0] = _inputs[0];
-            require(
-                AtomicPredicate(Foo).decide(childInputs0),
-                "Foo must be true"
-            );
-
-        }
-        if(orIndex == 1) {
-
-            bytes[] memory childInputs1 = new bytes[](1);
-            childInputs1[0] = _inputs[1];
-            require(
-                AtomicPredicate(Bar).decide(childInputs1),
-                "Bar must be true"
-            );
-
-        }
-        return true;
     }
 
 }

@@ -100,28 +100,7 @@ contract ForallTest {
         }
     }
 
-    /**
-     * @dev check the property is true
-     */
-    function decide(bytes[] memory _inputs, bytes[] memory _witness) public view returns(bool) {
-        if(!utils.isLabel(_inputs[0])) {
-            return decideForallTestF(_inputs, _witness);
-        }
-        bytes32 input0 = keccak256(utils.getInputValue(_inputs[0]));
-        bytes[] memory subInputs = utils.subArray(_inputs, 1, _inputs.length);
-        if(input0 == keccak256(ForallTestF)) {
-            return decideForallTestF(subInputs, _witness);
-        }
-    }
 
-    function decideTrue(bytes[] memory _inputs, bytes[] memory _witness) public {
-        require(decide(_inputs, _witness), "must be true");
-        types.Property memory property = types.Property({
-            predicateAddress: address(this),
-            inputs: _inputs
-        });
-        adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
-    }
 
     /**
      * Gets child of ForallTestF(ForallTestF,a).
@@ -140,12 +119,6 @@ contract ForallTest {
             predicateAddress: notAddress,
             inputs: notInputs
         });
-    }
-    /**
-     * Decides ForallTestF(ForallTestF,a).
-     */
-    function decideForallTestF(bytes[] memory _inputs, bytes[] memory _witness) public view returns (bool) {
-        return false;
     }
 
 }

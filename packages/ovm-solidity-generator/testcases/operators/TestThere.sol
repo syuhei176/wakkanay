@@ -100,28 +100,7 @@ contract ThereTest {
         }
     }
 
-    /**
-     * @dev check the property is true
-     */
-    function decide(bytes[] memory _inputs, bytes[] memory _witness) public view returns(bool) {
-        if(!utils.isLabel(_inputs[0])) {
-            return decideThereTestT(_inputs, _witness);
-        }
-        bytes32 input0 = keccak256(utils.getInputValue(_inputs[0]));
-        bytes[] memory subInputs = utils.subArray(_inputs, 1, _inputs.length);
-        if(input0 == keccak256(ThereTestT)) {
-            return decideThereTestT(subInputs, _witness);
-        }
-    }
 
-    function decideTrue(bytes[] memory _inputs, bytes[] memory _witness) public {
-        require(decide(_inputs, _witness), "must be true");
-        types.Property memory property = types.Property({
-            predicateAddress: address(this),
-            inputs: _inputs
-        });
-        adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
-    }
 
     /**
      * Gets child of ThereTestT(ThereTestT).
@@ -147,21 +126,6 @@ contract ThereTest {
             predicateAddress: forAllSuchThatAddress,
             inputs: forAllSuchThatInputs
         });
-    }
-    /**
-     * Decides ThereTestT(ThereTestT).
-     */
-    function decideThereTestT(bytes[] memory _inputs, bytes[] memory _witness) public view returns (bool) {
-        // check ThereExistsSuchThat
-
-        bytes[] memory childInputs = new bytes[](1);
-        childInputs[0] = _witness[0];
-        require(
-            AtomicPredicate(Foo).decide(childInputs),
-            "Foo must be true"
-        );
-
-        return true;
     }
 
 }
