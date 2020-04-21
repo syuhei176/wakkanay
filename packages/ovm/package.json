@@ -46,6 +46,7 @@
     "@cryptoeconomicslab/context": "^0.3.4",
     "@cryptoeconomicslab/eth-coder": "^0.3.4",
     "@cryptoeconomicslab/level-kvs": "0.0.6",
+    "@cryptoeconomicslab/plasma": "^0.3.4",
     "ethers": "^4.0.46"
   }
 }
