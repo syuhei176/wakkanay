@@ -11,12 +11,7 @@ import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
 import {
   initializeDeciderManager,
-  SampleDeciderAddress,
-  AndDeciderAddress,
-  NotDeciderAddress,
-  EqualDeciderAddress,
-  IsContainedDeciderAddress,
-  IsLessThanDeciderAddress
+  SampleDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import { Transaction } from '@cryptoeconomicslab/plasma'
 import {
@@ -25,10 +20,10 @@ import {
   CompiledPredicate,
   DeciderManager,
   LogicalConnective,
-  FreeVariable
+  FreeVariable,
+  encodeProperty
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
-import { decodeStructable } from '@cryptoeconomicslab/coder'
 setupContext({ coder: Coder })
 
 const STATEUPDATE_SOURCE = `
@@ -49,14 +44,6 @@ def stateUpdate(token, range, block_number, so) :=
     so(tx)
   )
 `
-
-function encodeProperty(property: Property): Bytes {
-  return Coder.encode(property.toStruct())
-}
-
-function createAndProperty(...properties: Property[]): Property {
-  return new Property(AndDeciderAddress, properties.map(encodeProperty))
-}
 
 describe('StateUpdate', () => {
   let deciderManager: DeciderManager
@@ -192,6 +179,7 @@ describe('StateUpdate', () => {
             deciderManager.getDeciderAddress(LogicalConnective.Not),
             [
               encodeProperty(
+                Coder,
                 new Property(predicateAddress, [
                   Bytes.fromString('StateUpdateTA'),
                   FreeVariable.from('tx'),
