@@ -75,26 +75,6 @@ describe('Transpiler', () => {
             {
               type: 'IntermediateCompiledPredicate',
               originalPredicateName: 'DeepNestTest',
-              name: 'DeepNestTestTA2A',
-              connective: 'And',
-              inputDefs: ['DeepNestTestTA2A', 'b', 'c'],
-              inputs: [
-                {
-                  type: 'AtomicProposition',
-                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
-                  inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
-                },
-                {
-                  type: 'AtomicProposition',
-                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
-                  inputs: [{ type: 'NormalInput', inputIndex: 2, children: [] }]
-                }
-              ],
-              propertyInputs: []
-            },
-            {
-              type: 'IntermediateCompiledPredicate',
-              originalPredicateName: 'DeepNestTest',
               name: 'DeepNestTestTA',
               connective: 'And',
               inputDefs: ['DeepNestTestTA', 'c', 'a', 'b'],
@@ -109,16 +89,13 @@ describe('Transpiler', () => {
                 },
                 {
                   type: 'AtomicProposition',
-                  predicate: {
-                    type: 'AtomicPredicateCall',
-                    source: 'DeepNestTestTA2A'
-                  },
-                  inputs: [
-                    { type: 'LabelInput', label: 'DeepNestTestTA2A' },
-                    { type: 'NormalInput', inputIndex: 3, children: [] },
-                    { type: 'NormalInput', inputIndex: 1, children: [] }
-                  ],
-                  isCompiled: true
+                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
+                  inputs: [{ type: 'NormalInput', inputIndex: 3, children: [] }]
+                },
+                {
+                  type: 'AtomicProposition',
+                  predicate: { type: 'AtomicPredicateCall', source: 'Bool' },
+                  inputs: [{ type: 'NormalInput', inputIndex: 1, children: [] }]
                 }
               ],
               propertyInputs: []
