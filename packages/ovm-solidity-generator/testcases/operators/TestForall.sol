@@ -16,18 +16,18 @@ contract ForallTest {
 
     UniversalAdjudicationContract adjudicationContract;
     Utils utils;
-    address IsLessThan = address(0x0000000000000000000000000000000000000000);
-    address Equal = address(0x0000000000000000000000000000000000000000);
-    address IsValidSignature = address(0x0000000000000000000000000000000000000000);
-    address IsContained = address(0x0000000000000000000000000000000000000000);
-    address VerifyInclusion = address(0x0000000000000000000000000000000000000000);
-    address IsSameAmount = address(0x0000000000000000000000000000000000000000);
-    address IsConcatenatedWith = address(0x0000000000000000000000000000000000000000);
-    address IsValidHash = address(0x0000000000000000000000000000000000000000);
-    address IsStored = address(0x0000000000000000000000000000000000000000);
-    address notAddress = address(0x0000000000000000000000000000000000000000);
-    address andAddress = address(0x0000000000000000000000000000000000000000);
-    address forAllSuchThatAddress = address(0x0000000000000000000000000000000000000000);
+    address IsLessThan;
+    address Equal;
+    address IsValidSignature;
+    address IsContained;
+    address VerifyInclusion;
+    address IsSameAmount;
+    address IsConcatenatedWith;
+    address IsValidHash;
+    address IsStored;
+    address notAddress;
+    address andAddress;
+    address forAllSuchThatAddress;
     address public payoutContractAddress;
     bool isInitialized = false;
 
