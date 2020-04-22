@@ -64,6 +64,7 @@ import {
 } from './managers'
 import APIClient from './APIClient'
 import TokenManager from './managers/TokenManager'
+import { executeChallenge } from './helper/challenge'
 
 enum EmitterEvent {
   CHECKPOINT_FINALIZED = 'CHECKPOINT_FINALIZED',
@@ -805,31 +806,19 @@ export default class LightClient {
     return Array.prototype.concat.apply([], exitList)
   }
 
+  /**
+   * @name executeChallenge
+   * @description execute challenge procedure to game with challenge property
+   * @param gameId Id of the game to challenge
+   * @param challenge challenge data structure
+   */
   private async executeChallenge(gameId: Bytes, challenge: Challenge) {
-    const challengingGameId = Keccak256.hash(
-      ovmContext.coder.encode(challenge.property.toStruct())
-    )
-    await this.adjudicationContract.claimProperty(challenge.property)
-    await this.adjudicationContract.challenge(
+    await executeChallenge(
+      this.adjudicationContract,
+      this.deciderManager,
       gameId,
-      challenge.challengeInput
-        ? List.from(Bytes, [challenge.challengeInput])
-        : List.from(Bytes, []),
-      challengingGameId
+      challenge
     )
-    const decisionOfCounterClaim = await this.deciderManager.decide(
-      challenge.property
-    )
-    if (decisionOfCounterClaim.outcome && decisionOfCounterClaim.witnesses) {
-      // decide claim if it's needed.
-      await this.adjudicationContract.decideClaimWithWitness(
-        challengingGameId,
-        decisionOfCounterClaim.witnesses
-      )
-    } else {
-      // TODO: how do we notify user of malicious case happening
-      console.warn(`We did challenge, but the challenge hasn't decided yet.`)
-    }
   }
 
   private async watchAdjudicationContract() {
