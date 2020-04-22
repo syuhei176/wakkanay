@@ -31,7 +31,7 @@ export interface IntermediateCompiledPredicate {
   inputs: (AtomicProposition | Placeholder)[]
   propertyInputs: NormalInput[]
   // This IntermediateCompiledPredicate has decide method or not
-  hasDecideMethod: boolean
+  hasDecideMethod?: boolean
 }
 
 export interface AtomicProposition {
