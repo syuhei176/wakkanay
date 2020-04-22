@@ -100,6 +100,7 @@ contract ThereTest {
         }
     }
 
+
     /**
      * @dev check the property is true
      */
@@ -122,6 +123,7 @@ contract ThereTest {
         });
         adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
     }
+
 
     /**
      * Gets child of ThereTestT(ThereTestT).

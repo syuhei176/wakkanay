@@ -100,6 +100,7 @@ contract OrTest {
         }
     }
 
+
     /**
      * @dev check the property is true
      */
@@ -122,6 +123,7 @@ contract OrTest {
         });
         adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
     }
+
 
     /**
      * Gets child of OrTestO(OrTestO,a,b).

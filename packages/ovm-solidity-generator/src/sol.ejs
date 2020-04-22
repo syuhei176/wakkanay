@@ -125,17 +125,18 @@ contract <%= claimDef.name %> {
 -%>
     }
 
+<% if(claimDef.entryPointOfDecide) { %>
     /**
      * @dev check the property is true
      */
     function decide(bytes[] memory _inputs, bytes[] memory _witness) public view returns(bool) {
         if(!utils.isLabel(_inputs[0])) {
-            return decide<%= claimDef.entryPoint %>(_inputs, _witness);
+            return decide<%= claimDef.entryPointOfDecide %>(_inputs, _witness);
         }
         bytes32 input0 = keccak256(utils.getInputValue(_inputs[0]));
         bytes[] memory subInputs = utils.subArray(_inputs, 1, _inputs.length);
 <%
-  claimDef.contracts.forEach((property) => {
+  claimDef.contracts.filter(c => c.hasDecideMethod).forEach((property) => {
 -%>
         if(input0 == keccak256(<%= property.name %>)) {
             return decide<%= property.name %>(subInputs, _witness);
@@ -153,6 +154,7 @@ contract <%= claimDef.name %> {
         });
         adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
     }
+<% } %>
 
 <%
   claimDef.contracts.forEach((property) => {
@@ -162,7 +164,7 @@ contract <%= claimDef.name %> {
   })
 -%>
 <%
-  claimDef.contracts.forEach((property) => {
+  claimDef.contracts.filter(c => c.hasDecideMethod).forEach((property) => {
 -%>
 <%- include('decide', {property: property}); -%>
 <%

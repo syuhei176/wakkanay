@@ -33,6 +33,7 @@ describe('SolidityCodeGenerator', () => {
             {
               type: 'IntermediateCompiledPredicate',
               originalPredicateName: 'AndTest',
+              hasDecideMethod: true,
               name: 'AndTestA',
               connective: LogicalConnective.And,
               inputDefs: ['AndTestA', 'a', 'b'],
@@ -51,7 +52,8 @@ describe('SolidityCodeGenerator', () => {
               propertyInputs: []
             }
           ],
-          entryPoint: 'AndTestA'
+          entryPoint: 'AndTestA',
+          entryPointOfDecide: 'AndTestA'
         }
       ]
       const output = await generator.generate(input)
@@ -70,6 +72,7 @@ describe('SolidityCodeGenerator', () => {
               originalPredicateName: 'OrTest',
               name: 'OrTestO',
               connective: LogicalConnective.Or,
+              hasDecideMethod: true,
               inputDefs: ['OrTestO', 'a', 'b'],
               inputs: [
                 {
@@ -86,7 +89,8 @@ describe('SolidityCodeGenerator', () => {
               propertyInputs: []
             }
           ],
-          entryPoint: 'OrTestO'
+          entryPoint: 'OrTestO',
+          entryPointOfDecide: 'OrTestO'
         }
       ]
       const output = await generator.generate(input)
@@ -105,6 +109,7 @@ describe('SolidityCodeGenerator', () => {
               originalPredicateName: 'NotTest',
               name: 'NotTestN',
               connective: LogicalConnective.Not,
+              hasDecideMethod: false,
               inputDefs: ['NotTestN', 'a'],
               inputs: [
                 {
@@ -135,6 +140,7 @@ describe('SolidityCodeGenerator', () => {
               originalPredicateName: 'ForallTest',
               name: 'ForallTestF',
               connective: LogicalConnective.ForAllSuchThat,
+              hasDecideMethod: false,
               inputDefs: ['ForallTestF', 'a'],
               inputs: [
                 {
@@ -177,6 +183,7 @@ describe('SolidityCodeGenerator', () => {
               originalPredicateName: 'ThereTest',
               name: 'ThereTestT',
               connective: LogicalConnective.ThereExistsSuchThat,
+              hasDecideMethod: true,
               inputDefs: ['ThereTestT'],
               inputs: [
                 'hint:hint:hint',
@@ -196,7 +203,8 @@ describe('SolidityCodeGenerator', () => {
               propertyInputs: []
             }
           ],
-          entryPoint: 'ThereTestT'
+          entryPoint: 'ThereTestT',
+          entryPointOfDecide: 'ThereTestT'
         }
       ]
       const output = await generator.generate(input)
@@ -212,6 +220,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'BindAndTest',
         name: 'BindAndTestA',
         connective: LogicalConnective.And,
+        hasDecideMethod: true,
         inputDefs: ['BindAndTestA', 'a'],
         inputs: [
           {
@@ -251,6 +260,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'Bind2Test',
         name: 'Bind2TestA',
         connective: LogicalConnective.And,
+        hasDecideMethod: true,
         inputDefs: ['Bind2TestA', 'a'],
         inputs: [
           {
@@ -277,6 +287,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'BindValTest',
         name: 'BindValTestT',
         connective: LogicalConnective.ThereExistsSuchThat,
+        hasDecideMethod: true,
         inputDefs: ['BindValTestT', 'a'],
         inputs: [
           {
@@ -311,6 +322,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'BindAddrTest',
         name: 'BindAddrTestA',
         connective: LogicalConnective.And,
+        hasDecideMethod: true,
         inputDefs: ['BindAddrTestA', 'a'],
         inputs: [
           {
@@ -346,6 +358,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'EvalTest',
         name: 'EvalTestA',
         connective: LogicalConnective.And,
+        hasDecideMethod: true,
         inputDefs: ['EvalTestA', 'a', 'b'],
         inputs: [
           {
@@ -391,6 +404,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'ForValTest',
         name: 'ForValTestF',
         connective: LogicalConnective.ForAllSuchThat,
+        hasDecideMethod: false,
         inputDefs: ['ForValTestF', 'a'],
         inputs: [
           {
@@ -422,6 +436,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'ThereValTest',
         name: 'ThereValTestT',
         connective: LogicalConnective.ThereExistsSuchThat,
+        hasDecideMethod: true,
         inputDefs: ['ThereValTestT'],
         inputs: [
           {
@@ -461,6 +476,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'ThereValTest',
         name: 'ThereValTestT',
         connective: LogicalConnective.ThereExistsSuchThat,
+        hasDecideMethod: true,
         inputDefs: ['ThereValTestT', 'a'],
         inputs: [
           {
@@ -855,6 +871,7 @@ describe('SolidityCodeGenerator', () => {
         originalPredicateName: 'CompiledPredicateCallTest',
         name: 'CompiledPredicateCallTestA',
         connective: LogicalConnective.And,
+        hasDecideMethod: true,
         inputDefs: ['CompiledPredicateCallTestA', 'a'],
         inputs: [
           {

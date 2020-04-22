@@ -100,6 +100,7 @@ contract AndTest {
         }
     }
 
+
     /**
      * @dev check the property is true
      */
@@ -122,6 +123,7 @@ contract AndTest {
         });
         adjudicationContract.setPredicateDecision(utils.getPropertyId(property), true);
     }
+
 
     /**
      * Gets child of AndTestA(AndTestA,a,b).
