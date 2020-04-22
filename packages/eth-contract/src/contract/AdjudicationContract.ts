@@ -102,10 +102,13 @@ export class AdjudicationContract implements IAdjudicationContract {
     )
   }
 
-  async setPredicateDecision(gameId: Bytes, decision: boolean): Promise<void> {
-    return await this.connection.removeChallenge(
+  async decideClaimWithWitness(
+    gameId: Bytes,
+    witnesses: Bytes[]
+  ): Promise<void> {
+    return await this.connection.decideClaimWithWitness(
       gameId.toHexString(),
-      decision,
+      witnesses.map(w => w.toHexString()),
       {
         gasLimit: this.gasLimit
       }

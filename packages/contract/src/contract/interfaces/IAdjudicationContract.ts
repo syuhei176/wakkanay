@@ -55,12 +55,12 @@ export interface IAdjudicationContract {
   removeChallenge(gameId: Bytes, challengingGameId: Bytes): Promise<void>
 
   /**
-   * @name setPredicateDecision
-   * @description set predicate decision to decide a game
+   * @name decideClaimWithWitness
+   * @description decide the game decision with given witness
    * @param gameId
-   * @param decision
+   * @param witnesses
    */
-  setPredicateDecision(gameId: Bytes, decision: boolean): Promise<void>
+  decideClaimWithWitness(gameId: Bytes, witnesses: Bytes[]): Promise<void>
 
   /**
    * @name clallenge
