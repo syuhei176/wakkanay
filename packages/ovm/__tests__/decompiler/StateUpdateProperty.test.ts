@@ -64,7 +64,7 @@ describe('StateUpdate', () => {
     STATEUPDATE_SOURCE
   )
   const compiledDecider = new CompiledDecider(compiledPredicate, {
-    txAddress: Bytes.fromHexString(txAddress.data)
+    txAddress: Coder.encode(txAddress)
   })
   const stateObject = new Property(SampleDeciderAddress, [
     Bytes.fromHexString('0x01')
