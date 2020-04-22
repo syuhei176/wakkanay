@@ -33,6 +33,7 @@ export async function executeChallenge(
       challengingGameId,
       decisionOfCounterClaim.witnesses
     )
+    await adjudicationContract.decideClaimToFalse(gameId, challengingGameId)
   } else {
     // TODO: how do we notify user of malicious case happening
     console.warn(`We did challenge, but the challenge hasn't decided yet.`)

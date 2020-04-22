@@ -8,6 +8,7 @@ setupContext({ coder: JsonCoder })
 const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
 const mockIsDecidable = jest.fn().mockResolvedValue(true)
+const mockDecideClaimToFalse = jest.fn()
 const mockDecideClaimToTrue = jest.fn()
 const mockChallenge = jest.fn()
 const mockGetClaimedProperties = jest.fn().mockResolvedValue([])
@@ -18,6 +19,7 @@ const MockAdjudicationContract = jest.fn().mockImplementation(() => {
     isDecided: mockIsDecided,
     isDecidable: mockIsDecidable,
     decideClaimToTrue: mockDecideClaimToTrue,
+    decideClaimToFalse: mockDecideClaimToFalse,
     challenge: mockChallenge,
     claimProperty: mockClaimProperty,
     getClaimedProperties: mockGetClaimedProperties,
@@ -48,7 +50,11 @@ describe('challenge', () => {
 
   beforeEach(async () => {
     MockAdjudicationContract.mockClear()
+    mockClaimProperty.mockClear()
+    mockDecideClaimToFalse.mockClear()
+    mockChallenge.mockClear()
     mockDecideClaimWithWitness.mockClear()
+    mockDecideClaimToFalse.mockClear()
   })
 
   describe('executeChallenge', () => {
@@ -65,6 +71,10 @@ describe('challenge', () => {
         challengeGameId,
         witnesses
       )
+      expect(mockDecideClaimToFalse).toHaveBeenCalledWith(
+        gameId,
+        challengeGameId
+      )
     })
 
     test("executeChallenge doesn't calls decideClaimWithWitness", async () => {
@@ -77,6 +87,7 @@ describe('challenge', () => {
       expect(mockClaimProperty).toHaveBeenCalled()
       expect(mockChallenge).toHaveBeenCalled()
       expect(mockDecideClaimWithWitness).not.toHaveBeenCalled()
+      expect(mockDecideClaimToFalse).not.toHaveBeenCalled()
     })
   })
 })
