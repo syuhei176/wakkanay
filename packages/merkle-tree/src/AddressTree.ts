@@ -11,7 +11,6 @@ import {
   AbstractMerkleVerifier
 } from './AbstractMerkleTree'
 import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
-import { CodableF } from '@cryptoeconomicslab/primitives/lib/Codable'
 
 export class AddressTreeNode implements MerkleTreeNode<Address> {
   constructor(public address: Address, public data: FixedBytes) {
@@ -139,8 +138,10 @@ export class AddressTreeVerifier extends AbstractMerkleVerifier<
     )
   }
   createEmptyNode(): AddressTreeNode {
-    // TODO: empty node shouldn't be zero address?
-    return new AddressTreeNode(Address.default(), FixedBytes.default(32))
+    return new AddressTreeNode(
+      Address.from('0xffffffffffffffffffffffffffffffffffffffff'),
+      FixedBytes.default(32)
+    )
   }
   /**
    * compare Address
