@@ -4,7 +4,6 @@ import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { Parser } from '@cryptoeconomicslab/ovm-parser'
 import {
   CompiledPredicate as TranspilerCompiledPredicate,
-  NormalInput,
   AtomicProposition,
   LogicalConnective,
   IntermediateCompiledPredicate,
@@ -116,7 +115,11 @@ export class CompiledPredicate {
       def.connective == LogicalConnective.ForAllSuchThat ||
       def.connective == LogicalConnective.ThereExistsSuchThat
     ) {
-      const hint = def.inputs[0] as string
+      let hint = def.inputs[0] as string
+      // replace constant placeholders before hand
+      Object.entries(constantTable).forEach(([key, value]) => {
+        hint = hint.replace(`\${$${key}}`, value.toHexString())
+      })
       return new Property(predicateAddress, [
         Bytes.fromString(
           replaceHint(

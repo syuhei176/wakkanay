@@ -15,6 +15,8 @@ import {
   IsSameAmountDecider,
   IsContainedDecider,
   LogicalConnective,
+  VerifyInclusionDecider,
+  IsStoredDecider,
   AtomicPredicate
 } from '../../src'
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
@@ -67,6 +69,14 @@ export const IsSameAmountDeciderAddress = Address.from(
 )
 export const IsContainedDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000024'
+)
+
+export const VerifyInclusionDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000025'
+)
+
+export const IsStoredDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000026'
 )
 
 export function initializeDeciderManager() {
@@ -141,6 +151,16 @@ export function initializeDeciderManager() {
     IsContainedDeciderAddress,
     new IsContainedDecider(),
     AtomicPredicate.IsContained
+  )
+  deciderManager.setDecider(
+    VerifyInclusionDeciderAddress,
+    new VerifyInclusionDecider(),
+    AtomicPredicate.VerifyInclusion
+  )
+  deciderManager.setDecider(
+    IsStoredDeciderAddress,
+    new IsStoredDecider(),
+    AtomicPredicate.IsStored
   )
 
   return deciderManager
