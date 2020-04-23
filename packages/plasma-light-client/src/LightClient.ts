@@ -618,7 +618,6 @@ export default class LightClient {
     erc20Contract: IERC20DetailedContract,
     depositContract: IDepositContract
   ) {
-    console.log('contracts set for token:', erc20Contract.address.data)
     const depositContractAddress = depositContract.address
     this.depositContracts.set(depositContractAddress.data, depositContract)
     await this.tokenManager.addTokenContract(
