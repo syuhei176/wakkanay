@@ -15,8 +15,7 @@ import {
   IntervalTreeInclusionProof,
   IntervalTreeNode,
   AddressTreeInclusionProof,
-  AddressTreeNode,
-  DoubleLayerTreeVerifier
+  AddressTreeNode
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 setupContext({ coder: Coder })
@@ -28,6 +27,14 @@ describe('VerifyInclusionDecider', () => {
     '0x0000000000000000000000000000000000000000'
   )
   const range = new Range(BigNumber.from(0), BigNumber.from(7))
+  console.log(
+    tokenAddress,
+    BigNumber.from(0),
+    FixedBytes.from(
+      32,
+      Keccak256.hash(Bytes.fromString('leaf0')).data
+    ).toHexString()
+  )
   const leaf = new DoubleLayerTreeLeaf(
     tokenAddress,
     BigNumber.from(0),
@@ -69,17 +76,15 @@ describe('VerifyInclusionDecider', () => {
       32,
       '0xd4e96e267ab3f6f1cc39bfcf489e781b5d406c2f776b07364badf188563ffe4e'
     )
+    const { coder } = ovmContext
     const inputs: Bytes[] = [
-      leaf.toStruct(),
-      tokenAddress,
-      range.toStruct(),
-      inclusionProof.toStruct(),
-      root
-    ].map(ovmContext.coder.encode)
+      Bytes.fromString('leaf0'),
+      coder.encode(tokenAddress),
+      coder.encode(range.toStruct()),
+      coder.encode(inclusionProof.toStruct()),
+      coder.encode(root)
+    ]
     const decision = await decider.decide(deciderManager, inputs)
-    const verifier = new DoubleLayerTreeVerifier()
-    const verified = verifier.verifyInclusion(leaf, range, root, inclusionProof)
-    console.log(verified)
     expect(decision.outcome).toBeTruthy()
   })
 
@@ -97,7 +102,7 @@ describe('VerifyInclusionDecider', () => {
       '0xd4e96e267ab3f6f1cc39bfcf489e781b5d406c2f776b07364b0000000000fe4e'
     )
     const inputs: Bytes[] = [
-      leaf.toStruct(),
+      Bytes.fromString('leaf0'),
       tokenAddress,
       range.toStruct(),
       inclusionProof.toStruct(),
