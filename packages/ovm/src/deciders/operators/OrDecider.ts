@@ -54,7 +54,7 @@ export class OrDecider implements Decider {
       property: new Property(
         manager.getDeciderAddress(LogicalConnective.And),
         properties.map(p => {
-          const decompiledProperty = manager.decompile(p)
+          const decompiledProperty = manager.decompile(p) || p
           if (
             decompiledProperty &&
             decompiledProperty.deciderAddress.equals(
