@@ -87,18 +87,7 @@ describe('CompiledDecider', () => {
 
     const notAddress = deciderManager.getDeciderAddress(LogicalConnective.Not)
 
-    const challengeProperty = new Property(notAddress, [
-      Coder.encode(
-        new Property(TestPredicateAddress, [
-          Bytes.fromString('TestFO'),
-          FreeVariable.from('b'),
-          Coder.encode(BigNumber.from(10)),
-          Coder.encode(BigNumber.from(5))
-        ]).toStruct()
-      )
-    ])
-
-    const challengeProperty2 = new Property(
+    const challengeProperty = new Property(
       deciderManager.getDeciderAddress(LogicalConnective.And),
       [
         Coder.encode(
@@ -122,7 +111,7 @@ describe('CompiledDecider', () => {
     )
 
     expect(decision.challenge).toStrictEqual({
-      challengeInputs: [Coder.encode(BigNumber.from(0))],
+      challengeInputs: [Coder.encode(BigNumber.from(0)), null],
       property: challengeProperty
     })
 

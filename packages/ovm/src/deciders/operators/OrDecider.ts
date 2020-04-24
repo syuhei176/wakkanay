@@ -56,6 +56,7 @@ export class OrDecider implements Decider {
         properties.map(p => {
           const decompiledProperty = manager.decompile(p)
           if (
+            decompiledProperty &&
             decompiledProperty.deciderAddress.equals(
               manager.getDeciderAddress('Not')
             )

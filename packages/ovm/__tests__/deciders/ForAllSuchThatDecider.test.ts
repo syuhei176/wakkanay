@@ -1,13 +1,20 @@
-import { Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
+import { Bytes, BigNumber, Address } from '@cryptoeconomicslab/primitives'
 import Coder from '@cryptoeconomicslab/coder'
 import {
   initializeDeciderManager,
   NotDeciderAddress,
   ForAllSuchThatDeciderAddress,
   SampleDeciderAddress,
-  LessThanDeciderAddress
+  LessThanDeciderAddress,
+  AndDeciderAddress,
+  IsLessThanDeciderAddress
 } from '../helpers/initiateDeciderManager'
-import { Property, FreeVariable } from '../../src'
+import {
+  Property,
+  FreeVariable,
+  CompiledPredicate,
+  CompiledDecider
+} from '../../src'
 import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
 
@@ -117,5 +124,55 @@ describe('ForAllsuchThatDecider', () => {
     await expect(deciderManager.decide(property)).rejects.toEqual(
       new Error('inputs[0] must be valid hint data.')
     )
+  })
+
+  describe('the valid challenge of Q.all(CompiledPredicate) is challenge(CompiledPredicate)', () => {
+    const TestPredicateAddress = Address.from(
+      '0x0250035000301010002000900380005700060001'
+    )
+
+    beforeAll(() => {
+      const source = `@library
+      @quantifier("range,NUMBER,\${zero}-\${upper_bound}")
+      def Q(n, upper_bound) :=
+        IsLessThan(n, upper_bound)
+          
+      def test(a) := Q(a).all(b -> Bool())
+      `
+
+      // Sets instance of CompiledDecider TestF
+      const compiledPredicate = CompiledPredicate.fromSource(
+        TestPredicateAddress,
+        source,
+        { zero: Coder.encode(BigNumber.from(0)).toHexString() }
+      )
+      const compiledDecider = new CompiledDecider(compiledPredicate)
+      deciderManager.setDecider(TestPredicateAddress, compiledDecider)
+    })
+
+    it('valid challenge of Q.all(v -> !IsLessThan(v, 10) or Bool(false)) is "IsLessThan(v, 10) and !Bool(false)"', async () => {
+      // An instance of compiled predicate "TestF(10)" is "Q().all(b -> !IsLessThan(b, 10) or Bool(false))".
+      const property = new Property(TestPredicateAddress, [
+        Bytes.fromString('TestF'),
+        Coder.encode(BigNumber.from(10))
+      ])
+
+      const decision = await deciderManager.decide(property)
+      expect(decision.outcome).toEqual(false)
+      expect(decision.challenge).toEqual({
+        property: new Property(AndDeciderAddress, [
+          Coder.encode(
+            new Property(IsLessThanDeciderAddress, [
+              Coder.encode(BigNumber.from(0)),
+              Coder.encode(BigNumber.from(10))
+            ]).toStruct()
+          ),
+          Coder.encode(
+            new Property(NotDeciderAddress, [falseProperty]).toStruct()
+          )
+        ]),
+        challengeInputs: [Coder.encode(BigNumber.from(0)), null]
+      })
+    })
   })
 })
