@@ -48,7 +48,7 @@ describe('CompiledDecider', () => {
 
     expect(decision).toEqual({
       witnesses: [],
-      challenges: [],
+      challenge: null,
       outcome: true
     })
   })
@@ -121,16 +121,10 @@ describe('CompiledDecider', () => {
       ]
     )
 
-    expect(decision.challenges).toStrictEqual([
-      {
-        challengeInput: Coder.encode(BigNumber.from(0)),
-        property: challengeProperty
-      },
-      {
-        challengeInput: null,
-        property: challengeProperty2
-      }
-    ])
+    expect(decision.challenge).toStrictEqual({
+      challengeInput: Coder.encode(BigNumber.from(0)),
+      property: challengeProperty
+    })
 
     // Check the snapshot of decider
     expect(decision.traceInfo?.toJson()).toEqual({
@@ -208,12 +202,10 @@ describe('CompiledDecider', () => {
       )
     ])
 
-    expect(decision.challenges).toStrictEqual([
-      {
-        challengeInput: null,
-        property: challengeProperty
-      }
-    ])
+    expect(decision.challenge).toStrictEqual({
+      challengeInput: null,
+      property: challengeProperty
+    })
 
     // Check the snapshot of decider
     expect(decision.traceInfo?.toJson()).toEqual({

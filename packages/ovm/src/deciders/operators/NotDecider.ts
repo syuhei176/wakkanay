@@ -22,12 +22,10 @@ export class NotDecider implements Decider {
     return {
       outcome: !decision.outcome,
       witnesses: [],
-      challenges: [
-        {
-          property: property,
-          challengeInput: null
-        }
-      ],
+      challenge: {
+        property: property,
+        challengeInput: null
+      },
       traceInfo:
         decision.outcome && decision.traceInfo
           ? TraceInfoCreator.createNot(decision.traceInfo)

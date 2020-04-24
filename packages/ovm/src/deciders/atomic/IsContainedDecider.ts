@@ -18,7 +18,7 @@ export class IsContainedDecider implements Decider {
     if (inputs.length !== 2) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
@@ -29,7 +29,7 @@ export class IsContainedDecider implements Decider {
       outcome:
         JSBI.greaterThanOrEqual(first.start.data, second.start.data) &&
         JSBI.lessThanOrEqual(first.end.data, second.end.data),
-      challenges: []
+      challenge: null
     }
   }
 }

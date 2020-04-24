@@ -24,7 +24,7 @@ export class AndDecider implements Decider {
       return {
         outcome: false,
         witnesses: [],
-        challenges: [],
+        challenge: null,
         traceInfo: TraceInfoCreator.exception(
           'And connective has an invalid child.'
         )
@@ -47,7 +47,7 @@ export class AndDecider implements Decider {
         return {
           outcome: false,
           witnesses: [],
-          challenges: [challenge].concat(decision.challenges),
+          challenge,
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createAnd(index, decision.traceInfo)
             : undefined
@@ -65,7 +65,7 @@ export class AndDecider implements Decider {
     return {
       outcome: true,
       witnesses,
-      challenges: []
+      challenge: null
     }
   }
 }

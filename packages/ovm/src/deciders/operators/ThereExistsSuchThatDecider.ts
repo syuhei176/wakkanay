@@ -69,14 +69,14 @@ export class ThereExistsSuchThatDecider implements Decider {
       return {
         outcome: true,
         witnesses: nextWitnesses,
-        challenges: []
+        challenge: null
       }
     } else {
       // If there are no true decisions
       return {
         outcome: false,
         witnesses: [],
-        challenges: [challenge],
+        challenge,
         traceInfo: childTraceInfo
           ? TraceInfoCreator.createThere(childTraceInfo)
           : undefined

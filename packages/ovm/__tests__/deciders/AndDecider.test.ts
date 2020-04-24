@@ -41,7 +41,7 @@ describe('AndDecider', () => {
         JsonCoder.encode(List.from(Bytes, [])),
         JsonCoder.encode(List.from(Bytes, []))
       ],
-      challenges: []
+      challenge: null
     })
   })
   it('decide and(true, false)', async () => {
@@ -52,12 +52,10 @@ describe('AndDecider', () => {
     ])
     expect(decision.outcome).toEqual(false)
     // valid challenge is Not(SampleDecider(false))
-    expect(decision.challenges).toEqual([
-      {
-        challengeInput: challengeInput1,
-        property: new Property(NotDeciderAddress, [falseProperty])
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      challengeInput: challengeInput1,
+      property: new Property(NotDeciderAddress, [falseProperty])
+    })
     expect(decision.traceInfo?.toString()).toEqual('And:1,Bool:[]')
   })
   it('decide and(false, true)', async () => {
@@ -68,12 +66,10 @@ describe('AndDecider', () => {
     ])
     expect(decision.outcome).toEqual(false)
     // valid challenge is Not(SampleDecider(false))
-    expect(decision.challenges).toEqual([
-      {
-        challengeInput: challengeInput0,
-        property: new Property(NotDeciderAddress, [falseProperty])
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      challengeInput: challengeInput0,
+      property: new Property(NotDeciderAddress, [falseProperty])
+    })
     expect(decision.traceInfo?.toString()).toEqual('And:0,Bool:[]')
   })
 })

@@ -15,7 +15,7 @@ export class IsLessThanDecider implements Decider {
     if (inputs.length !== 2) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
@@ -24,7 +24,7 @@ export class IsLessThanDecider implements Decider {
 
     return {
       outcome: JSBI.lessThan(first.data, second.data),
-      challenges: []
+      challenge: null
     }
   }
 }

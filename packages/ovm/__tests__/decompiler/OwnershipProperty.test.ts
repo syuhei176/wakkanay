@@ -77,7 +77,7 @@ describe('OwnershipProperty', () => {
 
     expect(decision).toStrictEqual({
       witnesses: [signature],
-      challenges: [],
+      challenge: null,
       outcome: true
     })
   })
@@ -125,11 +125,9 @@ describe('OwnershipProperty', () => {
     )
 
     expect(decision.outcome).toBe(false)
-    expect(decision.challenges).toStrictEqual([
-      {
-        challengeInput: null,
-        property: challengeProperty
-      }
-    ])
+    expect(decision.challenge).toStrictEqual({
+      challengeInput: null,
+      property: challengeProperty
+    })
   })
 })
