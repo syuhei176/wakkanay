@@ -21,9 +21,12 @@ export async function executeChallenge(
   await adjudicationContract.claimProperty(challenge.property)
   await adjudicationContract.challenge(
     gameId,
-    challenge.challengeInput
-      ? List.from(Bytes, [challenge.challengeInput])
-      : List.from(Bytes, []),
+    List.from(
+      Bytes,
+      challenge.challengeInputs.map(
+        challengeInput => challengeInput || Bytes.default()
+      )
+    ),
     challengingGameId
   )
   const decisionOfCounterClaim = await deciderManager.decide(challenge.property)

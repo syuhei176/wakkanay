@@ -60,7 +60,7 @@ describe('ForAllsuchThatDecider', () => {
     expect(decision.outcome).toBeFalsy()
     expect(decision.challenge).toStrictEqual({
       property: new Property(NotDeciderAddress, [falseProperty]),
-      challengeInput: Coder.encode(BigNumber.from(0))
+      challengeInputs: [Coder.encode(BigNumber.from(0))]
     })
     expect(decision.traceInfo?.toString()).toEqual(
       'ForAllSuchThat:0x223022,BoolDecider:[]'
@@ -100,7 +100,7 @@ describe('ForAllsuchThatDecider', () => {
     expect(decision.challenge).toStrictEqual({
       property: new Property(NotDeciderAddress, [placeholderedProperty]),
       // challengeInput is 5 because 5 < 5 is false
-      challengeInput: Coder.encode(BigNumber.from(5))
+      challengeInputs: [Coder.encode(BigNumber.from(5))]
     })
     expect(decision.traceInfo?.toString()).toEqual(
       'ForAllSuchThat:0x223522,LessThanDecider:[0x223522,0x223522]'

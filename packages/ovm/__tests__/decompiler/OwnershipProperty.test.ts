@@ -126,7 +126,7 @@ describe('OwnershipProperty', () => {
 
     expect(decision.outcome).toBe(false)
     expect(decision.challenge).toStrictEqual({
-      challengeInput: null,
+      challengeInputs: [null],
       property: challengeProperty
     })
   })

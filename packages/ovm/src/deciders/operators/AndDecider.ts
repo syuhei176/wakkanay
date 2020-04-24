@@ -42,7 +42,7 @@ export class AndDecider implements Decider {
             manager.getDeciderAddress(LogicalConnective.Not),
             [ovmContext.coder.encode(p.toStruct())]
           ),
-          challengeInput: ovmContext.coder.encode(Integer.from(index))
+          challengeInputs: [ovmContext.coder.encode(Integer.from(index))]
         }
         return {
           outcome: false,

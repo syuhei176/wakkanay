@@ -45,7 +45,7 @@ export class ThereExistsSuchThatDecider implements Decider {
     const indexOfTrueDecision = decisions.findIndex(d => d.outcome)
     const childTraceInfo = decisions.find(d => d.outcome === false)?.traceInfo
     const challenge = {
-      challengeInput: null,
+      challengeInputs: [null],
       property: new Property(
         manager.getDeciderAddress(LogicalConnective.ForAllSuchThat),
         [

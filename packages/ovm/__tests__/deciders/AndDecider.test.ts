@@ -53,7 +53,7 @@ describe('AndDecider', () => {
     expect(decision.outcome).toEqual(false)
     // valid challenge is Not(SampleDecider(false))
     expect(decision.challenge).toEqual({
-      challengeInput: challengeInput1,
+      challengeInputs: [challengeInput1],
       property: new Property(NotDeciderAddress, [falseProperty])
     })
     expect(decision.traceInfo?.toString()).toEqual('And:1,Bool:[]')
@@ -67,7 +67,7 @@ describe('AndDecider', () => {
     expect(decision.outcome).toEqual(false)
     // valid challenge is Not(SampleDecider(false))
     expect(decision.challenge).toEqual({
-      challengeInput: challengeInput0,
+      challengeInputs: [challengeInput0],
       property: new Property(NotDeciderAddress, [falseProperty])
     })
     expect(decision.traceInfo?.toString()).toEqual('And:0,Bool:[]')

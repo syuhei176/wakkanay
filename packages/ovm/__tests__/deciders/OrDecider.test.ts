@@ -49,7 +49,7 @@ describe('OrDecider', () => {
           new Property(NotDeciderAddress, [falseProperty])
         )
       ]),
-      challengeInput: null
+      challengeInputs: [null]
     })
   })
 

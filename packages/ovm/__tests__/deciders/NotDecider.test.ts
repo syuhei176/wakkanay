@@ -29,7 +29,7 @@ describe('NotDecider', () => {
     expect(decision.outcome).toEqual(false)
     // valid challenge is SampleDecider(true)
     expect(decision.challenge).toEqual({
-      challengeInput: null,
+      challengeInputs: [null],
       property: trueProperty
     })
   })

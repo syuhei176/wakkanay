@@ -24,7 +24,7 @@ export class NotDecider implements Decider {
       witnesses: [],
       challenge: {
         property: property,
-        challengeInput: null
+        challengeInputs: [null]
       },
       traceInfo:
         decision.outcome && decision.traceInfo

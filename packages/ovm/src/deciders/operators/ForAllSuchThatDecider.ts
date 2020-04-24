@@ -49,7 +49,7 @@ export class ForAllSuchThatDecider implements Decider {
             manager.getDeciderAddress(LogicalConnective.Not),
             [ovmContext.coder.encode(innerProperty.toStruct())]
           ),
-          challengeInput: q
+          challengeInputs: [q]
         }
         return {
           outcome: false,
