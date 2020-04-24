@@ -1,5 +1,8 @@
 import { Parser, Import } from '@cryptoeconomicslab/ovm-parser'
-import { EthereumCodeGenerator } from './EthereumCodeGenerator'
+import {
+  EthereumCodeGenerator,
+  EthereumCodeGeneratorOptions
+} from './EthereumCodeGenerator'
 import { transpile, ImportHandler } from '@cryptoeconomicslab/ovm-transpiler'
 import { SolidityCodeGeneratorOptions } from '@cryptoeconomicslab/ovm-solidity-generator'
 import * as helper from './helper'
@@ -8,7 +11,7 @@ import * as compile from './compileProperty'
 export async function generateEVMByteCode(
   source: string,
   importHandler: (_import: Import) => string,
-  options?: SolidityCodeGeneratorOptions
+  options?: SolidityCodeGeneratorOptions & EthereumCodeGeneratorOptions
 ): Promise<string> {
   const chamberParser = new Parser()
   const compiledPredicates = transpile(
