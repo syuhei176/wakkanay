@@ -274,6 +274,12 @@ export const createSubstitutions = (
         (description.children.length > 0
           ? '.' + description.children.join('.')
           : '')
+      if (!inputs[inputIndex])
+        throw new Error(
+          `Input length doesnot match: given ${
+            inputs.length
+          }, expected more than ${inputIndex + 1}`
+        )
       result[key] = constructInput(inputs[inputIndex], description.children)
       return result
     },
