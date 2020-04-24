@@ -46,7 +46,7 @@ export class ForAllSuchThatDecider implements Decider {
         let challenge: Challenge | null = null
         const decompiledProperty = manager.decompile(innerProperty)
         if (decompiledProperty) {
-          // return the challenge of decompiledProperty
+          // if `innerProperty` is the property using CompiledPredicate, ForAllSuchThatDecider should return valid challenge of "innerProperty".
           const challengeInputs: (Bytes | null)[] = [q]
           if (decision.challenge) {
             challenge = {

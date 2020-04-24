@@ -40,6 +40,7 @@ export class AndDecider implements Decider {
         let challenge: Challenge | null = null
         const decompiledProperty = manager.decompile(p)
         if (decompiledProperty) {
+          // if `p` is the property using CompiledPredicate, AndDecider should return valid challenge of `p`.
           const challengeInputs: (Bytes | null)[] = [
             ovmContext.coder.encode(Integer.from(index))
           ]
