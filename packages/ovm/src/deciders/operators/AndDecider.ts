@@ -37,12 +37,30 @@ export class AndDecider implements Decider {
         if (decision.outcome) {
           return decision
         }
-        const challenge: Challenge = {
-          property: new Property(
-            manager.getDeciderAddress(LogicalConnective.Not),
-            [ovmContext.coder.encode(p.toStruct())]
-          ),
-          challengeInputs: [ovmContext.coder.encode(Integer.from(index))]
+        let challenge: Challenge | null = null
+        const decompiledProperty = manager.decompile(p)
+        if (decompiledProperty) {
+          const challengeInputs: (Bytes | null)[] = [
+            ovmContext.coder.encode(Integer.from(index))
+          ]
+          if (decision.challenge) {
+            challenge = {
+              property: decision.challenge.property,
+              challengeInputs: challengeInputs.concat(
+                decision.challenge.challengeInputs
+              )
+            }
+          } else {
+            throw new Error('decision.challenge must not be null.')
+          }
+        } else {
+          challenge = {
+            property: new Property(
+              manager.getDeciderAddress(LogicalConnective.Not),
+              [ovmContext.coder.encode(p.toStruct())]
+            ),
+            challengeInputs: [ovmContext.coder.encode(Integer.from(index))]
+          }
         }
         return {
           outcome: false,
