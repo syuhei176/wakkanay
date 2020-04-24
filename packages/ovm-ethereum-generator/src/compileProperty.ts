@@ -1,3 +1,7 @@
+import {
+  generateSolidityCode,
+  SolidityCodeGeneratorOptions
+} from '@cryptoeconomicslab/ovm-solidity-generator'
 import { generateEVMByteCode } from './'
 import { transpile } from '@cryptoeconomicslab/ovm-transpiler'
 import { Import, Parser } from '@cryptoeconomicslab/ovm-parser'
@@ -23,8 +27,28 @@ export async function compileAllSourceFiles(
       const ext = path.extname(f)
       if (ext == '.ovm') {
         const contractName = path.basename(f, ext)
-        const result = await compile(sourceDir, contractName)
-        fs.writeFileSync(path.join(outputDir, `${contractName}.json`), result)
+        const resultSolidity = await compile(
+          sourceDir,
+          contractName,
+          generateSolidityCode
+        )
+        const resultBytecode = await compile(
+          sourceDir,
+          contractName,
+          generateEVMByteCode
+        )
+        console.log(
+          `${contractName} = 
+          ${JSON.parse(resultBytecode).evm.bytecode.object.length / 2} byte`
+        )
+        fs.writeFileSync(
+          path.join(outputDir, `${contractName}.sol`),
+          resultSolidity
+        )
+        fs.writeFileSync(
+          path.join(outputDir, `${contractName}.json`),
+          resultBytecode
+        )
       }
     })
   )
@@ -35,10 +59,15 @@ const load = (loadPath: string, contractName: string) =>
 
 export async function compile(
   basePath: string,
-  contractName: string
+  contractName: string,
+  generate: (
+    source: string,
+    importHandler: (_import: Import) => string,
+    options?: SolidityCodeGeneratorOptions
+  ) => Promise<string>
 ): Promise<string> {
   const source = load(basePath, contractName)
-  return await generateEVMByteCode(
+  return await generate(
     source,
     (_import: Import) => {
       return load(path.join(basePath, _import.path), _import.module)
