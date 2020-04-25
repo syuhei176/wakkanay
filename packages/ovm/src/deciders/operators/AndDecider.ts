@@ -39,19 +39,18 @@ export class AndDecider implements Decider {
         }
         let challenge: Challenge | null = null
         if (manager.isDecompiledProperty(p)) {
+          if (decision.challenge === null) {
+            throw new Error('decision.challenge must not be null.')
+          }
           // if `p` is the property using CompiledPredicate, AndDecider should return valid challenge of `p`.
           const challengeInputs: (Bytes | null)[] = [
             ovmContext.coder.encode(Integer.from(index))
           ]
-          if (decision.challenge) {
-            challenge = {
-              property: decision.challenge.property,
-              challengeInputs: challengeInputs.concat(
-                decision.challenge.challengeInputs
-              )
-            }
-          } else {
-            throw new Error('decision.challenge must not be null.')
+          challenge = {
+            property: decision.challenge.property,
+            challengeInputs: challengeInputs.concat(
+              decision.challenge.challengeInputs
+            )
           }
         } else {
           challenge = {
