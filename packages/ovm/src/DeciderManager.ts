@@ -15,6 +15,7 @@ export interface DeciderManagerInterface {
   ): Promise<Decision>
   getDeciderAddress(shortname: string): Address
   getStorageDb(): Promise<KeyValueStore>
+  isDecompiledProperty(property: Property): boolean
   decompile(property: Property): Property | null
 }
 
@@ -121,6 +122,10 @@ export class DeciderManager implements DeciderManagerInterface {
     } else {
       throw new Error('Decider not found')
     }
+  }
+
+  public isDecompiledProperty(property: Property): boolean {
+    return this.decompile(property) !== null
   }
 
   public decompile(property: Property): Property | null {
