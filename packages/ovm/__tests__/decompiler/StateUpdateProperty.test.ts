@@ -7,18 +7,11 @@ import {
   List
 } from '@cryptoeconomicslab/primitives'
 import { EthCoder as Coder } from '@cryptoeconomicslab/eth-coder'
-import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
 import {
   initializeDeciderManager,
-  SampleDeciderAddress,
-  AndDeciderAddress,
-  NotDeciderAddress,
-  EqualDeciderAddress,
-  IsContainedDeciderAddress,
-  IsLessThanDeciderAddress
+  SampleDeciderAddress
 } from '../helpers/initiateDeciderManager'
-import { Transaction } from '@cryptoeconomicslab/plasma'
 import {
   Property,
   CompiledDecider,
@@ -28,7 +21,6 @@ import {
   FreeVariable
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
-import { decodeStructable } from '@cryptoeconomicslab/coder'
 setupContext({ coder: Coder })
 
 const STATEUPDATE_SOURCE = `
@@ -54,17 +46,8 @@ function encodeProperty(property: Property): Bytes {
   return Coder.encode(property.toStruct())
 }
 
-function createAndProperty(...properties: Property[]): Property {
-  return new Property(AndDeciderAddress, properties.map(encodeProperty))
-}
-
 describe('StateUpdate', () => {
   let deciderManager: DeciderManager
-  const wallet = new Wallet(
-    '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
-  )
-  const signer = new Secp256k1Signer(Bytes.fromHexString(wallet.privateKey))
-  const alisAddress = Address.from(wallet.address)
   const predicateAddress = Address.from(
     '0x0250035000301010002000900380005700060001'
   )
@@ -100,17 +83,12 @@ describe('StateUpdate', () => {
 
   test('stateUpdate decides to true', async () => {
     // prepare witness tx
-    const tx = new Transaction(
-      tokenAddress,
-      range,
-      BigNumber.from(5),
-      stateObject,
-      alisAddress
-    )
-    const sig = await signer.sign(
-      Coder.encode(tx.toProperty(txAddress).toStruct())
-    )
-    tx.signature = sig
+    const txProperty = new Property(txAddress, [
+      Coder.encode(tokenAddress),
+      Coder.encode(range.toStruct()),
+      Coder.encode(BigNumber.from(5)),
+      Coder.encode(stateObject.toStruct())
+    ])
 
     await putWitness(
       deciderManager.witnessDb,
@@ -119,7 +97,7 @@ describe('StateUpdate', () => {
         token: Coder.encode(tokenAddress),
         range: Coder.encode(range.toStruct())
       }),
-      Coder.encode(tx.toProperty(txAddress).toStruct())
+      Coder.encode(txProperty.toStruct())
     )
 
     const decision = await compiledDecider.decide(
@@ -141,7 +119,7 @@ describe('StateUpdate', () => {
       )
     )
     witnesses.push(Coder.encode(List.from(Bytes, [])))
-    witnesses.push(Coder.encode(tx.toProperty(txAddress).toStruct()))
+    witnesses.push(Coder.encode(txProperty.toStruct()))
 
     expect(decision).toStrictEqual({
       witnesses,
@@ -152,17 +130,12 @@ describe('StateUpdate', () => {
 
   test('stateUpdate decides to false with invalid tx', async () => {
     // prepare witness tx
-    const tx = new Transaction(
-      tokenAddress,
-      range,
-      BigNumber.from(0),
-      stateObject,
-      alisAddress
-    )
-    const sig = await signer.sign(
-      Coder.encode(tx.toProperty(txAddress).toStruct())
-    )
-    tx.signature = sig
+    const txProperty = new Property(txAddress, [
+      Coder.encode(tokenAddress),
+      Coder.encode(range.toStruct()),
+      Coder.encode(BigNumber.from(0)),
+      Coder.encode(stateObject.toStruct())
+    ])
 
     const hint = replaceHint('tx.block${b}.range${token},RANGE,${range}', {
       b: Coder.encode(blockNumber),
@@ -173,7 +146,7 @@ describe('StateUpdate', () => {
     await putWitness(
       deciderManager.witnessDb,
       hint,
-      Coder.encode(tx.toProperty(txAddress).toStruct())
+      Coder.encode(txProperty.toStruct())
     )
 
     const decision = await compiledDecider.decide(
