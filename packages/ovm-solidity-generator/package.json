@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/ovm-solidity-generator",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "OVM transpiler",
   "author": {
     "name": "Cryptoeconomics Lab",
