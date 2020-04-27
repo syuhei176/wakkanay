@@ -21,4 +21,12 @@ export class CompiledDecider implements Decider {
     )
     return manager.decide(property, substitutions)
   }
+
+  public decompile(manager: DeciderManager, inputs: Bytes[]) {
+    return this.predicateSource.decompileProperty(
+      new Property(this.predicateSource.deployedAddress, inputs),
+      manager.shortnameMap,
+      this.constantTable
+    )
+  }
 }

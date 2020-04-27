@@ -62,4 +62,7 @@ export class MockDeciderManager implements DeciderManagerInterface {
   async getStorageDb(): Promise<KeyValueStore> {
     return this.db
   }
+  decompile(property: Property) {
+    return property
+  }
 }

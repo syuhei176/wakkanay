@@ -1,7 +1,8 @@
 import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import {
   initializeDeciderManager,
-  ForAllSuchThatDeciderAddress
+  ForAllSuchThatDeciderAddress,
+  IsLessThanDeciderAddress
 } from '../helpers/initiateDeciderManager'
 import {
   CompiledDecider,
@@ -101,14 +102,9 @@ describe('CompiledDecider', () => {
       deciderManager.getDeciderAddress(LogicalConnective.And),
       [
         Coder.encode(
-          new Property(notAddress, [
-            Coder.encode(
-              new Property(TestPredicateAddress, [
-                Bytes.fromString('TestFO1N'),
-                Coder.encode(BigNumber.from(0)),
-                Coder.encode(BigNumber.from(10))
-              ]).toStruct()
-            )
+          new Property(IsLessThanDeciderAddress, [
+            Coder.encode(BigNumber.from(0)),
+            Coder.encode(BigNumber.from(10))
           ]).toStruct()
         ),
         Coder.encode(

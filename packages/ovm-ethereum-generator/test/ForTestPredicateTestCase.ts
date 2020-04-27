@@ -20,7 +20,7 @@ export const createTestCaseOfForAllSuchThatQuantifier = (
     validChallenges: [
       {
         name:
-          'valid challenge of ForTestF(a, b, c) should be !ForTestFO1N(a, b, c) and !IsValidSignature(a, b, c)',
+          'valid challenge of ForTestF(a, b, c) should be IsValidSignature(a, b, c) and !IsValidSignature(a, b, c)',
         getTestData: (
           forTestPredicate: ethers.Contract,
           context: TestContext
@@ -35,18 +35,8 @@ export const createTestCaseOfForAllSuchThatQuantifier = (
               predicateAddress: context.and,
               inputs: [
                 encodeProperty({
-                  predicateAddress: context.not,
-                  inputs: [
-                    encodeProperty({
-                      predicateAddress: forTestPredicate.address,
-                      inputs: [
-                        encodeLabel('ForTestFO1N'),
-                        transactionA,
-                        transactionB,
-                        signature
-                      ]
-                    })
-                  ]
+                  predicateAddress: context.mockAtomicPredicate,
+                  inputs: [transactionA, transactionB, signature]
                 }),
                 encodeProperty({
                   predicateAddress: context.not,
