@@ -1,5 +1,5 @@
 <%    if(input.type == 'ConstantInput') { -%>
-        <%= valName %>[<%=index%>] = utils.prefixConstant(<%=input.name%>);
+        <%= valName %>[<%=index%>] = <%=input.name%>;
 <%    } else if(input.type == 'LabelInput') { -%>
         <%= valName %>[<%=index%>] = utils.prefixLabel(<%=input.label%>);
 <%    } else if(input.type == 'NormalInput') { -%>
