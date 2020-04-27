@@ -13,7 +13,6 @@ import {
 } from './AbstractMerkleTree'
 import { MerkleTreeNode, InclusionProof } from './MerkleTreeInterface'
 import JSBI from 'jsbi'
-import { CodableF } from '@cryptoeconomicslab/primitives/lib/Codable'
 
 export class IntervalTreeNode implements MerkleTreeNode<BigNumber> {
   /**

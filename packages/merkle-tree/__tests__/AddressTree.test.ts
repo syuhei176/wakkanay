@@ -143,5 +143,30 @@ describe('AddressTree', () => {
       )
       expect(result).toBeTruthy()
     })
+
+    it('return true without siblings', async () => {
+      const node = new AddressTreeNode(
+        Address.from('0x0000000000000000000000000000000999990000'),
+        FixedBytes.fromHexString(
+          32,
+          '0xd4eb911cc17f9330493f225937e9b7c0393c2fdc5541118f3fc22657210a55c2'
+        )
+      )
+
+      const tree = new AddressTree([node])
+
+      const root = tree.getRoot()
+      const inclusionProof = tree.getInclusionProof(0)
+      const verifier = new AddressTreeVerifier()
+
+      const result = verifier.verifyInclusion(
+        node,
+        node.address,
+        node.address,
+        root,
+        inclusionProof
+      )
+      expect(result).toBeTruthy()
+    })
   })
 })
