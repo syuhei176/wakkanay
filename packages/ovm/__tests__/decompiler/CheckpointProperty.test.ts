@@ -9,12 +9,17 @@ import {
 import { EthCoder as Coder } from '@cryptoeconomicslab/eth-coder'
 import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
-import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
+import {
+  initializeDeciderManager,
+  NotDeciderAddress,
+  ForAllSuchThatDeciderAddress
+} from '../helpers/initiateDeciderManager'
 import {
   Property,
   CompiledDecider,
   CompiledPredicate,
-  DeciderManager
+  DeciderManager,
+  FreeVariable
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
 import {
@@ -122,6 +127,9 @@ const ownershipDecider = new CompiledDecider(ownershipPredicate)
 
 const tokenAddress = Address.from('0x0000000000000000000000888880000000000000')
 
+// helper functions
+
+// create stateUpdate property
 function createSU(
   start: number,
   end: number,
@@ -140,19 +148,20 @@ function createSU(
   ])
 }
 
+// get block number from state update property
 function getBlockNumber(su: Property) {
   return Coder.decode(BigNumber.default(), su.inputs[2])
 }
+// get range from state update property
 function getRange(su: Property) {
   return decodeStructable(Range, Coder, su.inputs[1])
 }
+// get deposit contract address from state update property
 function getDepositContractAddress(su: Property) {
   return Coder.decode(Address.default(), su.inputs[0])
 }
-function getStateObject(su: Property) {
-  return decodeStructable(Property, Coder, su.inputs[3])
-}
 
+// create double layer leaf from state update property
 function createLeaf(su: Property) {
   const depositContractAddress = Coder.decode(Address.default(), su.inputs[0])
   const start = decodeStructable(Range, Coder, su.inputs[1]).start
@@ -190,16 +199,8 @@ describe('Checkpoint', () => {
     0
   )
 
-  beforeEach(() => {
-    deciderManager = initializeDeciderManager()
-    deciderManager.setDecider(ownershipAddress, ownershipDecider)
-    deciderManager.setDecider(checkpointAddress, checkpointDecider)
-    deciderManager.setDecider(stateUpdateAddress, stateUpdateDecider)
-  })
-
-  test('checkpoint decides to true', async () => {
-    // prepare witnesses
-    // store state object for SU
+  // store state update witness for SU quantifier
+  async function prepareSuWitness() {
     const suHint = replaceHint('su.block${b}.range${token},RANGE,${range}', {
       b: Coder.encode(getBlockNumber(aliceSU)),
       token: Coder.encode(getDepositContractAddress(aliceSU)),
@@ -210,14 +211,14 @@ describe('Checkpoint', () => {
       suHint,
       Coder.encode(aliceSU.toStruct())
     )
+  }
 
-    const bobSuBN = getBlockNumber(bobSU)
-
-    // store proof for IncludedAt
+  // store inclusion proof witness for IncludedAt quantifier
+  async function prepareProofWitness() {
     const proofHint = replaceHint(
       'proof.block${b}.range${token},RANGE,${range}',
       {
-        b: Coder.encode(bobSuBN),
+        b: Coder.encode(getBlockNumber(bobSU)),
         token: Coder.encode(getDepositContractAddress(bobSU)),
         range: Coder.encode(getRange(bobSU).toStruct())
       }
@@ -227,8 +228,10 @@ describe('Checkpoint', () => {
       proofHint,
       Coder.encode(inclusionProof.toStruct())
     )
+  }
 
-    // store proof for su and signatures
+  // store tx witness for StateUpdate decider
+  async function prepareTxWitness() {
     const txProperty = new Property(txAddress, [
       Coder.encode(tokenAddress),
       Coder.encode(new Range(BigNumber.from(0), BigNumber.from(10)).toStruct()),
@@ -237,30 +240,41 @@ describe('Checkpoint', () => {
         ownershipPredicate.makeProperty([Coder.encode(aliceAddress)]).toStruct()
       )
     ])
-
-    const txBody = Coder.encode(txProperty.toStruct())
-    const sig = await signer.sign(txBody)
-
     await putWitness(
       deciderManager.witnessDb,
       replaceHint('tx.block${b}.range${token},RANGE,${range}', {
-        b: Coder.encode(bobSuBN),
+        b: Coder.encode(getBlockNumber(bobSU)),
         token: Coder.encode(tokenAddress),
         range: Coder.encode(getRange(bobSU).toStruct())
       }),
       Coder.encode(txProperty.toStruct())
     )
+  }
 
+  // store signature for ownership decider
+  async function prepareSignatureWitness() {
+    const txProperty = new Property(txAddress, [
+      Coder.encode(tokenAddress),
+      Coder.encode(new Range(BigNumber.from(0), BigNumber.from(10)).toStruct()),
+      Coder.encode(BigNumber.from(5)),
+      Coder.encode(
+        ownershipPredicate.makeProperty([Coder.encode(aliceAddress)]).toStruct()
+      )
+    ])
+    const txBody = Coder.encode(txProperty.toStruct())
+    const sig = await signer.sign(txBody)
     await putWitness(
       deciderManager.witnessDb,
       replaceHint('signatures,KEY,${m}', { m: txBody }),
       sig
     )
+  }
 
-    // store root hash to storage db and witness
+  // store root hash for Stored.IncludedAt
+  async function prepareRootWitness() {
     const rootHint = replaceHint('stored.${contract},KEY,${key}', {
       contract: Coder.encode(commitmentContractAddress),
-      key: Coder.encode(bobSuBN)
+      key: Coder.encode(getBlockNumber(bobSU))
     })
     await putWitness(deciderManager.witnessDb, rootHint, Coder.encode(root))
 
@@ -268,7 +282,23 @@ describe('Checkpoint', () => {
     const bucket = await storageDb.bucket(
       Coder.encode(commitmentContractAddress)
     )
-    await bucket.put(Coder.encode(bobSuBN), Coder.encode(root))
+    await bucket.put(Coder.encode(getBlockNumber(bobSU)), Coder.encode(root))
+  }
+
+  beforeEach(() => {
+    deciderManager = initializeDeciderManager()
+    deciderManager.setDecider(ownershipAddress, ownershipDecider)
+    deciderManager.setDecider(checkpointAddress, checkpointDecider)
+    deciderManager.setDecider(stateUpdateAddress, stateUpdateDecider)
+  })
+
+  test('checkpoint decides to true', async () => {
+    // prepare witnesses
+    await prepareSuWitness()
+    await prepareProofWitness()
+    await prepareTxWitness()
+    await prepareSignatureWitness()
+    await prepareRootWitness()
 
     const checkpointInputs = [
       Bytes.fromString('CheckpointA'),
@@ -282,5 +312,81 @@ describe('Checkpoint', () => {
       checkpointProperty.inputs
     )
     expect(decision.outcome).toBeTruthy()
+  })
+
+  describe('checkpoint decides to false', () => {
+    test('when root witness does not exists', async () => {
+      // prepare witnesses
+      await prepareSuWitness()
+      await prepareProofWitness()
+      await prepareTxWitness()
+      await prepareSignatureWitness()
+
+      const checkpointInputs = [
+        Bytes.fromString('CheckpointA'),
+        Coder.encode(bobSU.toStruct()),
+        Coder.encode(inclusionProof.toStruct())
+      ]
+
+      const checkpointProperty = new Property(
+        checkpointAddress,
+        checkpointInputs
+      )
+      const decision = await checkpointDecider.decide(
+        deciderManager,
+        checkpointProperty.inputs
+      )
+
+      const challengeProperty1 = new Property(NotDeciderAddress, [
+        Coder.encode(
+          new Property(checkpointAddress, [
+            Bytes.fromString('CheckpointA1T'),
+            Coder.encode(bobSU.toStruct()),
+            Coder.encode(inclusionProof.toStruct())
+          ]).toStruct()
+        )
+      ])
+
+      const challengeProperty2 = new Property(ForAllSuchThatDeciderAddress, [
+        Bytes.fromString(
+          replaceHint('stored.${contract},KEY,${key}', {
+            contract: Coder.encode(commitmentContractAddress),
+            key: Coder.encode(getBlockNumber(bobSU))
+          })
+        ),
+        Bytes.fromString('root'),
+        Coder.encode(
+          new Property(NotDeciderAddress, [
+            Coder.encode(
+              new Property(checkpointAddress, [
+                Bytes.fromString('CheckpointA1TA'),
+                Coder.encode(bobSU.toStruct()),
+                FreeVariable.from('root'),
+                Coder.encode(inclusionProof.toStruct())
+              ]).toStruct()
+            )
+          ]).toStruct()
+        )
+      ])
+
+      expect(decision.outcome).toBeFalsy()
+      expect(decision.witnesses).toEqual([])
+      expect(decision.challenges).toEqual([
+        {
+          property: challengeProperty1,
+          challengeInput: Coder.encode(BigNumber.from(0))
+        },
+        {
+          property: challengeProperty2,
+          challengeInput: null
+        }
+      ])
+    })
+
+    test.skip('when inclusion proof is invalid', async () => {})
+
+    test.skip('when old su is not included', async () => {})
+
+    test.skip('when old su is falsy property', async () => {})
   })
 })
