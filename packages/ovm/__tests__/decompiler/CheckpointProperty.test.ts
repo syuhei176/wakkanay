@@ -9,32 +9,20 @@ import {
 import { EthCoder as Coder } from '@cryptoeconomicslab/eth-coder'
 import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
-import {
-  initializeDeciderManager,
-  SampleDeciderAddress
-} from '../helpers/initiateDeciderManager'
-import { Transaction, StateUpdate } from '@cryptoeconomicslab/plasma'
+import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
 import {
   Property,
   CompiledDecider,
   CompiledPredicate,
-  DeciderManager,
-  LogicalConnective,
-  FreeVariable,
-  encodeProperty
+  DeciderManager
 } from '../../src'
-import { putWitness, replaceHint, getWitnesses } from '@cryptoeconomicslab/db'
+import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
 import {
-  DoubleLayerInclusionProof,
-  IntervalTreeInclusionProof,
-  IntervalTreeNode,
-  AddressTreeInclusionProof,
-  AddressTreeNode,
   DoubleLayerTreeGenerator,
-  DoubleLayerTreeLeaf,
-  DoubleLayerTreeVerifier
+  DoubleLayerTreeLeaf
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
+import { decodeStructable } from '@cryptoeconomicslab/coder'
 setupContext({ coder: Coder })
 
 // Setting up predicates
@@ -82,9 +70,9 @@ def LessThan(n, upper_bound) :=
   IsLessThan(n, upper_bound)
 
 @library
-@quantifier("so.block\${b}.range\${token},RANGE,\${range}")
-def SU(so, token, range, b) :=
-  IncludedAt(so, token, range, b, $commitmentContract).any()
+@quantifier("su.block\${b}.range\${token},RANGE,\${range}")
+def SU(su, token, range, b) :=
+  IncludedAt(su.3, token, range, b, $commitmentContract).any()
 
 def checkpoint(su, proof) :=
   Stored($commitmentContract, su.2).any(root ->
@@ -139,24 +127,39 @@ function createSU(
   end: number,
   blockNumber: number,
   owner: Address
-) {
-  return new StateUpdate(
-    stateUpdateAddress,
-    tokenAddress,
-    new Range(BigNumber.from(start), BigNumber.from(end)),
-    BigNumber.from(blockNumber),
-    ownershipPredicate.makeProperty([Coder.encode(owner)])
-  )
+): Property {
+  return new Property(stateUpdateAddress, [
+    Coder.encode(tokenAddress),
+    Coder.encode(
+      new Range(BigNumber.from(start), BigNumber.from(end)).toStruct()
+    ),
+    Coder.encode(BigNumber.from(blockNumber)),
+    Coder.encode(
+      ownershipPredicate.makeProperty([Coder.encode(owner)]).toStruct()
+    )
+  ])
 }
 
-function createLeaf(su: StateUpdate) {
+function getBlockNumber(su: Property) {
+  return Coder.decode(BigNumber.default(), su.inputs[2])
+}
+function getRange(su: Property) {
+  return decodeStructable(Range, Coder, su.inputs[1])
+}
+function getDepositContractAddress(su: Property) {
+  return Coder.decode(Address.default(), su.inputs[0])
+}
+function getStateObject(su: Property) {
+  return decodeStructable(Property, Coder, su.inputs[3])
+}
+
+function createLeaf(su: Property) {
+  const depositContractAddress = Coder.decode(Address.default(), su.inputs[0])
+  const start = decodeStructable(Range, Coder, su.inputs[1]).start
   return new DoubleLayerTreeLeaf(
-    su.depositContractAddress,
-    su.range.start,
-    FixedBytes.from(
-      32,
-      Keccak256.hash(Coder.encode(su.stateObject.toStruct())).data
-    )
+    depositContractAddress,
+    start,
+    FixedBytes.from(32, Keccak256.hash(su.inputs[3]).data)
   )
 }
 
@@ -165,13 +168,18 @@ describe('Checkpoint', () => {
   const wallet = new Wallet(
     '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
   )
-  const aliceAddress = Address.from(wallet.address)
+  const aliceAddress = Address.from(
+    '0x4444444444444444455555555555555554444444'
+  )
   const aliceSU = createSU(0, 10, 1, aliceAddress)
+
+  const bobAddress = Address.from(wallet.address)
+  const bobSU = createSU(0, 10, 2, bobAddress)
   const signer = new Secp256k1Signer(Bytes.fromHexString(wallet.privateKey))
 
   const generator = new DoubleLayerTreeGenerator()
   const merkleTree = generator.generate([
-    createLeaf(aliceSU),
+    createLeaf(bobSU),
     createLeaf(createSU(20, 30, 1, Address.default())),
     createLeaf(createSU(100, 120, 1, Address.default())),
     createLeaf(createSU(200, 201, 1, Address.default()))
@@ -192,24 +200,26 @@ describe('Checkpoint', () => {
   test('checkpoint decides to true', async () => {
     // prepare witnesses
     // store state object for SU
-    const soHint = replaceHint('so.block${b}.range${token},RANGE,${range}', {
-      b: Coder.encode(aliceSU.blockNumber),
-      token: Coder.encode(aliceSU.depositContractAddress),
-      range: Coder.encode(aliceSU.range.toStruct())
+    const suHint = replaceHint('su.block${b}.range${token},RANGE,${range}', {
+      b: Coder.encode(getBlockNumber(aliceSU)),
+      token: Coder.encode(getDepositContractAddress(aliceSU)),
+      range: Coder.encode(getRange(aliceSU).toStruct())
     })
     await putWitness(
       deciderManager.witnessDb,
-      soHint,
-      Coder.encode(aliceSU.stateObject.toStruct())
+      suHint,
+      Coder.encode(aliceSU.toStruct())
     )
+
+    const bobSuBN = getBlockNumber(bobSU)
 
     // store proof for IncludedAt
     const proofHint = replaceHint(
       'proof.block${b}.range${token},RANGE,${range}',
       {
-        b: Coder.encode(aliceSU.blockNumber),
-        token: Coder.encode(aliceSU.depositContractAddress),
-        range: Coder.encode(aliceSU.range.toStruct())
+        b: Coder.encode(bobSuBN),
+        token: Coder.encode(getDepositContractAddress(bobSU)),
+        range: Coder.encode(getRange(bobSU).toStruct())
       }
     )
     await putWitness(
@@ -218,10 +228,39 @@ describe('Checkpoint', () => {
       Coder.encode(inclusionProof.toStruct())
     )
 
+    // store proof for su and signatures
+    const txProperty = new Property(txAddress, [
+      Coder.encode(tokenAddress),
+      Coder.encode(new Range(BigNumber.from(0), BigNumber.from(10)).toStruct()),
+      Coder.encode(BigNumber.from(5)),
+      Coder.encode(
+        ownershipPredicate.makeProperty([Coder.encode(aliceAddress)]).toStruct()
+      )
+    ])
+
+    const txBody = Coder.encode(txProperty.toStruct())
+    const sig = await signer.sign(txBody)
+
+    await putWitness(
+      deciderManager.witnessDb,
+      replaceHint('tx.block${b}.range${token},RANGE,${range}', {
+        b: Coder.encode(bobSuBN),
+        token: Coder.encode(tokenAddress),
+        range: Coder.encode(getRange(bobSU).toStruct())
+      }),
+      Coder.encode(txProperty.toStruct())
+    )
+
+    await putWitness(
+      deciderManager.witnessDb,
+      replaceHint('signatures,KEY,${m}', { m: txBody }),
+      sig
+    )
+
     // store root hash to storage db and witness
     const rootHint = replaceHint('stored.${contract},KEY,${key}', {
       contract: Coder.encode(commitmentContractAddress),
-      key: Coder.encode(aliceSU.blockNumber)
+      key: Coder.encode(bobSuBN)
     })
     await putWitness(deciderManager.witnessDb, rootHint, Coder.encode(root))
 
@@ -229,11 +268,11 @@ describe('Checkpoint', () => {
     const bucket = await storageDb.bucket(
       Coder.encode(commitmentContractAddress)
     )
-    await bucket.put(Coder.encode(aliceSU.blockNumber), Coder.encode(root))
+    await bucket.put(Coder.encode(bobSuBN), Coder.encode(root))
 
     const checkpointInputs = [
       Bytes.fromString('CheckpointA'),
-      Coder.encode(aliceSU.property.toStruct()),
+      Coder.encode(bobSU.toStruct()),
       Coder.encode(inclusionProof.toStruct())
     ]
 
@@ -242,7 +281,6 @@ describe('Checkpoint', () => {
       deciderManager,
       checkpointProperty.inputs
     )
-
     expect(decision.outcome).toBeTruthy()
   })
 })
