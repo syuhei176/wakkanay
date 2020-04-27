@@ -227,10 +227,23 @@ describe('Checkpoint', () => {
     )
   }
 
+  async function prepareFalsySuWitness() {
+    const suHint = replaceHint('su.block${b}.range${token},RANGE,${range}', {
+      b: Coder.encode(getBlockNumber(aliceSU)),
+      token: Coder.encode(getDepositContractAddress(aliceSU)),
+      range: Coder.encode(getRange(aliceSU).toStruct())
+    })
+    await putWitness(
+      deciderManager.witnessDb,
+      suHint,
+      Coder.encode(bobSU.toStruct())
+    )
+  }
+
   // store inclusion proof witness for IncludedAt quantifier
   // at block 1, alice owns the range and send it to bob.
   // inclusion proof of alice's su is stored at block 1
-  async function prepareProofWitness(invalid?: boolean) {
+  async function prepareProofWitness() {
     const proofHint = replaceHint(
       'proof.block${b}.range${token},RANGE,${range}',
       {
@@ -242,7 +255,7 @@ describe('Checkpoint', () => {
     await putWitness(
       deciderManager.witnessDb,
       proofHint,
-      Coder.encode((invalid ? inclusionProof2 : inclusionProof1).toStruct())
+      Coder.encode(inclusionProof1.toStruct())
     )
   }
 
@@ -476,8 +489,73 @@ describe('Checkpoint', () => {
       ])
     })
 
-    test.skip('when old su is not included', async () => {})
+    test('when old su is falsy property', async () => {
+      // prepare witnesses
+      await prepareFalsySuWitness()
+      await prepareTxWitness()
+      await prepareSignatureWitness()
+      await prepareRootWitness()
+      await prepareProofWitness()
 
-    test.skip('when old su is falsy property', async () => {})
+      const checkpointInputs = [
+        Bytes.fromString('CheckpointA'),
+        Coder.encode(bobSU.toStruct()),
+        Coder.encode(inclusionProof1.toStruct())
+      ]
+
+      const checkpointProperty = new Property(
+        checkpointAddress,
+        checkpointInputs
+      )
+      const decision = await checkpointDecider.decide(
+        deciderManager,
+        checkpointProperty.inputs
+      )
+
+      const challengeProperty1 = new Property(NotDeciderAddress, [
+        Coder.encode(
+          new Property(checkpointAddress, [
+            Bytes.fromString('CheckpointA1T'),
+            Coder.encode(bobSU.toStruct()),
+            Coder.encode(inclusionProof1.toStruct())
+          ]).toStruct()
+        )
+      ])
+
+      const challengeProperty2 = new Property(ForAllSuchThatDeciderAddress, [
+        Bytes.fromString(
+          replaceHint('stored.${contract},KEY,${key}', {
+            contract: Coder.encode(commitmentContractAddress),
+            key: Coder.encode(getBlockNumber(bobSU))
+          })
+        ),
+        Bytes.fromString('root'),
+        Coder.encode(
+          new Property(NotDeciderAddress, [
+            Coder.encode(
+              new Property(checkpointAddress, [
+                Bytes.fromString('CheckpointA1TA'),
+                Coder.encode(bobSU.toStruct()),
+                FreeVariable.from('root'),
+                Coder.encode(inclusionProof1.toStruct())
+              ]).toStruct()
+            )
+          ]).toStruct()
+        )
+      ])
+
+      expect(decision.outcome).toBeFalsy()
+      expect(decision.witnesses).toEqual([])
+      expect(decision.challenges).toEqual([
+        {
+          property: challengeProperty1,
+          challengeInput: Coder.encode(BigNumber.from(0))
+        },
+        {
+          property: challengeProperty2,
+          challengeInput: null
+        }
+      ])
+    })
   })
 })
