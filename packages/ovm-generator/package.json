@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/ovm-generator",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "OVM generator",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -48,7 +48,7 @@
     }
   },
   "dependencies": {
-    "@cryptoeconomicslab/ovm-transpiler": "^0.3.4",
+    "@cryptoeconomicslab/ovm-transpiler": "^0.3.5",
     "tslib": "^1.11.1"
   }
 }

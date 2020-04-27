@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/contract",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "contract",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@cryptoeconomicslab/coder": "^0.3.4",
     "@cryptoeconomicslab/db": "^0.3.4",
-    "@cryptoeconomicslab/ovm": "^0.3.4"
+    "@cryptoeconomicslab/ovm": "^0.3.5"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
