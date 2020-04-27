@@ -116,6 +116,8 @@ const checkpointDecider = new CompiledDecider(checkpointPredicate, {
   commitmentContract: Coder.encode(commitmentContractAddress)
 })
 
+const SECP256K1 = Bytes.fromHexString('0x736563703235366b31')
+
 const ownershipAddress = Address.from(
   '0x0000000000000000000000000000000000011111'
 )
@@ -123,7 +125,9 @@ const ownershipPredicate = CompiledPredicate.fromSource(
   ownershipAddress,
   OWNERSHIP_SOURCE
 )
-const ownershipDecider = new CompiledDecider(ownershipPredicate)
+const ownershipDecider = new CompiledDecider(ownershipPredicate, {
+  secp256k1: SECP256K1
+})
 
 const tokenAddress = Address.from('0x0000000000000000000000888880000000000000')
 
@@ -177,29 +181,39 @@ describe('Checkpoint', () => {
   const wallet = new Wallet(
     '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
   )
-  const aliceAddress = Address.from(
-    '0x4444444444444444455555555555555554444444'
-  )
+  const aliceAddress = Address.from(wallet.address)
   const aliceSU = createSU(0, 10, 1, aliceAddress)
-
-  const bobAddress = Address.from(wallet.address)
-  const bobSU = createSU(0, 10, 2, bobAddress)
   const signer = new Secp256k1Signer(Bytes.fromHexString(wallet.privateKey))
 
+  const bobAddress = Address.from('0x4444444444444444455555555555555554444444')
+  const bobSU = createSU(0, 10, 2, bobAddress)
+
   const generator = new DoubleLayerTreeGenerator()
-  const merkleTree = generator.generate([
-    createLeaf(bobSU),
+  const merkleTree1 = generator.generate([
+    createLeaf(aliceSU),
     createLeaf(createSU(20, 30, 1, Address.default())),
     createLeaf(createSU(100, 120, 1, Address.default())),
     createLeaf(createSU(200, 201, 1, Address.default()))
   ])
-  const root = merkleTree.getRoot()
-  const inclusionProof = merkleTree.getInclusionProofByAddressAndIndex(
+  const merkleTree2 = generator.generate([
+    createLeaf(bobSU),
+    createLeaf(createSU(20, 30, 1, Address.default())),
+    createLeaf(createSU(200, 201, 1, Address.default()))
+  ])
+
+  const root1 = merkleTree1.getRoot()
+  const inclusionProof1 = merkleTree1.getInclusionProofByAddressAndIndex(
+    tokenAddress,
+    0
+  )
+  const root2 = merkleTree2.getRoot()
+  const inclusionProof2 = merkleTree2.getInclusionProofByAddressAndIndex(
     tokenAddress,
     0
   )
 
   // store state update witness for SU quantifier
+  // alice owns su at block 1
   async function prepareSuWitness() {
     const suHint = replaceHint('su.block${b}.range${token},RANGE,${range}', {
       b: Coder.encode(getBlockNumber(aliceSU)),
@@ -214,38 +228,41 @@ describe('Checkpoint', () => {
   }
 
   // store inclusion proof witness for IncludedAt quantifier
-  async function prepareProofWitness() {
+  // at block 1, alice owns the range and send it to bob.
+  // inclusion proof of alice's su is stored at block 1
+  async function prepareProofWitness(invalid?: boolean) {
     const proofHint = replaceHint(
       'proof.block${b}.range${token},RANGE,${range}',
       {
-        b: Coder.encode(getBlockNumber(bobSU)),
-        token: Coder.encode(getDepositContractAddress(bobSU)),
-        range: Coder.encode(getRange(bobSU).toStruct())
+        b: Coder.encode(getBlockNumber(aliceSU)),
+        token: Coder.encode(getDepositContractAddress(aliceSU)),
+        range: Coder.encode(getRange(aliceSU).toStruct())
       }
     )
     await putWitness(
       deciderManager.witnessDb,
       proofHint,
-      Coder.encode(inclusionProof.toStruct())
+      Coder.encode((invalid ? inclusionProof2 : inclusionProof1).toStruct())
     )
   }
 
   // store tx witness for StateUpdate decider
+  // alice sends the range to bob at block 2
   async function prepareTxWitness() {
     const txProperty = new Property(txAddress, [
       Coder.encode(tokenAddress),
       Coder.encode(new Range(BigNumber.from(0), BigNumber.from(10)).toStruct()),
       Coder.encode(BigNumber.from(5)),
       Coder.encode(
-        ownershipPredicate.makeProperty([Coder.encode(aliceAddress)]).toStruct()
+        ownershipPredicate.makeProperty([Coder.encode(bobAddress)]).toStruct()
       )
     ])
     await putWitness(
       deciderManager.witnessDb,
       replaceHint('tx.block${b}.range${token},RANGE,${range}', {
-        b: Coder.encode(getBlockNumber(bobSU)),
+        b: Coder.encode(getBlockNumber(aliceSU)),
         token: Coder.encode(tokenAddress),
-        range: Coder.encode(getRange(bobSU).toStruct())
+        range: Coder.encode(getRange(aliceSU).toStruct())
       }),
       Coder.encode(txProperty.toStruct())
     )
@@ -258,7 +275,7 @@ describe('Checkpoint', () => {
       Coder.encode(new Range(BigNumber.from(0), BigNumber.from(10)).toStruct()),
       Coder.encode(BigNumber.from(5)),
       Coder.encode(
-        ownershipPredicate.makeProperty([Coder.encode(aliceAddress)]).toStruct()
+        ownershipPredicate.makeProperty([Coder.encode(bobAddress)]).toStruct()
       )
     ])
     const txBody = Coder.encode(txProperty.toStruct())
@@ -274,15 +291,22 @@ describe('Checkpoint', () => {
   async function prepareRootWitness() {
     const rootHint = replaceHint('stored.${contract},KEY,${key}', {
       contract: Coder.encode(commitmentContractAddress),
-      key: Coder.encode(getBlockNumber(bobSU))
+      key: Coder.encode(BigNumber.from(1))
     })
-    await putWitness(deciderManager.witnessDb, rootHint, Coder.encode(root))
+    await putWitness(deciderManager.witnessDb, rootHint, Coder.encode(root1))
+
+    const rootHint2 = replaceHint('stored.${contract},KEY,${key}', {
+      contract: Coder.encode(commitmentContractAddress),
+      key: Coder.encode(BigNumber.from(2))
+    })
+    await putWitness(deciderManager.witnessDb, rootHint2, Coder.encode(root2))
 
     const storageDb = await deciderManager.getStorageDb()
     const bucket = await storageDb.bucket(
       Coder.encode(commitmentContractAddress)
     )
-    await bucket.put(Coder.encode(getBlockNumber(bobSU)), Coder.encode(root))
+    await bucket.put(Coder.encode(BigNumber.from(1)), Coder.encode(root1))
+    await bucket.put(Coder.encode(BigNumber.from(2)), Coder.encode(root2))
   }
 
   beforeEach(() => {
@@ -303,7 +327,7 @@ describe('Checkpoint', () => {
     const checkpointInputs = [
       Bytes.fromString('CheckpointA'),
       Coder.encode(bobSU.toStruct()),
-      Coder.encode(inclusionProof.toStruct())
+      Coder.encode(inclusionProof2.toStruct())
     ]
 
     const checkpointProperty = new Property(checkpointAddress, checkpointInputs)
@@ -325,7 +349,7 @@ describe('Checkpoint', () => {
       const checkpointInputs = [
         Bytes.fromString('CheckpointA'),
         Coder.encode(bobSU.toStruct()),
-        Coder.encode(inclusionProof.toStruct())
+        Coder.encode(inclusionProof2.toStruct())
       ]
 
       const checkpointProperty = new Property(
@@ -342,7 +366,7 @@ describe('Checkpoint', () => {
           new Property(checkpointAddress, [
             Bytes.fromString('CheckpointA1T'),
             Coder.encode(bobSU.toStruct()),
-            Coder.encode(inclusionProof.toStruct())
+            Coder.encode(inclusionProof2.toStruct())
           ]).toStruct()
         )
       ])
@@ -362,7 +386,7 @@ describe('Checkpoint', () => {
                 Bytes.fromString('CheckpointA1TA'),
                 Coder.encode(bobSU.toStruct()),
                 FreeVariable.from('root'),
-                Coder.encode(inclusionProof.toStruct())
+                Coder.encode(inclusionProof2.toStruct())
               ]).toStruct()
             )
           ]).toStruct()
@@ -383,7 +407,74 @@ describe('Checkpoint', () => {
       ])
     })
 
-    test.skip('when inclusion proof is invalid', async () => {})
+    test('when inclusion proof is invalid', async () => {
+      // prepare witnesses
+      await prepareSuWitness()
+      await prepareTxWitness()
+      await prepareSignatureWitness()
+      await prepareRootWitness()
+      await prepareProofWitness()
+
+      const checkpointInputs = [
+        Bytes.fromString('CheckpointA'),
+        Coder.encode(bobSU.toStruct()),
+        Coder.encode(inclusionProof1.toStruct())
+      ]
+
+      const checkpointProperty = new Property(
+        checkpointAddress,
+        checkpointInputs
+      )
+      const decision = await checkpointDecider.decide(
+        deciderManager,
+        checkpointProperty.inputs
+      )
+
+      const challengeProperty1 = new Property(NotDeciderAddress, [
+        Coder.encode(
+          new Property(checkpointAddress, [
+            Bytes.fromString('CheckpointA1T'),
+            Coder.encode(bobSU.toStruct()),
+            Coder.encode(inclusionProof1.toStruct())
+          ]).toStruct()
+        )
+      ])
+
+      const challengeProperty2 = new Property(ForAllSuchThatDeciderAddress, [
+        Bytes.fromString(
+          replaceHint('stored.${contract},KEY,${key}', {
+            contract: Coder.encode(commitmentContractAddress),
+            key: Coder.encode(getBlockNumber(bobSU))
+          })
+        ),
+        Bytes.fromString('root'),
+        Coder.encode(
+          new Property(NotDeciderAddress, [
+            Coder.encode(
+              new Property(checkpointAddress, [
+                Bytes.fromString('CheckpointA1TA'),
+                Coder.encode(bobSU.toStruct()),
+                FreeVariable.from('root'),
+                Coder.encode(inclusionProof1.toStruct())
+              ]).toStruct()
+            )
+          ]).toStruct()
+        )
+      ])
+
+      expect(decision.outcome).toBeFalsy()
+      expect(decision.witnesses).toEqual([])
+      expect(decision.challenges).toEqual([
+        {
+          property: challengeProperty1,
+          challengeInput: Coder.encode(BigNumber.from(0))
+        },
+        {
+          property: challengeProperty2,
+          challengeInput: null
+        }
+      ])
+    })
 
     test.skip('when old su is not included', async () => {})
 
