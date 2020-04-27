@@ -19,7 +19,7 @@ import {
   BigNumber,
   Range
 } from '@cryptoeconomicslab/primitives'
-import Coder from '@cryptoeconomicslab/coder'
+import { EthCoder as Coder } from '@cryptoeconomicslab/eth-coder'
 import { Wallet, Balance } from '@cryptoeconomicslab/wallet'
 import {
   Secp256k1Signer,

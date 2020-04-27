@@ -291,7 +291,7 @@ export const constructInput = (anInput: Bytes, children: number[]): Bytes => {
   const property = decodeStructable(Property, ovmContext.coder, anInput)
   if (children[0] == -1) {
     // -1 means `.address`
-    return Bytes.fromHexString(property.deciderAddress.data)
+    return ovmContext.coder.encode(property.deciderAddress)
   } else {
     return constructInput(property.inputs[children[0]], children.slice(1))
   }

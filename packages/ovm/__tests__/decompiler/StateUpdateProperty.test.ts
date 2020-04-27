@@ -18,7 +18,8 @@ import {
   CompiledPredicate,
   DeciderManager,
   LogicalConnective,
-  FreeVariable
+  FreeVariable,
+  encodeProperty
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
 setupContext({ coder: Coder })
@@ -42,10 +43,6 @@ def stateUpdate(token, range, block_number, so) :=
   )
 `
 
-function encodeProperty(property: Property): Bytes {
-  return Coder.encode(property.toStruct())
-}
-
 describe('StateUpdate', () => {
   let deciderManager: DeciderManager
   const predicateAddress = Address.from(
@@ -60,7 +57,7 @@ describe('StateUpdate', () => {
     STATEUPDATE_SOURCE
   )
   const compiledDecider = new CompiledDecider(compiledPredicate, {
-    txAddress: Bytes.fromHexString(txAddress.data)
+    txAddress: Coder.encode(txAddress)
   })
   const stateObject = new Property(SampleDeciderAddress, [
     Bytes.fromHexString('0x01')
@@ -165,6 +162,7 @@ describe('StateUpdate', () => {
             deciderManager.getDeciderAddress(LogicalConnective.Not),
             [
               encodeProperty(
+                Coder,
                 new Property(predicateAddress, [
                   Bytes.fromString('StateUpdateTA'),
                   FreeVariable.from('tx'),

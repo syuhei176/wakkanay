@@ -18,15 +18,15 @@ import {
   DeciderConfig
 } from '@cryptoeconomicslab/ovm'
 import { Balance } from '@cryptoeconomicslab/wallet'
+import { EthCoder as Coder } from '@cryptoeconomicslab/eth-coder'
 import {
   Secp256k1Signer,
   secp256k1Verifier
 } from '@cryptoeconomicslab/signature'
-import JsonCoder from '@cryptoeconomicslab/coder'
 import { setupContext } from '@cryptoeconomicslab/context'
 import config from './config.local'
 import { ethers } from 'ethers'
-setupContext({ coder: JsonCoder })
+setupContext({ coder: Coder })
 
 // mock wallet
 const MockWallet = jest.fn().mockImplementation(() => {
@@ -75,7 +75,7 @@ describe('StateManager', () => {
       DEPOSIT_ADDRESS,
       range,
       blockNumber,
-      ownershipPredicate.makeProperty([JsonCoder.encode(address)])
+      ownershipPredicate.makeProperty([Coder.encode(address)])
     )
   }
 
@@ -87,7 +87,7 @@ describe('StateManager', () => {
   beforeEach(async () => {
     const kvs = new InMemoryKeyValueStore(Bytes.fromString('test'))
     const witnessDb = await kvs.bucket(Bytes.fromString('witness'))
-    deciderManager = new DeciderManager(witnessDb, JsonCoder)
+    deciderManager = new DeciderManager(witnessDb, Coder)
     deciderManager.loadJson(config as DeciderConfig)
     ownershipPredicate = deciderManager.compiledPredicateMap.get(
       'Ownership'
@@ -162,11 +162,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(5)),
         BigNumber.from(3),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
+        Coder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -189,11 +189,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(3)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
+        Coder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -216,11 +216,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(10)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
+        Coder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -243,11 +243,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(2), BigNumber.from(7)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
+        Coder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
       expect(
@@ -270,7 +270,7 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(3)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       tx.signature = Bytes.default()
@@ -288,7 +288,7 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(20), BigNumber.from(25)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       tx.signature = Bytes.default()
@@ -306,11 +306,11 @@ describe('StateManager', () => {
         DEPOSIT_ADDRESS,
         new Range(BigNumber.from(0), BigNumber.from(15)),
         BigNumber.from(2),
-        ownershipPredicate.makeProperty([JsonCoder.encode(BOB_ADDRESS)]),
+        ownershipPredicate.makeProperty([Coder.encode(BOB_ADDRESS)]),
         ALIS_ADDRESS
       )
       const sig = await ALIS_WALLET.signMessage(
-        JsonCoder.encode(tx.toProperty(Address.default()).toStruct())
+        Coder.encode(tx.toProperty(Address.default()).toStruct())
       )
       tx.signature = sig
 

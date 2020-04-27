@@ -137,8 +137,8 @@ describe('CompiledPredicate', () => {
 
     it('compiled predicate using variable predicate call', async () => {
       const txAddress = Address.from(ethers.constants.AddressZero)
-      const txAddressBytes = Bytes.fromHexString(txAddress.data)
-      const token = Bytes.fromHexString(ethers.constants.AddressZero)
+      const txAddressBytes = Coder.encode(txAddress)
+      const token = Coder.encode(Address.from(ethers.constants.AddressZero))
       const range = Coder.encode(
         new Range(BigNumber.from(0), BigNumber.from(100)).toStruct()
       )
@@ -352,10 +352,10 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
 
     it('return child address of property bytes', async () => {
       expect(constructInput(propertyBytes, [-1])).toEqual(
-        Bytes.fromHexString(TestPredicateAddress.data)
+        Coder.encode(TestPredicateAddress)
       )
       expect(constructInput(propertyBytes, [0, -1])).toEqual(
-        Bytes.fromHexString(childAddress.data)
+        Coder.encode(childAddress)
       )
     })
 
