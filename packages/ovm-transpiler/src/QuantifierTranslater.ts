@@ -229,6 +229,13 @@ function createTranslator(
     }
     return p
   }
+
+  /**
+   * @name translateThereExistsSuchThat
+   * @description translate "Q().any(v -> P(v))" to "Bytes().any(v -> Q(v) and P(v))"
+   * @param p syntax tree node of property
+   * @param suffix suffix of variable name
+   */
   const translateThereExistsSuchThat = (
     p: PropertyNode,
     suffix: string
@@ -237,25 +244,42 @@ function createTranslator(
       return p
     }
     const preset = quantifierPresetTable[p.inputs[0].predicate]
-    const originalChildren = (p.inputs.slice(2) as PropertyNode[]).map(
-      translate
-    )
     if (preset) {
       const quantifier = p.inputs[0] as PropertyNode
       if (p.inputs[1] === undefined) {
         p.inputs[1] = 'v' + suffix
       }
+      // v of P(v)
       const variable = p.inputs[1] as string
       const translated = preset.translate(quantifier, variable)
       p.inputs[0] = translated.hint
       if (translated.property) {
-        if (originalChildren.length == 1) {
-          p.inputs[2] = {
-            type: 'PropertyNode',
-            predicate: 'And',
-            inputs: [translate(translated.property)].concat(originalChildren)
+        // originalChild is P(v)
+        const originalChild: PropertyNode | undefined = (p.inputs.slice(
+          2
+        ) as PropertyNode[]).map(translate)[0]
+        if (originalChild) {
+          // In case of that P(v) exists
+          if (originalChild.predicate === 'And') {
+            // In case of that P(v) is "P1 and P2 and..."
+            p.inputs[2] = {
+              type: 'PropertyNode',
+              predicate: 'And',
+              inputs: [translate(translated.property)].concat(
+                originalChild.inputs as PropertyNode[]
+              )
+            }
+          } else {
+            // In case of that P(v) isn't And logical connective.
+            p.inputs[2] = {
+              type: 'PropertyNode',
+              predicate: 'And',
+              inputs: [translate(translated.property)].concat([originalChild])
+            }
           }
         } else {
+          // In case of that P(v) is nothing.
+          // This is the case transpiler is given "Q().any()"
           p.inputs[2] = translate(translated.property)
         }
       }

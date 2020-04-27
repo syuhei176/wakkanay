@@ -86,12 +86,22 @@
 <%
         property.inputs.forEach((item, index) => {
 -%>
+<%
+      if(isNotCompiledPredicate(item, predicates)) { %>
+        // The valid challenge of "p1 ∨ p2" is "¬(p1) ∧ ¬(p2)".
+        // If p1 is "¬(p1_1)", the valid challenge is "p1_1 ∧ ¬(p2)",
+        //   then returning getChild of "¬(p1_1)" here.
+        bytes[] memory childInputs = new bytes[](<%= item.inputs.length %>);
+<%- include('constructInputs', {property: item, valName: 'childInputs', witnessName: 'challengeInputs[0]'}) -%>
+        andInputs[<%= index %>] = abi.encode(getChild(childInputs, challengeInputs));
+<%    } else { -%>
         bytes[] memory notInputs<%= index %> = new bytes[](1);
 <%-  include('constructProperty', {property: item, valName: 'notInputs' + index + '[0]', propIndex: index, freeVariable: false}) -%>
         andInputs[<%= index %>] = abi.encode(types.Property({
             predicateAddress: notAddress,
             inputs: notInputs<%= index %>
         }));
+<%        } -%>
 <%      }) -%>
         return types.Property({
             predicateAddress: andAddress,

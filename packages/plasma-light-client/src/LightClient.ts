@@ -12,7 +12,8 @@ import {
   Property,
   CompiledPredicate,
   DeciderManager,
-  DeciderConfig
+  DeciderConfig,
+  Challenge
 } from '@cryptoeconomicslab/ovm'
 import {
   Address,
@@ -63,6 +64,7 @@ import {
 } from './managers'
 import APIClient from './APIClient'
 import TokenManager from './managers/TokenManager'
+import { executeChallenge } from './helper/challenge'
 
 enum EmitterEvent {
   CHECKPOINT_FINALIZED = 'CHECKPOINT_FINALIZED',
@@ -804,6 +806,21 @@ export default class LightClient {
     return Array.prototype.concat.apply([], exitList)
   }
 
+  /**
+   * @name executeChallenge
+   * @description execute challenge procedure to game with challenge property
+   * @param gameId Id of the game to challenge
+   * @param challenge challenge data structure
+   */
+  private async executeChallenge(gameId: Bytes, challenge: Challenge) {
+    await executeChallenge(
+      this.adjudicationContract,
+      this.deciderManager,
+      gameId,
+      challenge
+    )
+  }
+
   private async watchAdjudicationContract() {
     this.adjudicationContract.subscribeClaimChallenged(
       async (gameId, challengeGameId) => {
@@ -816,16 +833,7 @@ export default class LightClient {
           if (!decision.outcome) {
             // challenge again
             const challenge = decision.challenges[0]
-            const challengingGameId = Keccak256.hash(
-              ovmContext.coder.encode(challenge.property.toStruct())
-            )
-            this.adjudicationContract.challenge(
-              gameId,
-              challenge.challengeInput
-                ? List.from(Bytes, [challenge.challengeInput])
-                : List.from(Bytes, []),
-              challengingGameId
-            )
+            await this.executeChallenge(gameId, challenge)
           }
         }
       }
@@ -860,16 +868,7 @@ export default class LightClient {
             } else if (!decision.outcome && decision.challenges.length > 0) {
               // exit is others. need to challenge
               const challenge = decision.challenges[0]
-              const challengingGameId = Keccak256.hash(
-                ovmContext.coder.encode(challenge.property.toStruct())
-              )
-              this.adjudicationContract.challenge(
-                gameId,
-                challenge.challengeInput
-                  ? List.from(Bytes, [challenge.challengeInput])
-                  : List.from(Bytes, []),
-                challengingGameId
-              )
+              await this.executeChallenge(gameId, challenge)
             }
           }
         }
