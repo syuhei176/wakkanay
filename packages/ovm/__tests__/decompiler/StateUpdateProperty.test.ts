@@ -22,26 +22,8 @@ import {
   encodeProperty
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
+import { STATEUPDATE_SOURCE } from './TestSource'
 setupContext({ coder: Coder })
-
-const STATEUPDATE_SOURCE = `
-@library
-def IsValidTx(tx, token, range, block_number) :=
-  Equal(tx.address, $txAddress)
-  and Equal(tx.0, token)
-  and IsContained(range, tx.1)
-  and IsLessThan(block_number, tx.2)
-
-@library
-@quantifier("tx.block\${b}.range\${token},RANGE,\${range}")
-def Tx(tx, token, range, b) :=
-  IsValidTx(tx, token, range, b)
-
-def stateUpdate(token, range, block_number, so) :=
-  Tx(token, range, block_number).any(tx ->
-    so(tx)
-  )
-`
 
 describe('StateUpdate', () => {
   let deciderManager: DeciderManager

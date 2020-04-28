@@ -14,14 +14,9 @@ import { setupContext } from '@cryptoeconomicslab/context'
 import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { Wallet } from 'ethers'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
+import { OWNERSHIP_SOURCE } from './TestSource'
 setupContext({ coder: Coder })
 
-const OWNERSHIP_SOURCE = `
-  @library
-  @quantifier("signatures,KEY,\${m}")
-  def SignedBy(sig, m, signer) := IsValidSignature(m, sig, signer, $secp256k1)
-  def ownership(owner, tx) := SignedBy(tx, owner).any()
-`
 const MESSAGE = Bytes.fromString('message')
 const SECP256K1 = Bytes.fromHexString('0x736563703235366b31')
 

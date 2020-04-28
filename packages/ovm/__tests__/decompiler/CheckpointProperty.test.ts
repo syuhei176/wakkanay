@@ -28,65 +28,12 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import {
+  OWNERSHIP_SOURCE,
+  STATEUPDATE_SOURCE,
+  CHECKPOINT_SOURCE
+} from './TestSource'
 setupContext({ coder: Coder })
-
-// Setting up predicates
-const OWNERSHIP_SOURCE = `
-@library
-@quantifier("signatures,KEY,\${m}")
-def SignedBy(sig, m, signer) := IsValidSignature(m, sig, signer, $secp256k1)
-def ownership(owner, tx) := SignedBy(tx, owner).any()
-`
-
-const STATEUPDATE_SOURCE = `
-@library
-def IsValidTx(tx, token, range, block_number) :=
-  Equal(tx.address, $txAddress)
-  and Equal(tx.0, token)
-  and IsContained(range, tx.1)
-  and IsLessThan(block_number, tx.2)
-
-@library
-@quantifier("tx.block\${b}.range\${token},RANGE,\${range}")
-def Tx(tx, token, range, b) :=
-  IsValidTx(tx, token, range, b)
-
-def stateUpdate(token, range, block_number, so) :=
-  Tx(token, range, block_number).any(tx ->
-    so(tx)
-  )
-`
-
-const CHECKPOINT_SOURCE = `
-@library
-@quantifier("stored.\${contract},KEY,\${key}")
-def Stored(value, contract, key) := IsStored(contract, key, value)
-
-@library
-@quantifier("proof.block\${b}.range\${token},RANGE,\${range}")
-def IncludedAt(proof, leaf, token, range, b, commitmentContract) :=
-  Stored(commitmentContract, b).any(root ->
-    VerifyInclusion(leaf, token, range, proof, root)
-  )
-
-@library
-@quantifier("range,NUMBER,\${zero}-\${upper_bound}")
-def LessThan(n, upper_bound) :=
-  IsLessThan(n, upper_bound)
-
-@library
-@quantifier("su.block\${b}.range\${token},RANGE,\${range}")
-def SU(su, token, range, b) :=
-  IncludedAt(su.3, token, range, b, $commitmentContract).any()
-
-def checkpoint(su, proof) :=
-  Stored($commitmentContract, su.2).any(root ->
-    VerifyInclusion(su.3, su.0, su.1, proof, root)
-  )
-  and LessThan(su.2).all(b -> 
-    SU(su.0, su.1, b).all(old_su -> old_su())
-  )
-`
 
 const commitmentContractAddress = Address.from(
   '0x4444444444444444444444444444444444444444'
