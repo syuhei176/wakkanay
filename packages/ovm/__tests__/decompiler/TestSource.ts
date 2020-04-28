@@ -66,3 +66,37 @@ def checkpoint(su, proof) :=
 export const EXIT_DEPOSIT_SOURCE = `
 def exitDeposit(su, checkpoint) := !su()
 `
+
+export const EXIT_SOURCE = `
+@library
+@quantifier("stored.\${contract},KEY,\${key}")
+def Stored(value, contract, key) := IsStored(contract, key, value)
+
+@library
+@quantifier("proof.block\${b}.range\${token},RANGE,\${range}")
+def IncludedAt(proof, leaf, token, range, b, commitmentContract) :=
+  Stored(commitmentContract, b).any(root ->
+    VerifyInclusion(leaf, token, range, proof, root)
+  )
+
+@library
+@quantifier("range,NUMBER,\${zero}-\${upper_bound}")
+def LessThan(n, upper_bound) :=
+  IsLessThan(n, upper_bound)
+
+@library
+@quantifier("su.block\${b}.range\${token},RANGE,\${range}")
+def SU(su, token, range, b) :=
+  IncludedAt(su.3, token, range, b, $commitmentContract).any()
+
+@library
+def Checkpoint(su, proof) :=
+  Stored($commitmentContract, su.2).any(root ->
+    VerifyInclusion(su.3, su.0, su.1, proof, root)
+  )
+  and LessThan(su.2).all(b -> 
+    SU(su.0, su.1, b).all(old_su -> old_su())
+  )
+
+def exit(su, proof) := !su() and Checkpoint(su, proof)
+`
