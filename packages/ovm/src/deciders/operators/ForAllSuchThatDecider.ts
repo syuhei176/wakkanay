@@ -49,12 +49,9 @@ export class ForAllSuchThatDecider implements Decider {
             throw new Error('decision.challenge must not be null.')
           }
           // if `innerProperty` is the property using CompiledPredicate, ForAllSuchThatDecider should return valid challenge of "innerProperty".
-          const challengeInputs: (Bytes | null)[] = [q]
           challenge = {
             property: decision.challenge.property,
-            challengeInputs: challengeInputs.concat(
-              decision.challenge.challengeInputs
-            )
+            challengeInputs: [q].concat(decision.challenge.challengeInputs)
           }
         } else {
           // If outcome is false, add new challenge object to call challenge method in UAC.

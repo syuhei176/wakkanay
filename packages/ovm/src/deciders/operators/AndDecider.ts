@@ -43,14 +43,11 @@ export class AndDecider implements Decider {
             throw new Error('decision.challenge must not be null.')
           }
           // if `p` is the property using CompiledPredicate, AndDecider should return valid challenge of `p`.
-          const challengeInputs: (Bytes | null)[] = [
-            ovmContext.coder.encode(Integer.from(index))
-          ]
           challenge = {
             property: decision.challenge.property,
-            challengeInputs: challengeInputs.concat(
-              decision.challenge.challengeInputs
-            )
+            challengeInputs: [
+              ovmContext.coder.encode(Integer.from(index))
+            ].concat(decision.challenge.challengeInputs)
           }
         } else {
           challenge = {

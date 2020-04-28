@@ -23,9 +23,7 @@ export async function executeChallenge(
     gameId,
     List.from(
       Bytes,
-      challenge.challengeInputs.map(
-        challengeInput => challengeInput || Bytes.default()
-      )
+      challenge.challengeInputs.map(challengeInput => challengeInput)
     ),
     challengingGameId
   )

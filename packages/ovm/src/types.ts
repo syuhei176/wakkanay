@@ -9,7 +9,7 @@ import { TraceInfo } from './Tracer'
 
 export interface Challenge {
   property: Property
-  challengeInputs: (Bytes | null)[]
+  challengeInputs: Bytes[]
 }
 
 export interface Decision {
