@@ -276,7 +276,7 @@ export const createSubstitutions = (
           : '')
       if (!inputs[inputIndex])
         throw new Error(
-          `Input length doesnot match: given ${
+          `Input length does not match: given ${
             inputs.length
           }, expected more than ${inputIndex + 1}`
         )
