@@ -4,7 +4,6 @@ import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { Parser } from '@cryptoeconomicslab/ovm-parser'
 import {
   CompiledPredicate as TranspilerCompiledPredicate,
-  NormalInput,
   AtomicProposition,
   LogicalConnective,
   IntermediateCompiledPredicate,
@@ -116,7 +115,11 @@ export class CompiledPredicate {
       def.connective == LogicalConnective.ForAllSuchThat ||
       def.connective == LogicalConnective.ThereExistsSuchThat
     ) {
-      const hint = def.inputs[0] as string
+      let hint = def.inputs[0] as string
+      // replace constant placeholders before hand
+      Object.entries(constantTable).forEach(([key, value]) => {
+        hint = hint.replace(`\${$${key}}`, value.toHexString())
+      })
       return new Property(predicateAddress, [
         Bytes.fromString(
           replaceHint(
@@ -271,6 +274,12 @@ export const createSubstitutions = (
         (description.children.length > 0
           ? '.' + description.children.join('.')
           : '')
+      if (!inputs[inputIndex])
+        throw new Error(
+          `Input length does not match: given ${
+            inputs.length
+          }, expected more than ${inputIndex + 1}`
+        )
       result[key] = constructInput(inputs[inputIndex], description.children)
       return result
     },

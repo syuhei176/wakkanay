@@ -1,4 +1,3 @@
-import { BigNumber } from '@cryptoeconomicslab/primitives'
 import { PropertyDef, PropertyNode } from '@cryptoeconomicslab/ovm-parser'
 import * as utils from './utils'
 
@@ -15,6 +14,26 @@ interface QuantifierPreset {
   ) => { hint: string; property: PropertyNode }
 }
 
+// check if b is hint string
+export function isHint(s: string): boolean {
+  return s.split(',').length === 3
+}
+
+const getSubstitutions = (
+  callingInputs: string[],
+  constants: { [key: string]: string } = {},
+  inputDefs: string[]
+): { [key: string]: string } => {
+  const substitutions: { [key: string]: string } = constants
+  // skip variable
+  // When we parse predicate as quantifier, the first input is variable.
+  inputDefs.slice(1).forEach((inputName, index) => {
+    if (typeof substitutions[inputName] !== 'string')
+      substitutions[inputName] = '${' + callingInputs[index] + '}'
+  })
+  return substitutions
+}
+
 /**
  * replace inputs of targetNode by calling inputs
  * @param targetNode
@@ -24,7 +43,8 @@ interface QuantifierPreset {
 export const replaceInputs = (
   targetNode: PropertyNode,
   callingInputs: string[],
-  inputDefs: string[]
+  inputDefs: string[],
+  constants: { [key: string]: string } = {}
 ): PropertyNode => {
   if (callingInputs.length < inputDefs.length) {
     throw new Error(
@@ -35,13 +55,21 @@ export const replaceInputs = (
     type: 'PropertyNode',
     predicate: targetNode.predicate,
     inputs: targetNode.inputs.map(i => {
+      const substitutions = getSubstitutions(
+        callingInputs,
+        constants,
+        inputDefs
+      )
       if (typeof i == 'string') {
         const index = inputDefs.indexOf(i)
         if (index >= 0) {
           return callingInputs[index]
         }
+        if (isHint(i)) {
+          return replaceHint(i, substitutions)
+        }
       } else if (i && i.type == 'PropertyNode') {
-        return replaceInputs(i, callingInputs, inputDefs)
+        return replaceInputs(i, callingInputs, inputDefs, substitutions)
       }
       return i
     })
@@ -53,7 +81,8 @@ export const replaceInputs = (
  * @param propertyDefinition
  */
 function createPredicatePreset(
-  propertyDefinition: PropertyDef
+  propertyDefinition: PropertyDef,
+  constants: { [key: string]: string } = {}
 ): PredicatePreset {
   return {
     name: propertyDefinition.name,
@@ -61,7 +90,8 @@ function createPredicatePreset(
       replaceInputs(
         propertyDefinition.body,
         p.inputs as string[],
-        propertyDefinition.inputDefs
+        propertyDefinition.inputDefs,
+        constants
       )
   }
 }
@@ -70,18 +100,11 @@ export const replaceHint = (
   hint: string,
   substitutions: { [key: string]: string }
 ): string => {
-  const fillTemplate = function(
-    templateString: string,
-    templateVars: string[]
-  ) {
-    return new Function(
-      ...Object.keys(substitutions).concat(['return `' + templateString + '`'])
-    ).call(null, ...templateVars)
-  }
-  return fillTemplate(
-    hint,
-    Object.keys(substitutions).map(k => substitutions[k])
+  let substituted = hint
+  Object.keys(substitutions).forEach(
+    k => (substituted = substituted.replace('${' + k + '}', substitutions[k]))
   )
+  return substituted
 }
 
 /**
@@ -119,7 +142,8 @@ export function createQuantifierPreset(
         property: replaceInputs(
           propertyDefinition.body,
           [variable].concat(callingInputs),
-          propertyDefinition.inputDefs
+          propertyDefinition.inputDefs,
+          constants
         )
       }
     }
@@ -138,7 +162,7 @@ export function applyLibraries(
 ): PropertyDef[] {
   const inlinePredicates = importedPredicates.filter(p => utils.isLibrary(p))
   const predicatePresets = inlinePredicates.map(importedPredicate => {
-    return createPredicatePreset(importedPredicate)
+    return createPredicatePreset(importedPredicate, constants)
   }, {})
   const quantifierPresets = inlinePredicates.map(importedPredicate => {
     return createQuantifierPreset(importedPredicate, constants)
@@ -149,7 +173,7 @@ export function applyLibraries(
       propertyDefinition.body = translator(propertyDefinition.body)
       return {
         predicatePresets: predicatePresets.concat([
-          createPredicatePreset(propertyDefinition)
+          createPredicatePreset(propertyDefinition, constants)
         ]),
         quantifierPresets: quantifierPresets.concat([
           createQuantifierPreset(propertyDefinition, constants)
