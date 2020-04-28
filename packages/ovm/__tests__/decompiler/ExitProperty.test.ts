@@ -11,6 +11,7 @@ import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
 import {
   initializeDeciderManager,
+  SampleDeciderAddress,
   NotDeciderAddress,
   ForAllSuchThatDeciderAddress
 } from '../helpers/initiateDeciderManager'
@@ -28,11 +29,7 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
-import {
-  OWNERSHIP_SOURCE,
-  STATEUPDATE_SOURCE,
-  CHECKPOINT_SOURCE
-} from './TestSource'
+import { OWNERSHIP_SOURCE, STATEUPDATE_SOURCE, EXIT_SOURCE } from './TestSource'
 setupContext({ coder: Coder })
 
 const commitmentContractAddress = Address.from(
@@ -52,14 +49,9 @@ const stateUpdateDecider = new CompiledDecider(stateUpdatePredicate, {
   txAddress: Coder.encode(txAddress)
 })
 
-const checkpointAddress = Address.from(
-  '0x0250035000301010002000900380005700060001'
-)
-const checkpointPredicate = CompiledPredicate.fromSource(
-  checkpointAddress,
-  CHECKPOINT_SOURCE
-)
-const checkpointDecider = new CompiledDecider(checkpointPredicate, {
+const exitAddress = Address.from('0x0250035000301010002000900380005700060001')
+const exitPredicate = CompiledPredicate.fromSource(exitAddress, EXIT_SOURCE)
+const exitDecider = new CompiledDecider(exitPredicate, {
   commitmentContract: Coder.encode(commitmentContractAddress)
 })
 
@@ -85,7 +77,8 @@ function createSU(
   start: number,
   end: number,
   blockNumber: number,
-  owner: Address
+  owner: Address,
+  alwaysTrue?: boolean
 ): Property {
   return new Property(stateUpdateAddress, [
     Coder.encode(tokenAddress),
@@ -94,7 +87,11 @@ function createSU(
     ),
     Coder.encode(BigNumber.from(blockNumber)),
     Coder.encode(
-      ownershipPredicate.makeProperty([Coder.encode(owner)]).toStruct()
+      alwaysTrue
+        ? new Property(SampleDeciderAddress, [
+            Bytes.fromHexString('0x01')
+          ]).toStruct()
+        : ownershipPredicate.makeProperty([Coder.encode(owner)]).toStruct()
     )
   ])
 }
@@ -123,7 +120,7 @@ function createLeaf(su: Property) {
   )
 }
 
-describe('Checkpoint', () => {
+describe('Exit', () => {
   let deciderManager: DeciderManager
   const wallet = new Wallet(
     '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
@@ -133,7 +130,7 @@ describe('Checkpoint', () => {
   const signer = new Secp256k1Signer(Bytes.fromHexString(wallet.privateKey))
 
   const bobAddress = Address.from('0x4444444444444444455555555555555554444444')
-  const bobSU = createSU(0, 10, 2, bobAddress)
+  const bobSU = createSU(0, 10, 2, bobAddress, true)
 
   const generator = new DoubleLayerTreeGenerator()
   const merkleTree1 = generator.generate([
@@ -174,19 +171,6 @@ describe('Checkpoint', () => {
     )
   }
 
-  async function prepareFalsySuWitness() {
-    const suHint = replaceHint('su.block${b}.range${token},RANGE,${range}', {
-      b: Coder.encode(getBlockNumber(aliceSU)),
-      token: Coder.encode(getDepositContractAddress(aliceSU)),
-      range: Coder.encode(getRange(aliceSU).toStruct())
-    })
-    await putWitness(
-      deciderManager.witnessDb,
-      suHint,
-      Coder.encode(bobSU.toStruct())
-    )
-  }
-
   // store inclusion proof witness for IncludedAt quantifier
   // at block 1, alice owns the range and send it to bob.
   // inclusion proof of alice's su is stored at block 1
@@ -223,6 +207,26 @@ describe('Checkpoint', () => {
         b: Coder.encode(getBlockNumber(aliceSU)),
         token: Coder.encode(tokenAddress),
         range: Coder.encode(getRange(aliceSU).toStruct())
+      }),
+      Coder.encode(txProperty.toStruct())
+    )
+  }
+
+  async function prepareTxForBobWitness() {
+    const txProperty = new Property(txAddress, [
+      Coder.encode(tokenAddress),
+      Coder.encode(new Range(BigNumber.from(0), BigNumber.from(10)).toStruct()),
+      Coder.encode(BigNumber.from(5)),
+      Coder.encode(
+        ownershipPredicate.makeProperty([Coder.encode(aliceAddress)]).toStruct()
+      )
+    ])
+    await putWitness(
+      deciderManager.witnessDb,
+      replaceHint('tx.block${b}.range${token},RANGE,${range}', {
+        b: Coder.encode(getBlockNumber(bobSU)),
+        token: Coder.encode(tokenAddress),
+        range: Coder.encode(getRange(bobSU).toStruct())
       }),
       Coder.encode(txProperty.toStruct())
     )
@@ -272,11 +276,11 @@ describe('Checkpoint', () => {
   beforeEach(() => {
     deciderManager = initializeDeciderManager()
     deciderManager.setDecider(ownershipAddress, ownershipDecider)
-    deciderManager.setDecider(checkpointAddress, checkpointDecider)
+    deciderManager.setDecider(exitAddress, exitDecider)
     deciderManager.setDecider(stateUpdateAddress, stateUpdateDecider)
   })
 
-  test('checkpoint decides to true', async () => {
+  test('exit decides to true', async () => {
     // prepare witnesses
     await prepareSuWitness()
     await prepareProofWitness()
@@ -284,177 +288,95 @@ describe('Checkpoint', () => {
     await prepareSignatureWitness()
     await prepareRootWitness()
 
-    const checkpointInputs = [
-      Bytes.fromString('CheckpointA'),
+    const exitInputs = [
+      Bytes.fromString('ExitA'),
       Coder.encode(bobSU.toStruct()),
       Coder.encode(inclusionProof2.toStruct())
     ]
 
-    const checkpointProperty = new Property(checkpointAddress, checkpointInputs)
-    const decision = await checkpointDecider.decide(
+    const exitProperty = new Property(exitAddress, exitInputs)
+    const decision = await exitDecider.decide(
       deciderManager,
-      checkpointProperty.inputs
+      exitProperty.inputs
     )
     expect(decision.outcome).toBeTruthy()
   })
 
-  describe('checkpoint decides to false', () => {
-    test('when root witness does not exists', async () => {
-      // prepare witnesses
-      await prepareSuWitness()
-      await prepareProofWitness()
-      await prepareTxWitness()
-      await prepareSignatureWitness()
+  test('exit decides false if su is true', async () => {
+    // prepare witnesses
+    await prepareSuWitness()
+    await prepareProofWitness()
+    await prepareTxWitness()
+    await prepareSignatureWitness()
+    await prepareRootWitness()
+    await prepareTxForBobWitness()
 
-      const checkpointInputs = [
-        Bytes.fromString('CheckpointA'),
-        Coder.encode(bobSU.toStruct()),
-        Coder.encode(inclusionProof2.toStruct())
-      ]
+    const exitInputs = [
+      Bytes.fromString('ExitA'),
+      Coder.encode(bobSU.toStruct()),
+      Coder.encode(inclusionProof2.toStruct())
+    ]
 
-      const checkpointProperty = new Property(
-        checkpointAddress,
-        checkpointInputs
-      )
-      const decision = await checkpointDecider.decide(
-        deciderManager,
-        checkpointProperty.inputs
-      )
+    const exitProperty = new Property(exitAddress, exitInputs)
+    const decision = await exitDecider.decide(
+      deciderManager,
+      exitProperty.inputs
+    )
 
-      const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
-        Bytes.fromString(
-          replaceHint('stored.${contract},KEY,${key}', {
-            contract: Coder.encode(commitmentContractAddress),
-            key: Coder.encode(getBlockNumber(bobSU))
-          })
-        ),
-        Bytes.fromString('root'),
-        Coder.encode(
-          new Property(NotDeciderAddress, [
-            Coder.encode(
-              new Property(checkpointAddress, [
-                Bytes.fromString('CheckpointA1TA'),
-                Coder.encode(bobSU.toStruct()),
-                FreeVariable.from('root'),
-                Coder.encode(inclusionProof2.toStruct())
-              ]).toStruct()
-            )
-          ]).toStruct()
-        )
-      ])
-
-      expect(decision.outcome).toBeFalsy()
-      expect(decision.witnesses).toEqual([])
-      expect(decision.challenge).toEqual({
-        property: challengeProperty,
-        challengeInputs: [Coder.encode(BigNumber.from(0))]
-      })
+    expect(decision.outcome).toBeFalsy()
+    expect(decision.challenge).toEqual({
+      challengeInputs: [Coder.encode(BigNumber.from(0))],
+      property: bobSU
     })
+  })
+  test('exit decides false if checkpoint is false', async () => {
+    // prepare witnesses
+    await prepareSuWitness()
+    await prepareProofWitness()
+    await prepareTxWitness()
+    await prepareSignatureWitness()
 
-    test('when inclusion proof is invalid', async () => {
-      // prepare witnesses
-      await prepareSuWitness()
-      await prepareTxWitness()
-      await prepareSignatureWitness()
-      await prepareRootWitness()
-      await prepareProofWitness()
+    const exitInputs = [
+      Bytes.fromString('ExitA'),
+      Coder.encode(bobSU.toStruct()),
+      Coder.encode(inclusionProof2.toStruct())
+    ]
 
-      const checkpointInputs = [
-        Bytes.fromString('CheckpointA'),
-        Coder.encode(bobSU.toStruct()),
-        Coder.encode(inclusionProof1.toStruct())
-      ]
+    const exitProperty = new Property(exitAddress, exitInputs)
+    const decision = await exitDecider.decide(
+      deciderManager,
+      exitProperty.inputs
+    )
 
-      const checkpointProperty = new Property(
-        checkpointAddress,
-        checkpointInputs
+    const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
+      Bytes.fromString(
+        replaceHint('stored.${contract},KEY,${key}', {
+          contract: Coder.encode(commitmentContractAddress),
+          key: Coder.encode(getBlockNumber(bobSU))
+        })
+      ),
+      Bytes.fromString('root'),
+      Coder.encode(
+        new Property(NotDeciderAddress, [
+          Coder.encode(
+            new Property(exitAddress, [
+              Bytes.fromString('ExitA2A1TA'),
+              Coder.encode(bobSU.toStruct()),
+              FreeVariable.from('root'),
+              Coder.encode(inclusionProof2.toStruct())
+            ]).toStruct()
+          )
+        ]).toStruct()
       )
-      const decision = await checkpointDecider.decide(
-        deciderManager,
-        checkpointProperty.inputs
-      )
+    ])
 
-      const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
-        Bytes.fromString(
-          replaceHint('stored.${contract},KEY,${key}', {
-            contract: Coder.encode(commitmentContractAddress),
-            key: Coder.encode(getBlockNumber(bobSU))
-          })
-        ),
-        Bytes.fromString('root'),
-        Coder.encode(
-          new Property(NotDeciderAddress, [
-            Coder.encode(
-              new Property(checkpointAddress, [
-                Bytes.fromString('CheckpointA1TA'),
-                Coder.encode(bobSU.toStruct()),
-                FreeVariable.from('root'),
-                Coder.encode(inclusionProof1.toStruct())
-              ]).toStruct()
-            )
-          ]).toStruct()
-        )
-      ])
-
-      expect(decision.outcome).toBeFalsy()
-      expect(decision.witnesses).toEqual([])
-      expect(decision.challenge).toEqual({
-        property: challengeProperty,
-        challengeInputs: [Coder.encode(BigNumber.from(0))]
-      })
-    })
-
-    test('when old su is falsy property', async () => {
-      // prepare witnesses
-      await prepareFalsySuWitness()
-      await prepareTxWitness()
-      await prepareSignatureWitness()
-      await prepareRootWitness()
-      await prepareProofWitness()
-
-      const checkpointInputs = [
-        Bytes.fromString('CheckpointA'),
-        Coder.encode(bobSU.toStruct()),
-        Coder.encode(inclusionProof1.toStruct())
-      ]
-
-      const checkpointProperty = new Property(
-        checkpointAddress,
-        checkpointInputs
-      )
-      const decision = await checkpointDecider.decide(
-        deciderManager,
-        checkpointProperty.inputs
-      )
-
-      const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
-        Bytes.fromString(
-          replaceHint('stored.${contract},KEY,${key}', {
-            contract: Coder.encode(commitmentContractAddress),
-            key: Coder.encode(getBlockNumber(bobSU))
-          })
-        ),
-        Bytes.fromString('root'),
-        Coder.encode(
-          new Property(NotDeciderAddress, [
-            Coder.encode(
-              new Property(checkpointAddress, [
-                Bytes.fromString('CheckpointA1TA'),
-                Coder.encode(bobSU.toStruct()),
-                FreeVariable.from('root'),
-                Coder.encode(inclusionProof1.toStruct())
-              ]).toStruct()
-            )
-          ]).toStruct()
-        )
-      ])
-
-      expect(decision.outcome).toBeFalsy()
-      expect(decision.witnesses).toEqual([])
-      expect(decision.challenge).toEqual({
-        property: challengeProperty,
-        challengeInputs: [Coder.encode(BigNumber.from(0))]
-      })
+    expect(decision.outcome).toBeFalsy()
+    expect(decision.challenge).toEqual({
+      challengeInputs: [
+        Coder.encode(BigNumber.from(1)),
+        Coder.encode(BigNumber.from(0))
+      ],
+      property: challengeProperty
     })
   })
 })
