@@ -62,3 +62,7 @@ def checkpoint(su, proof) :=
     SU(su.0, su.1, b).all(old_su -> old_su())
   )
 `
+
+export const EXIT_DEPOSIT_SOURCE = `
+def exitDeposit(su, checkpoint) := !su()
+`
