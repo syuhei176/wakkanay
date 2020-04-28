@@ -323,26 +323,11 @@ describe('Exit', () => {
       exitProperty.inputs
     )
 
-    const challengeProperty1 = new Property(NotDeciderAddress, [
-      Coder.encode(
-        new Property(exitAddress, [
-          Bytes.fromString('ExitA1N'),
-          Coder.encode(bobSU.toStruct())
-        ]).toStruct()
-      )
-    ])
-
     expect(decision.outcome).toBeFalsy()
-    expect(decision.challenges).toEqual([
-      {
-        challengeInput: Coder.encode(BigNumber.from(0)),
-        property: challengeProperty1
-      },
-      {
-        challengeInput: null,
-        property: bobSU
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      challengeInputs: [Coder.encode(BigNumber.from(0))],
+      property: bobSU
+    })
   })
   test('exit decides false if checkpoint is false', async () => {
     // prepare witnesses
@@ -363,34 +348,7 @@ describe('Exit', () => {
       exitProperty.inputs
     )
 
-    const challengeProperty1 = new Property(NotDeciderAddress, [
-      Coder.encode(
-        new Property(exitAddress, [
-          Bytes.fromString('ExitA2A'),
-          Coder.encode(bobSU.toStruct()),
-          Coder.encode(inclusionProof2.toStruct())
-        ]).toStruct()
-      )
-    ])
-
-    const challengeProperty2 = new Property(NotDeciderAddress, [
-      Coder.encode(
-        new Property(exitAddress, [
-          Bytes.fromString('ExitA2A1T'),
-          Coder.encode(bobSU.toStruct()),
-          Coder.encode(inclusionProof2.toStruct())
-        ]).toStruct()
-      )
-    ])
-
-    const p = decodeStructable(
-      Property,
-      Coder,
-      decision.challenges[2].property.inputs[2]
-    )
-    const p1 = decodeStructable(Property, Coder, p.inputs[0])
-
-    const challengeProperty3 = new Property(ForAllSuchThatDeciderAddress, [
+    const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
       Bytes.fromString(
         replaceHint('stored.${contract},KEY,${key}', {
           contract: Coder.encode(commitmentContractAddress),
@@ -413,19 +371,12 @@ describe('Exit', () => {
     ])
 
     expect(decision.outcome).toBeFalsy()
-    expect(decision.challenges).toEqual([
-      {
-        challengeInput: Coder.encode(BigNumber.from(1)),
-        property: challengeProperty1
-      },
-      {
-        challengeInput: Coder.encode(BigNumber.from(0)),
-        property: challengeProperty2
-      },
-      {
-        challengeInput: null,
-        property: challengeProperty3
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      challengeInputs: [
+        Coder.encode(BigNumber.from(1)),
+        Coder.encode(BigNumber.from(0))
+      ],
+      property: challengeProperty
+    })
   })
 })

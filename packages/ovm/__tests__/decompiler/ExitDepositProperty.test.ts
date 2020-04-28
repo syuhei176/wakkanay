@@ -77,12 +77,10 @@ describe('ExitDeposit', () => {
     const decision = await deciderManager.decide(property)
 
     expect(decision.outcome).toBeTruthy()
-    expect(decision.challenges).toEqual([
-      {
-        property: suProperty,
-        challengeInput: null
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      property: suProperty,
+      challengeInputs: []
+    })
   })
 
   test('decides to false', async () => {
@@ -119,11 +117,9 @@ describe('ExitDeposit', () => {
     const decision = await deciderManager.decide(property)
 
     expect(decision.outcome).toBeFalsy()
-    expect(decision.challenges).toEqual([
-      {
-        property: suProperty,
-        challengeInput: null
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      property: suProperty,
+      challengeInputs: []
+    })
   })
 })
