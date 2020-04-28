@@ -14,13 +14,13 @@ export class EqualDecider implements Decider {
     if (inputs.length !== 2) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
     return {
       outcome: inputs[0].equals(inputs[1]),
-      challenges: []
+      challenge: null
     }
   }
 }

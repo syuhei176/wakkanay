@@ -44,7 +44,7 @@ describe('challenge', () => {
   const gameId = Bytes.default()
   const challenge: Challenge = {
     property: new Property(Address.default(), []),
-    challengeInput: Bytes.default()
+    challengeInputs: [Bytes.default()]
   }
   const challengeGameId = getGameId(challenge.property)
 

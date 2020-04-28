@@ -25,7 +25,7 @@ export class OrDecider implements Decider {
       return {
         outcome: false,
         witnesses: [],
-        challenges: [],
+        challenge: null,
         traceInfo: TraceInfoCreator.exception(
           'Or connective has an invalid child.'
         )
@@ -46,7 +46,7 @@ export class OrDecider implements Decider {
         witnesses: childWitnesses.concat([
           ovmContext.coder.encode(Integer.from(index))
         ]),
-        challenges: []
+        challenge: null
       }
     }
 
@@ -54,8 +54,9 @@ export class OrDecider implements Decider {
       property: new Property(
         manager.getDeciderAddress(LogicalConnective.And),
         properties.map(p => {
-          const decompiledProperty = manager.decompile(p)
+          const decompiledProperty = manager.decompile(p) || p
           if (
+            decompiledProperty &&
             decompiledProperty.deciderAddress.equals(
               manager.getDeciderAddress('Not')
             )
@@ -72,13 +73,13 @@ export class OrDecider implements Decider {
           }
         })
       ),
-      challengeInput: null
+      challengeInputs: []
     }
 
     return {
       outcome: false,
       witnesses: [],
-      challenges: [challenge],
+      challenge,
       traceInfo: TraceInfoCreator.createOr(
         decisions.map(d => d.traceInfo).filter(t => !!t) as TraceInfo[]
       )

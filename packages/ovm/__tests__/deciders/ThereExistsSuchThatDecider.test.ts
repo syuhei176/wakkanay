@@ -50,7 +50,7 @@ describe('ThereExistsSuchThatDecider', () => {
     expect(decision).toEqual({
       outcome: true,
       witnesses: [JsonCoder.encode(BigNumber.from(0))],
-      challenges: []
+      challenge: null
     })
   })
 

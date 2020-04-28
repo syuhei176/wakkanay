@@ -14,7 +14,7 @@ export class BoolDecider implements Decider {
   ): Promise<Decision> {
     return {
       outcome: !!inputs[0],
-      challenges: []
+      challenge: null
     }
   }
 }
@@ -29,7 +29,7 @@ export class LessThanDecider implements Decider {
     const n = BigNumber.fromHexString(inputs[1].toHexString())
     return {
       outcome: upperBound.data > n.data,
-      challenges: []
+      challenge: null
     }
   }
 }
@@ -44,7 +44,7 @@ export class GreaterThanDecider implements Decider {
     const n = BigNumber.fromHexString(inputs[1].toHexString())
     return {
       outcome: lowerBound.data < n.data,
-      challenges: []
+      challenge: null
     }
   }
 }

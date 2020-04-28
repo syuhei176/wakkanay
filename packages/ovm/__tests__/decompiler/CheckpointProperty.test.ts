@@ -374,17 +374,7 @@ describe('Checkpoint', () => {
         checkpointProperty.inputs
       )
 
-      const challengeProperty1 = new Property(NotDeciderAddress, [
-        Coder.encode(
-          new Property(checkpointAddress, [
-            Bytes.fromString('CheckpointA1T'),
-            Coder.encode(bobSU.toStruct()),
-            Coder.encode(inclusionProof2.toStruct())
-          ]).toStruct()
-        )
-      ])
-
-      const challengeProperty2 = new Property(ForAllSuchThatDeciderAddress, [
+      const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
         Bytes.fromString(
           replaceHint('stored.${contract},KEY,${key}', {
             contract: Coder.encode(commitmentContractAddress),
@@ -408,16 +398,10 @@ describe('Checkpoint', () => {
 
       expect(decision.outcome).toBeFalsy()
       expect(decision.witnesses).toEqual([])
-      expect(decision.challenges).toEqual([
-        {
-          property: challengeProperty1,
-          challengeInput: Coder.encode(BigNumber.from(0))
-        },
-        {
-          property: challengeProperty2,
-          challengeInput: null
-        }
-      ])
+      expect(decision.challenge).toEqual({
+        property: challengeProperty,
+        challengeInputs: [Coder.encode(BigNumber.from(0))]
+      })
     })
 
     test('when inclusion proof is invalid', async () => {
@@ -443,17 +427,7 @@ describe('Checkpoint', () => {
         checkpointProperty.inputs
       )
 
-      const challengeProperty1 = new Property(NotDeciderAddress, [
-        Coder.encode(
-          new Property(checkpointAddress, [
-            Bytes.fromString('CheckpointA1T'),
-            Coder.encode(bobSU.toStruct()),
-            Coder.encode(inclusionProof1.toStruct())
-          ]).toStruct()
-        )
-      ])
-
-      const challengeProperty2 = new Property(ForAllSuchThatDeciderAddress, [
+      const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
         Bytes.fromString(
           replaceHint('stored.${contract},KEY,${key}', {
             contract: Coder.encode(commitmentContractAddress),
@@ -477,16 +451,10 @@ describe('Checkpoint', () => {
 
       expect(decision.outcome).toBeFalsy()
       expect(decision.witnesses).toEqual([])
-      expect(decision.challenges).toEqual([
-        {
-          property: challengeProperty1,
-          challengeInput: Coder.encode(BigNumber.from(0))
-        },
-        {
-          property: challengeProperty2,
-          challengeInput: null
-        }
-      ])
+      expect(decision.challenge).toEqual({
+        property: challengeProperty,
+        challengeInputs: [Coder.encode(BigNumber.from(0))]
+      })
     })
 
     test('when old su is falsy property', async () => {
@@ -512,17 +480,7 @@ describe('Checkpoint', () => {
         checkpointProperty.inputs
       )
 
-      const challengeProperty1 = new Property(NotDeciderAddress, [
-        Coder.encode(
-          new Property(checkpointAddress, [
-            Bytes.fromString('CheckpointA1T'),
-            Coder.encode(bobSU.toStruct()),
-            Coder.encode(inclusionProof1.toStruct())
-          ]).toStruct()
-        )
-      ])
-
-      const challengeProperty2 = new Property(ForAllSuchThatDeciderAddress, [
+      const challengeProperty = new Property(ForAllSuchThatDeciderAddress, [
         Bytes.fromString(
           replaceHint('stored.${contract},KEY,${key}', {
             contract: Coder.encode(commitmentContractAddress),
@@ -546,16 +504,10 @@ describe('Checkpoint', () => {
 
       expect(decision.outcome).toBeFalsy()
       expect(decision.witnesses).toEqual([])
-      expect(decision.challenges).toEqual([
-        {
-          property: challengeProperty1,
-          challengeInput: Coder.encode(BigNumber.from(0))
-        },
-        {
-          property: challengeProperty2,
-          challengeInput: null
-        }
-      ])
+      expect(decision.challenge).toEqual({
+        property: challengeProperty,
+        challengeInputs: [Coder.encode(BigNumber.from(0))]
+      })
     })
   })
 })

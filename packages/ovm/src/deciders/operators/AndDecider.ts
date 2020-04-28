@@ -24,7 +24,7 @@ export class AndDecider implements Decider {
       return {
         outcome: false,
         witnesses: [],
-        challenges: [],
+        challenge: null,
         traceInfo: TraceInfoCreator.exception(
           'And connective has an invalid child.'
         )
@@ -37,17 +37,31 @@ export class AndDecider implements Decider {
         if (decision.outcome) {
           return decision
         }
-        const challenge: Challenge = {
-          property: new Property(
-            manager.getDeciderAddress(LogicalConnective.Not),
-            [ovmContext.coder.encode(p.toStruct())]
-          ),
-          challengeInput: ovmContext.coder.encode(Integer.from(index))
+        let challenge: Challenge | null = null
+        if (manager.isDecompiledProperty(p)) {
+          if (decision.challenge === null) {
+            throw new Error('decision.challenge must not be null.')
+          }
+          // if `p` is the property using CompiledPredicate, AndDecider should return valid challenge of `p`.
+          challenge = {
+            property: decision.challenge.property,
+            challengeInputs: [
+              ovmContext.coder.encode(Integer.from(index))
+            ].concat(decision.challenge.challengeInputs)
+          }
+        } else {
+          challenge = {
+            property: new Property(
+              manager.getDeciderAddress(LogicalConnective.Not),
+              [ovmContext.coder.encode(p.toStruct())]
+            ),
+            challengeInputs: [ovmContext.coder.encode(Integer.from(index))]
+          }
         }
         return {
           outcome: false,
           witnesses: [],
-          challenges: [challenge].concat(decision.challenges),
+          challenge,
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createAnd(index, decision.traceInfo)
             : undefined
@@ -65,7 +79,7 @@ export class AndDecider implements Decider {
     return {
       outcome: true,
       witnesses,
-      challenges: []
+      challenge: null
     }
   }
 }

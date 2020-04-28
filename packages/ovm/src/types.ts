@@ -9,7 +9,7 @@ import { TraceInfo } from './Tracer'
 
 export interface Challenge {
   property: Property
-  challengeInput: Bytes | null
+  challengeInputs: Bytes[]
 }
 
 export interface Decision {
@@ -17,7 +17,7 @@ export interface Decision {
   // witnesses is empty if outcome is false
   witnesses?: Bytes[]
   // challenges is empty if outcome is true
-  challenges: Challenge[]
+  challenge: Challenge | null
   // traceInfo is the snapshot when false decision is made.
   // If outcome is true, traceInfo is undefined.
   traceInfo?: TraceInfo

@@ -120,7 +120,7 @@ describe('StateUpdate', () => {
 
     expect(decision).toStrictEqual({
       witnesses,
-      challenges: [],
+      challenge: null,
       outcome: true
     })
   })
@@ -179,8 +179,9 @@ describe('StateUpdate', () => {
     )
 
     expect(decision.outcome).toBeFalsy()
-    expect(decision.challenges).toStrictEqual([
-      { challengeInput: null, property: challengeProperty }
-    ])
+    expect(decision.challenge).toStrictEqual({
+      challengeInputs: [],
+      property: challengeProperty
+    })
   })
 })

@@ -27,7 +27,7 @@ export class VerifyInclusionDecider implements Decider {
     if (inputs.length !== 5) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
@@ -50,7 +50,7 @@ export class VerifyInclusionDecider implements Decider {
 
     return {
       outcome: verifier.verifyInclusion(leaf, range, root, inclusionProof),
-      challenges: []
+      challenge: null
     }
   }
 }

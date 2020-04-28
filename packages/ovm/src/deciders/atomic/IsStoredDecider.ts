@@ -21,7 +21,7 @@ export class IsStoredDecider implements Decider {
 
     return {
       outcome: !!actualValue?.equals(expectedValue),
-      challenges: []
+      challenge: null
     }
   }
 }

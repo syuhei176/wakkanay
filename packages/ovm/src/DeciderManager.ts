@@ -15,7 +15,8 @@ export interface DeciderManagerInterface {
   ): Promise<Decision>
   getDeciderAddress(shortname: string): Address
   getStorageDb(): Promise<KeyValueStore>
-  decompile(property: Property): Property
+  isDecompiledProperty(property: Property): boolean
+  decompile(property: Property): Property | null
 }
 
 /**
@@ -123,12 +124,16 @@ export class DeciderManager implements DeciderManagerInterface {
     }
   }
 
-  public decompile(property: Property) {
+  public isDecompiledProperty(property: Property): boolean {
+    return this.decompile(property) !== null
+  }
+
+  public decompile(property: Property): Property | null {
     const decider = this.getDecider(property.deciderAddress)
     if (decider instanceof CompiledDecider) {
       return decider.decompile(this, property.inputs)
     }
-    return property
+    return null
   }
 }
 

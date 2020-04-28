@@ -38,21 +38,19 @@ describe('OrDecider', () => {
     ])
     expect(decision.outcome).toEqual(false)
     // valid challenge is And(Not(P0), Not(P1))
-    expect(decision.challenges).toEqual([
-      {
-        property: new Property(AndDeciderAddress, [
-          encodeProperty(
-            JsonCoder,
-            new Property(NotDeciderAddress, [falseProperty])
-          ),
-          encodeProperty(
-            JsonCoder,
-            new Property(NotDeciderAddress, [falseProperty])
-          )
-        ]),
-        challengeInput: null
-      }
-    ])
+    expect(decision.challenge).toEqual({
+      property: new Property(AndDeciderAddress, [
+        encodeProperty(
+          JsonCoder,
+          new Property(NotDeciderAddress, [falseProperty])
+        ),
+        encodeProperty(
+          JsonCoder,
+          new Property(NotDeciderAddress, [falseProperty])
+        )
+      ]),
+      challengeInputs: []
+    })
   })
 
   test('decide or(false, true) to true', async () => {
