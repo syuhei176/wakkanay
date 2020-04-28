@@ -123,7 +123,7 @@ describe('AndDecider', () => {
           Coder.encode(BigNumber.from(1)),
           Coder.encode(BigNumber.from(10))
         ]),
-        challengeInputs: [Coder.encode(Integer.from(0)), null]
+        challengeInputs: [Coder.encode(Integer.from(0))]
       })
     })
   })

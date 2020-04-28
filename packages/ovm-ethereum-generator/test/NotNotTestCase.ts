@@ -29,7 +29,7 @@ export const createTestCaseOfNotNotP = (wallet: ethers.Wallet) => {
           context: TestContext
         ) => {
           return {
-            challengeInputs: ['0x'],
+            challengeInputs: [],
             // NotNotTestO(a, b, c)
             property: {
               predicateAddress: notNotTestPredicate.address,

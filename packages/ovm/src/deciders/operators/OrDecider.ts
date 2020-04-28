@@ -73,7 +73,7 @@ export class OrDecider implements Decider {
           }
         })
       ),
-      challengeInputs: [null]
+      challengeInputs: []
     }
 
     return {

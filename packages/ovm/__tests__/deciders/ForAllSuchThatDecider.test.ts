@@ -171,7 +171,7 @@ describe('ForAllsuchThatDecider', () => {
             new Property(NotDeciderAddress, [falseProperty]).toStruct()
           )
         ]),
-        challengeInputs: [Coder.encode(BigNumber.from(0)), null]
+        challengeInputs: [Coder.encode(BigNumber.from(0))]
       })
     })
   })

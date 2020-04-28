@@ -111,7 +111,7 @@ describe('CompiledDecider', () => {
     )
 
     expect(decision.challenge).toStrictEqual({
-      challengeInputs: [Coder.encode(BigNumber.from(0)), null],
+      challengeInputs: [Coder.encode(BigNumber.from(0))],
       property: challengeProperty
     })
 
@@ -192,7 +192,7 @@ describe('CompiledDecider', () => {
     ])
 
     expect(decision.challenge).toStrictEqual({
-      challengeInputs: [null],
+      challengeInputs: [],
       property: challengeProperty
     })
 
