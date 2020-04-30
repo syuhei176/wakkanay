@@ -6,7 +6,7 @@ setupContext({ coder: Coder })
 
 describe('FreeVariable', () => {
   test('return variable name', () => {
-    const v = Bytes.fromString('__VARIABLE__n')
+    const v = Bytes.fromString('Vn')
     expect(FreeVariable.getVariableName(v)).toBe('n')
   })
 
@@ -17,7 +17,7 @@ describe('FreeVariable', () => {
 
   test('create free variable Bytes from variable name', () => {
     const v = FreeVariable.from('n')
-    expect(v.intoString()).toBe('__VARIABLE__n')
+    expect(v.intoString()).toBe('Vn')
   })
 })
 

@@ -13,7 +13,8 @@ import {
   Property,
   FreeVariable,
   CompiledPredicate,
-  CompiledDecider
+  CompiledDecider,
+  LabelVariable
 } from '../../src'
 import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
@@ -153,7 +154,7 @@ describe('ForAllsuchThatDecider', () => {
     it('valid challenge of Q.all(v -> !IsLessThan(v, 10) or Bool(false)) is "IsLessThan(v, 10) and !Bool(false)"', async () => {
       // An instance of compiled predicate "TestF(10)" is "Q().all(b -> !IsLessThan(b, 10) or Bool(false))".
       const property = new Property(TestPredicateAddress, [
-        Bytes.fromString('TestF'),
+        LabelVariable.from('TestF'),
         Coder.encode(BigNumber.from(10))
       ])
 

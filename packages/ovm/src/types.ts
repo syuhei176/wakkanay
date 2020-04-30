@@ -73,8 +73,8 @@ export class ChallengeGame {
   ) {}
 }
 
-const VARIABLE_PREFIX = '__VARIABLE__'
-const VARIABLE_PREFIX_REGEX = /__VARIABLE__(.*)/
+const VARIABLE_PREFIX = 'V'
+const VARIABLE_PREFIX_REGEX = /V(.*)/
 /**
  * Free variable for property to handle quantifier.
  * free variable is a Bytes whose string representation starts from prefix __VARIABLE__.
@@ -96,6 +96,23 @@ export class FreeVariable {
 
   static from(name: string): Bytes {
     return Bytes.fromString(`${VARIABLE_PREFIX}${name}`)
+  }
+}
+
+const LABEL_PREFIX = 'L'
+const LABEL_PREFIX_REGEX = /L(.*)/
+export class LabelVariable {
+  static getLabelName(input: Bytes): string | null {
+    const s = input.intoString()
+    const result = LABEL_PREFIX_REGEX.exec(s)
+    if (result) {
+      return result[1] || null
+    }
+    return null
+  }
+
+  static from(name: string): Bytes {
+    return Bytes.fromString(`${LABEL_PREFIX}${name}`)
   }
 }
 
