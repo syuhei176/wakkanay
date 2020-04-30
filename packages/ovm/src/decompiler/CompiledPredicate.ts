@@ -206,6 +206,22 @@ export const createAtomicPropositionCall = (
   } else if (input.predicate.type == 'VariablePredicateCall') {
     // When predicateDef has VariablePredicate, inputs[1] must be variable name
     return FreeVariable.from(def.inputs[1] as string)
+  } else if (input.predicate.type == 'CompiledPredicateCall') {
+    const compiledPredicateAddress = context.predicateTable.get(
+      input.predicate.source
+    )
+    if (compiledPredicateAddress === undefined) {
+      throw new Error(`The address of ${input.predicate.source} not found.`)
+    }
+    // creating child property using external CompiledPredicate address
+    return ovmContext.coder.encode(
+      createChildProperty(
+        compiledPredicateAddress,
+        input,
+        context.compiledProperty,
+        context.constantTable
+      ).toStruct()
+    )
   } else {
     throw new Error('predicate must be atomic, input or variable.')
   }
