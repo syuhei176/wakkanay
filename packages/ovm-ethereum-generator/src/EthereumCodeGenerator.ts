@@ -7,9 +7,15 @@ import { CodeGenerator } from '@cryptoeconomicslab/ovm-generator'
 import { readFileSync } from 'fs'
 import path from 'path'
 
+/**
+ * settings interface for Solidity compiler
+ */
+export interface SolcSettings {
+  optimizer: { enabled: boolean }
+}
+
 export interface EthereumCodeGeneratorOptions {
-  // settings object for Solidity compiler
-  solcSettings: { optimizer: { enabled: boolean } }
+  solcSettings: SolcSettings
 }
 
 /**
@@ -49,7 +55,6 @@ export class EthereumCodeGenerator implements CodeGenerator {
         ...solcSettings
       }
     }
-    console.log(input)
 
     /*
      * When importing solc in jest or for client, an exception thrown.
