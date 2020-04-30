@@ -8,13 +8,28 @@ import { readFileSync } from 'fs'
 import path from 'path'
 
 /**
+ * settings interface for Solidity compiler
+ */
+export interface SolcSettings {
+  optimizer: { enabled: boolean }
+}
+
+export interface EthereumCodeGeneratorOptions {
+  solcSettings: SolcSettings
+}
+
+/**
  * @name EthereumCodeGenerator
  * @description A code generator for EVM byte code
  */
 export class EthereumCodeGenerator implements CodeGenerator {
-  constructor(readonly options?: SolidityCodeGeneratorOptions) {}
+  constructor(
+    readonly options?: SolidityCodeGeneratorOptions &
+      EthereumCodeGeneratorOptions
+  ) {}
   async generate(compiledPredicates: CompiledPredicate[]): Promise<string> {
     const solidityGenerator = new SolidityCodeGenerator(this.options)
+    const solcSettings = this.options?.solcSettings || {}
     const source = await solidityGenerator.generate(compiledPredicates)
 
     const input = {
@@ -36,7 +51,8 @@ export class EthereumCodeGenerator implements CodeGenerator {
             ],
             '': ['ast']
           }
-        }
+        },
+        ...solcSettings
       }
     }
 
