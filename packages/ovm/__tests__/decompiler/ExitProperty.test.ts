@@ -29,7 +29,12 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
-import { OWNERSHIP_SOURCE, STATEUPDATE_SOURCE, EXIT_SOURCE } from './TestSource'
+import {
+  OWNERSHIP_SOURCE,
+  STATEUPDATE_SOURCE,
+  EXIT_SOURCE,
+  CHECKPOINT_SOURCE
+} from './TestSource'
 setupContext({ coder: Coder })
 
 const commitmentContractAddress = Address.from(
@@ -47,6 +52,17 @@ const stateUpdatePredicate = CompiledPredicate.fromSource(
 )
 const stateUpdateDecider = new CompiledDecider(stateUpdatePredicate, {
   txAddress: Coder.encode(txAddress)
+})
+
+const checkpointAddress = Address.from(
+  '0x02500350003010100e2b00900380005700060002'
+)
+const checkpointPredicate = CompiledPredicate.fromSource(
+  checkpointAddress,
+  CHECKPOINT_SOURCE
+)
+const checkpointDecider = new CompiledDecider(checkpointPredicate, {
+  commitmentContract: Coder.encode(commitmentContractAddress)
 })
 
 const exitAddress = Address.from('0x0250035000301010002000900380005700060001')
@@ -278,6 +294,11 @@ describe('Exit', () => {
     deciderManager.setDecider(ownershipAddress, ownershipDecider)
     deciderManager.setDecider(exitAddress, exitDecider)
     deciderManager.setDecider(stateUpdateAddress, stateUpdateDecider)
+    deciderManager.setDecider(
+      checkpointAddress,
+      checkpointDecider,
+      'Checkpoint'
+    )
   })
 
   test('exit decides to true', async () => {
@@ -359,8 +380,8 @@ describe('Exit', () => {
       Coder.encode(
         new Property(NotDeciderAddress, [
           Coder.encode(
-            new Property(exitAddress, [
-              Bytes.fromString('ExitA2A1TA'),
+            new Property(checkpointAddress, [
+              Bytes.fromString('CheckpointA1TA'),
               Coder.encode(bobSU.toStruct()),
               FreeVariable.from('root'),
               Coder.encode(inclusionProof2.toStruct())
