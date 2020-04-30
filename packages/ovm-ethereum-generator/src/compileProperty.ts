@@ -45,7 +45,12 @@ export async function compile(
     },
     {
       ovmPath: '.',
-      addressTable: {}
+      addressTable: {},
+      solcSettings: {
+        optimizer: {
+          enabled: true
+        }
+      }
     }
   )
 }

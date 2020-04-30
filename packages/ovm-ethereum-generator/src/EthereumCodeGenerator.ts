@@ -7,14 +7,23 @@ import { CodeGenerator } from '@cryptoeconomicslab/ovm-generator'
 import { readFileSync } from 'fs'
 import path from 'path'
 
+export interface EthereumCodeGeneratorOptions {
+  // settings object for Solidity compiler
+  solcSettings: { optimizer: { enabled: boolean } }
+}
+
 /**
  * @name EthereumCodeGenerator
  * @description A code generator for EVM byte code
  */
 export class EthereumCodeGenerator implements CodeGenerator {
-  constructor(readonly options?: SolidityCodeGeneratorOptions) {}
+  constructor(
+    readonly options?: SolidityCodeGeneratorOptions &
+      EthereumCodeGeneratorOptions
+  ) {}
   async generate(compiledPredicates: CompiledPredicate[]): Promise<string> {
     const solidityGenerator = new SolidityCodeGenerator(this.options)
+    const solcSettings = this.options?.solcSettings || {}
     const source = await solidityGenerator.generate(compiledPredicates)
 
     const input = {
@@ -36,9 +45,11 @@ export class EthereumCodeGenerator implements CodeGenerator {
             ],
             '': ['ast']
           }
-        }
+        },
+        ...solcSettings
       }
     }
+    console.log(input)
 
     /*
      * When importing solc in jest or for client, an exception thrown.
