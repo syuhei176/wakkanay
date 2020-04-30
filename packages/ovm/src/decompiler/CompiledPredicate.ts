@@ -84,18 +84,16 @@ export class CompiledPredicate {
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const findContract = (name: string) => {
-      return this.compiled.contracts.find(c => c.name == name)
-    }
-
-    let c = findContract(name)
-    if (!c) {
-      // If contract is not found, use entry point.
-      c = findContract(this.compiled.entryPoint)
+    const label = LabelVariable.getLabelName(compiledProperty.inputs[0])
+    if (label === null) {
       compiledProperty.inputs.unshift(
         Bytes.fromString(this.compiled.entryPoint)
       )
     }
+    const findContract = (name: string) => {
+      return this.compiled.contracts.find(c => c.name == name)
+    }
+    let c = findContract(label || this.compiled.entryPoint)
     if (c === undefined) {
       throw new Error(`cannot find ${name} in contracts`)
     }
@@ -252,7 +250,7 @@ const createChildProperty = (
       } else if (i.type == 'VariableInput') {
         return FreeVariable.from(i.placeholder)
       } else if (i.type == 'LabelInput') {
-        return Bytes.fromString(i.label)
+        return LabelVariable.from(i.label)
       } else if (i.type == 'ConstantInput') {
         const constVar = constantsTable[i.name]
         if (constVar === undefined) {
@@ -359,5 +357,22 @@ export const parseVariable = (
   return {
     name: arr[0],
     children: arr.slice(1).map(c => Number(c))
+  }
+}
+
+const LABEL_PREFIX = 'L'
+const VARIABLE_PREFIX_REGEX = /L(.*)/
+export class LabelVariable {
+  static getLabelName(input: Bytes): string | null {
+    const s = input.intoString()
+    const result = VARIABLE_PREFIX_REGEX.exec(s)
+    if (result) {
+      return result[1] || null
+    }
+    return null
+  }
+
+  static from(name: string): Bytes {
+    return Bytes.fromString(`${LABEL_PREFIX}${name}`)
   }
 }

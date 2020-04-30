@@ -73,8 +73,8 @@ export class ChallengeGame {
   ) {}
 }
 
-const VARIABLE_PREFIX = '__VARIABLE__'
-const VARIABLE_PREFIX_REGEX = /__VARIABLE__(.*)/
+const VARIABLE_PREFIX = 'V'
+const VARIABLE_PREFIX_REGEX = /V(.*)/
 /**
  * Free variable for property to handle quantifier.
  * free variable is a Bytes whose string representation starts from prefix __VARIABLE__.
