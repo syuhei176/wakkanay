@@ -73,48 +73,47 @@ export class ChallengeGame {
   ) {}
 }
 
+const createVariableUtility = (prefix: string, prefixRegex: RegExp) => {
+  return {
+    /**
+     * return variable removing prefix if input bytes has prefix defined by prefix_regex
+     * otherwise return null
+     * @param prefixRegex
+     * @param input
+     */
+    getVariableName: (input: Bytes) => {
+      const s = input.intoString()
+      const result = prefixRegex.exec(s)
+      if (result) {
+        return result[1] || null
+      }
+      return null
+    },
+    from: (name: string): Bytes => Bytes.fromString(`${prefix}${name}`)
+  }
+}
+
 const VARIABLE_PREFIX = 'V'
 const VARIABLE_PREFIX_REGEX = /V(.*)/
 /**
  * Free variable for property to handle quantifier.
  * free variable is a Bytes whose string representation starts from prefix __VARIABLE__.
  */
-export class FreeVariable {
-  /**
-   * return variable name string if input bytes is well formed free variable
-   * otherwise return null
-   * @param input input bytes
-   */
-  static getVariableName(input: Bytes): string | null {
-    const s = input.intoString()
-    const result = VARIABLE_PREFIX_REGEX.exec(s)
-    if (result) {
-      return result[1] || null
-    }
-    return null
-  }
-
-  static from(name: string): Bytes {
-    return Bytes.fromString(`${VARIABLE_PREFIX}${name}`)
-  }
-}
+export const FreeVariable = createVariableUtility(
+  VARIABLE_PREFIX,
+  VARIABLE_PREFIX_REGEX
+)
 
 const LABEL_PREFIX = 'L'
 const LABEL_PREFIX_REGEX = /L(.*)/
-export class LabelVariable {
-  static getLabelName(input: Bytes): string | null {
-    const s = input.intoString()
-    const result = LABEL_PREFIX_REGEX.exec(s)
-    if (result) {
-      return result[1] || null
-    }
-    return null
-  }
-
-  static from(name: string): Bytes {
-    return Bytes.fromString(`${LABEL_PREFIX}${name}`)
-  }
-}
+/**
+ * Label variable for the label of Compiled Predicate.
+ * It is used in 0th input of Compiled Predicate.
+ */
+export const LabelVariable = createVariableUtility(
+  LABEL_PREFIX,
+  LABEL_PREFIX_REGEX
+)
 
 export enum LogicalConnective {
   And = 'And',

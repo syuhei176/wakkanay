@@ -84,7 +84,7 @@ export class CompiledPredicate {
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const label = LabelVariable.getLabelName(compiledProperty.inputs[0])
+    const label = LabelVariable.getVariableName(compiledProperty.inputs[0])
     if (label === null) {
       compiledProperty.inputs.unshift(
         Bytes.fromString(this.compiled.entryPoint)
