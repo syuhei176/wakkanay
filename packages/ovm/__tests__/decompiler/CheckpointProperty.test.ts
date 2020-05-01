@@ -19,7 +19,8 @@ import {
   CompiledDecider,
   CompiledPredicate,
   DeciderManager,
-  FreeVariable
+  FreeVariable,
+  PredicateLabel
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
 import {
@@ -285,7 +286,7 @@ describe('Checkpoint', () => {
     await prepareRootWitness()
 
     const checkpointInputs = [
-      Bytes.fromString('CheckpointA'),
+      PredicateLabel.from('CheckpointA'),
       Coder.encode(bobSU.toStruct()),
       Coder.encode(inclusionProof2.toStruct())
     ]
@@ -307,7 +308,7 @@ describe('Checkpoint', () => {
       await prepareSignatureWitness()
 
       const checkpointInputs = [
-        Bytes.fromString('CheckpointA'),
+        PredicateLabel.from('CheckpointA'),
         Coder.encode(bobSU.toStruct()),
         Coder.encode(inclusionProof2.toStruct())
       ]
@@ -333,7 +334,7 @@ describe('Checkpoint', () => {
           new Property(NotDeciderAddress, [
             Coder.encode(
               new Property(checkpointAddress, [
-                Bytes.fromString('CheckpointA1TA'),
+                PredicateLabel.from('CheckpointA1TA'),
                 Coder.encode(bobSU.toStruct()),
                 FreeVariable.from('root'),
                 Coder.encode(inclusionProof2.toStruct())
@@ -360,7 +361,7 @@ describe('Checkpoint', () => {
       await prepareProofWitness()
 
       const checkpointInputs = [
-        Bytes.fromString('CheckpointA'),
+        PredicateLabel.from('CheckpointA'),
         Coder.encode(bobSU.toStruct()),
         Coder.encode(inclusionProof1.toStruct())
       ]
@@ -386,7 +387,7 @@ describe('Checkpoint', () => {
           new Property(NotDeciderAddress, [
             Coder.encode(
               new Property(checkpointAddress, [
-                Bytes.fromString('CheckpointA1TA'),
+                PredicateLabel.from('CheckpointA1TA'),
                 Coder.encode(bobSU.toStruct()),
                 FreeVariable.from('root'),
                 Coder.encode(inclusionProof1.toStruct())
@@ -413,7 +414,7 @@ describe('Checkpoint', () => {
       await prepareProofWitness()
 
       const checkpointInputs = [
-        Bytes.fromString('CheckpointA'),
+        PredicateLabel.from('CheckpointA'),
         Coder.encode(bobSU.toStruct()),
         Coder.encode(inclusionProof1.toStruct())
       ]
@@ -439,7 +440,7 @@ describe('Checkpoint', () => {
           new Property(NotDeciderAddress, [
             Coder.encode(
               new Property(checkpointAddress, [
-                Bytes.fromString('CheckpointA1TA'),
+                PredicateLabel.from('CheckpointA1TA'),
                 Coder.encode(bobSU.toStruct()),
                 FreeVariable.from('root'),
                 Coder.encode(inclusionProof1.toStruct())

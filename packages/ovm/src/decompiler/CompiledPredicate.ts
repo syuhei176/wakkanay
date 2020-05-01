@@ -9,7 +9,7 @@ import {
   IntermediateCompiledPredicate,
   transpile
 } from '@cryptoeconomicslab/ovm-transpiler'
-import { Property, FreeVariable } from '../types'
+import { Property, FreeVariable, PredicateLabel } from '../types'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -84,18 +84,16 @@ export class CompiledPredicate {
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const findContract = (name: string) => {
-      return this.compiled.contracts.find(c => c.name == name)
-    }
-
-    let c = findContract(name)
-    if (!c) {
-      // If contract is not found, use entry point.
-      c = findContract(this.compiled.entryPoint)
+    const label = PredicateLabel.getVariableName(compiledProperty.inputs[0])
+    if (label === null) {
       compiledProperty.inputs.unshift(
         Bytes.fromString(this.compiled.entryPoint)
       )
     }
+    const findContract = (name: string) => {
+      return this.compiled.contracts.find(c => c.name == name)
+    }
+    const c = findContract(label || this.compiled.entryPoint)
     if (c === undefined) {
       throw new Error(`cannot find ${name} in contracts`)
     }
@@ -252,7 +250,7 @@ const createChildProperty = (
       } else if (i.type == 'VariableInput') {
         return FreeVariable.from(i.placeholder)
       } else if (i.type == 'LabelInput') {
-        return Bytes.fromString(i.label)
+        return PredicateLabel.from(i.label)
       } else if (i.type == 'ConstantInput') {
         const constVar = constantsTable[i.name]
         if (constVar === undefined) {

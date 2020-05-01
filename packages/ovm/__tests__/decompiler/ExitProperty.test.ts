@@ -20,7 +20,8 @@ import {
   CompiledDecider,
   CompiledPredicate,
   DeciderManager,
-  FreeVariable
+  FreeVariable,
+  PredicateLabel
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
 import {
@@ -310,7 +311,7 @@ describe('Exit', () => {
     await prepareRootWitness()
 
     const exitInputs = [
-      Bytes.fromString('ExitA'),
+      PredicateLabel.from('ExitA'),
       Coder.encode(bobSU.toStruct()),
       Coder.encode(inclusionProof2.toStruct())
     ]
@@ -333,7 +334,7 @@ describe('Exit', () => {
     await prepareTxForBobWitness()
 
     const exitInputs = [
-      Bytes.fromString('ExitA'),
+      PredicateLabel.from('ExitA'),
       Coder.encode(bobSU.toStruct()),
       Coder.encode(inclusionProof2.toStruct())
     ]
@@ -358,7 +359,7 @@ describe('Exit', () => {
     await prepareSignatureWitness()
 
     const exitInputs = [
-      Bytes.fromString('ExitA'),
+      PredicateLabel.from('ExitA'),
       Coder.encode(bobSU.toStruct()),
       Coder.encode(inclusionProof2.toStruct())
     ]
@@ -381,7 +382,7 @@ describe('Exit', () => {
         new Property(NotDeciderAddress, [
           Coder.encode(
             new Property(checkpointAddress, [
-              Bytes.fromString('CheckpointA1TA'),
+              PredicateLabel.from('CheckpointA1TA'),
               Coder.encode(bobSU.toStruct()),
               FreeVariable.from('root'),
               Coder.encode(inclusionProof2.toStruct())

@@ -5,7 +5,8 @@ import {
   AndDecider,
   CompiledPredicate,
   CompiledDecider,
-  DeciderManager
+  DeciderManager,
+  PredicateLabel
 } from '../../src'
 import {
   initializeDeciderManager,
@@ -110,7 +111,7 @@ describe('AndDecider', () => {
 
     it('valid challenge of "!IsLessThan(1, 10) and IsLessThan(2, 10)" is "IsLessThan(1, 10)"', async () => {
       const property = new Property(TestPredicateAddress, [
-        Bytes.fromString('TestA'),
+        PredicateLabel.from('TestA'),
         Coder.encode(BigNumber.from(1)),
         Coder.encode(BigNumber.from(2)),
         Coder.encode(BigNumber.from(10))
