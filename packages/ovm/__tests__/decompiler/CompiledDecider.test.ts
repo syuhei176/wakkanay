@@ -10,7 +10,7 @@ import {
   Property,
   LogicalConnective,
   FreeVariable,
-  LabelVariable
+  PredicateLabel
 } from '../../src'
 import Coder from '@cryptoeconomicslab/coder'
 import { testSource } from './TestSource'
@@ -27,7 +27,7 @@ describe('CompiledDecider', () => {
   test('decide a property using compiled predicate', async () => {
     // An instance of compiled predicate "TestF(TestF, 10)".
     const property = new Property(TestPredicateAddress, [
-      LabelVariable.from('TestF'),
+      PredicateLabel.from('TestF'),
       Coder.encode(BigNumber.from(10))
     ])
 
@@ -65,7 +65,7 @@ describe('CompiledDecider', () => {
 
     // An instance of compiled predicate "TestF(TestF, 10, 5)".
     const property = new Property(TestPredicateAddress, [
-      LabelVariable.from('TestF'),
+      PredicateLabel.from('TestF'),
       Coder.encode(BigNumber.from(10)),
       Coder.encode(BigNumber.from(5))
     ])
@@ -101,7 +101,7 @@ describe('CompiledDecider', () => {
           new Property(notAddress, [
             Coder.encode(
               new Property(TestPredicateAddress, [
-                LabelVariable.from('TestFO2A'),
+                PredicateLabel.from('TestFO2A'),
                 Coder.encode(BigNumber.from(5)),
                 Coder.encode(BigNumber.from(0))
               ]).toStruct()
@@ -152,7 +152,7 @@ describe('CompiledDecider', () => {
     `
     // An instance of compiled predicate "TestF(TestF, 10, 5)".
     const property = new Property(TestPredicateAddress, [
-      LabelVariable.from('TestT'),
+      PredicateLabel.from('TestT'),
       Coder.encode(BigNumber.from(5)),
       Coder.encode(BigNumber.from(10))
     ])
@@ -182,7 +182,7 @@ describe('CompiledDecider', () => {
         new Property(notAddress, [
           Coder.encode(
             new Property(TestPredicateAddress, [
-              LabelVariable.from('TestTA'),
+              PredicateLabel.from('TestTA'),
               FreeVariable.from('b'),
               Coder.encode(BigNumber.from(5)),
               Coder.encode(BigNumber.from(10))

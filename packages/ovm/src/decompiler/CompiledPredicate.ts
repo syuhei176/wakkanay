@@ -9,7 +9,7 @@ import {
   IntermediateCompiledPredicate,
   transpile
 } from '@cryptoeconomicslab/ovm-transpiler'
-import { Property, FreeVariable, LabelVariable } from '../types'
+import { Property, FreeVariable, PredicateLabel } from '../types'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -84,7 +84,7 @@ export class CompiledPredicate {
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const label = LabelVariable.getVariableName(compiledProperty.inputs[0])
+    const label = PredicateLabel.getVariableName(compiledProperty.inputs[0])
     if (label === null) {
       compiledProperty.inputs.unshift(
         Bytes.fromString(this.compiled.entryPoint)
@@ -250,7 +250,7 @@ const createChildProperty = (
       } else if (i.type == 'VariableInput') {
         return FreeVariable.from(i.placeholder)
       } else if (i.type == 'LabelInput') {
-        return LabelVariable.from(i.label)
+        return PredicateLabel.from(i.label)
       } else if (i.type == 'ConstantInput') {
         const constVar = constantsTable[i.name]
         if (constVar === undefined) {

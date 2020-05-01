@@ -110,7 +110,7 @@ const LABEL_PREFIX_REGEX = /L(.*)/
  * Label variable for the label of Compiled Predicate.
  * It is used in 0th input of Compiled Predicate.
  */
-export const LabelVariable = createVariableUtility(
+export const PredicateLabel = createVariableUtility(
   LABEL_PREFIX,
   LABEL_PREFIX_REGEX
 )

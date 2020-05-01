@@ -19,7 +19,7 @@ import {
   LogicalConnective,
   FreeVariable,
   encodeProperty,
-  LabelVariable
+  PredicateLabel
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
 import { STATEUPDATE_SOURCE } from './TestSource'
@@ -47,7 +47,7 @@ describe('StateUpdate', () => {
   const blockNumber = BigNumber.from(1)
   const range = new Range(BigNumber.from(0), BigNumber.from(5))
   const inputs = [
-    LabelVariable.from('StateUpdateT'),
+    PredicateLabel.from('StateUpdateT'),
     Coder.encode(tokenAddress),
     Coder.encode(range.toStruct()),
     Coder.encode(blockNumber),
@@ -146,7 +146,7 @@ describe('StateUpdate', () => {
               encodeProperty(
                 Coder,
                 new Property(predicateAddress, [
-                  LabelVariable.from('StateUpdateTA'),
+                  PredicateLabel.from('StateUpdateTA'),
                   FreeVariable.from('tx'),
                   Coder.encode(tokenAddress),
                   Coder.encode(range.toStruct()),

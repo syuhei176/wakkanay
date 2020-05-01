@@ -6,7 +6,7 @@ import {
   FreeVariable,
   AtomicPredicate,
   LogicalConnective,
-  LabelVariable
+  PredicateLabel
 } from '../../src'
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
@@ -55,7 +55,7 @@ describe('OwnershipProperty', () => {
   test('ownership decides to true', async () => {
     deciderManager.setDecider(predicateAddress, compiledDecider)
     const property = new Property(predicateAddress, [
-      LabelVariable.from('OwnershipT'),
+      PredicateLabel.from('OwnershipT'),
       Coder.encode(aliceAddress),
       MESSAGE
     ])
@@ -81,7 +81,7 @@ describe('OwnershipProperty', () => {
   test('ownership decides to false and challenge inputs is correct', async () => {
     deciderManager.setDecider(predicateAddress, compiledDecider)
     const property = new Property(predicateAddress, [
-      LabelVariable.from('OwnershipT'),
+      PredicateLabel.from('OwnershipT'),
       Coder.encode(aliceAddress),
       MESSAGE
     ])

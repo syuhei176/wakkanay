@@ -8,7 +8,7 @@ import {
   CompiledDecider,
   parseHintToGetVariables,
   parseVariable,
-  LabelVariable
+  PredicateLabel
 } from '../../src'
 import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import {
@@ -50,7 +50,7 @@ describe('CompiledPredicate', () => {
         Bytes.fromString('b'),
         Coder.encode(
           new Property(TestPredicateAddress, [
-            LabelVariable.from('TestFO'),
+            PredicateLabel.from('TestFO'),
             FreeVariable.from('b'),
             Coder.encode(BigNumber.from(10))
           ]).toStruct()
@@ -75,7 +75,7 @@ describe('CompiledPredicate', () => {
       // Create an instance of compiled predicate "TestF(TestF, 10)".
       const property = compiledPredicate.decompileProperty(
         new Property(TestPredicateAddress, [
-          LabelVariable.from('TestF'),
+          PredicateLabel.from('TestF'),
           Coder.encode(BigNumber.from(10))
         ]),
         deciderManager.shortnameMap
@@ -177,7 +177,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
       }
       const property = compiledPredicateAnd.decompileProperty(
         new Property(TestPredicateAddress, [
-          LabelVariable.from('TestTA1A'),
+          PredicateLabel.from('TestTA1A'),
           encodeProperty(tx),
           token,
           range,
@@ -198,7 +198,7 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
     const definition = compiledPredicateAnd.compiled.contracts[0]
     const a = BigNumber.from(301)
     const compiledProperty = new Property(TestPredicateAddress, [
-      LabelVariable.from('TestA'),
+      PredicateLabel.from('TestA'),
       Coder.encode(a)
     ])
     const b = BigNumber.from(302)
@@ -272,16 +272,16 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
       const definition = compiledPredicate.compiled.contracts[0]
       const predicateCall = definition.inputs[1] as AtomicProposition
       const a = new Property(TestPredicateAddress, [
-        LabelVariable.from('TestA'),
+        PredicateLabel.from('TestA'),
         Coder.encode(BigNumber.from(301))
       ])
       const compiledProperty = new Property(TestPredicateAddress, [
-        LabelVariable.from('TestA'),
+        PredicateLabel.from('TestA'),
         Coder.encode(a.toStruct()),
         Coder.encode(b)
       ])
       const aWithB = new Property(TestPredicateAddress, [
-        LabelVariable.from('TestA'),
+        PredicateLabel.from('TestA'),
         Coder.encode(BigNumber.from(301)),
         Coder.encode(b)
       ])
@@ -304,11 +304,11 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
       const definition = compiledPredicate.compiled.contracts[0]
       const predicateCall = definition.inputs[1] as AtomicProposition
       const a = new Property(TestPredicateAddress, [
-        LabelVariable.from('TestA'),
+        PredicateLabel.from('TestA'),
         Coder.encode(BigNumber.from(301))
       ])
       const compiledProperty = new Property(TestPredicateAddress, [
-        LabelVariable.from('TestA'),
+        PredicateLabel.from('TestA'),
         Coder.encode(a.toStruct())
       ])
       expect(() => {
