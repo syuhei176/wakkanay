@@ -192,12 +192,13 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
   describe('createAtomicPropositionCall', () => {
     const compiledPredicateAnd = CompiledPredicate.fromSource(
       TestPredicateAddress,
-      'def test(a) := Bool(a) and Bool($b) and Bool(self.address)'
+      'def test(a) := Bool(a) and Bool($b) and Bool(self.address) and LibraryPredicate(a)'
     )
     const definition = compiledPredicateAnd.compiled.contracts[0]
+    const a = BigNumber.from(301)
     const compiledProperty = new Property(TestPredicateAddress, [
       Bytes.fromString('TestA'),
-      Coder.encode(BigNumber.from(301))
+      Coder.encode(a)
     ])
     const b = BigNumber.from(302)
 
@@ -316,6 +317,39 @@ def test(token, range, block) := Tx(token, range, block).any(tx -> tx())`
           constantTable: { Constant: Bytes.default() }
         })
       }).toThrow("It doesn't support ConstantInput in InputPredicateCall")
+    })
+
+    it('create atomic proposition call with CompiledPredicateInput', async () => {
+      const LibraryPredicateAddress = Address.from(
+        '0x0250035000301010002bc0900380005700060001'
+      )
+      const encodeLibraryProperty = (input: Bytes) =>
+        encodeProperty(new Property(LibraryPredicateAddress, [input]))
+      const shortnameMap = new Map(deciderManager.shortnameMap)
+
+      expect(() => {
+        createAtomicPropositionCall(
+          definition.inputs[3] as AtomicProposition,
+          definition,
+          {
+            compiledProperty,
+            predicateTable: shortnameMap,
+            constantTable: {}
+          }
+        )
+      }).toThrowError('The address of LibraryPredicate not found.')
+      shortnameMap.set('LibraryPredicate', LibraryPredicateAddress)
+      expect(
+        createAtomicPropositionCall(
+          definition.inputs[3] as AtomicProposition,
+          definition,
+          {
+            compiledProperty,
+            predicateTable: shortnameMap,
+            constantTable: {}
+          }
+        )
+      ).toEqual(encodeLibraryProperty(Coder.encode(a)))
     })
   })
 
