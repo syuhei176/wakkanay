@@ -1,5 +1,5 @@
 import * as ethers from 'ethers'
-import { Bytes } from '@cryptoeconomicslab/primitives'
+import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { LevelKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import initializeLightClient from '@cryptoeconomicslab/eth-plasma-light-client'
 import LightClient from '@cryptoeconomicslab/plasma-light-client'
@@ -354,5 +354,70 @@ describe('light client', () => {
     expect(aliceActions[0].amount).toEqual(parseUnitsToJsbi('0.2'))
     expect(bobActions[0].type).toEqual(ActionType.Receive)
     expect(bobActions[0].amount).toEqual(parseUnitsToJsbi('0.1'))
+  })
+
+  test('spent challenge', async () => {
+    console.log('spent challenge')
+    const getStateUpdates = async (
+      client: LightClient,
+      depositContractAddress: string,
+      amount: JSBI
+    ) => {
+      const addr = Address.from(depositContractAddress)
+      return await client['stateManager'].resolveStateUpdate(addr, amount)
+    }
+    const exit = async (client: LightClient, stateUpdates: any[]) => {
+      if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
+        for (const stateUpdate of stateUpdates) {
+          const exitProperty = await client['createExitProperty'](stateUpdate)
+          await client['adjudicationContract'].claimProperty(exitProperty)
+          await client['saveExit'](stateUpdate)
+        }
+      } else {
+        throw new Error('Insufficient amount')
+      }
+    }
+
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.5')
+
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await sleep(20000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.0')
+    expect(await getBalance(bobLightClient)).toEqual('0.5')
+
+    const stateUpdates = await getStateUpdates(
+      bobLightClient,
+      config.payoutContracts.DepositContract,
+      parseUnitsToJsbi('0.5')
+    )
+    await bobLightClient.transfer(
+      parseUnitsToJsbi('0.1'),
+      config.payoutContracts.DepositContract,
+      aliceLightClient.address
+    )
+
+    await sleep(20000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.1')
+    expect(await getBalance(bobLightClient)).toEqual('0.4')
+
+    await exit(bobLightClient, stateUpdates)
+
+    await increaseBlock()
+
+    await expect(finalizeExit(bobLightClient)).rejects.toEqual(
+      new Error('revert')
+    )
   })
 })
