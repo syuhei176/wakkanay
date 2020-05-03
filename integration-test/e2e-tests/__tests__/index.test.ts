@@ -14,10 +14,9 @@ import parseUnits = ethers.utils.parseUnits
 import formatUnits = ethers.utils.formatUnits
 import { ActionType } from '@cryptoeconomicslab/plasma-light-client/lib/UserAction'
 import { EthCoder } from '@cryptoeconomicslab/eth-coder'
-
-import config from '../config.local.json'
 import { Block, StateUpdate } from '@cryptoeconomicslab/plasma'
 import { Property } from '@cryptoeconomicslab/ovm'
+import config from '../config.local.json'
 
 declare type Numberish =
   | {
@@ -109,6 +108,60 @@ describe('light client', () => {
       // Consecutive finalizeExit call must fail because of invalid Deposited range ID
       await sleep(10000)
     }
+  }
+
+  // helpers for challenge scenarios
+  async function createInvalidStateUpdate(
+    client: LightClient,
+    blockNumber: BigNumber
+  ) {
+    const StateUpdatePredicateAddress = Address.from(
+      config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+    )
+    const OwnershipPredicateAddress = Address.from(
+      config.deployedPredicateTable.OwnershipPredicate.deployedAddress
+    )
+    const depositContractAddress = Address.from(
+      config.payoutContracts.DepositContract
+    )
+    const owner = Address.from(client.address)
+    const stateUpdates: StateUpdate[] = await client[
+      'stateManager'
+    ].getVerifiedStateUpdates(
+      depositContractAddress,
+      new Range(BigNumber.from(0), BigNumber.MAX_NUMBER)
+    )
+    return new StateUpdate(
+      StateUpdatePredicateAddress,
+      depositContractAddress,
+      stateUpdates[0].range,
+      blockNumber,
+      new Property(OwnershipPredicateAddress, [EthCoder.encode(owner)])
+    )
+  }
+
+  function createBlock(blockNumber: BigNumber, stateUpdates: StateUpdate[]) {
+    const stateUpdatesMap = new Map()
+    stateUpdatesMap.set(config.payoutContracts.DepositContract, stateUpdates)
+    return new Block(blockNumber, stateUpdatesMap)
+  }
+
+  async function exitInvalidStateUpdate(
+    client: LightClient,
+    stateUpdate: StateUpdate,
+    block: Block
+  ) {
+    const inclusionProof = block.getInclusionProof(stateUpdate)
+    if (inclusionProof === null) {
+      throw new Error("stateUpdate doesn't included")
+    }
+    const exitProperty = new Property(
+      Address.from(config.deployedPredicateTable.ExitPredicate.deployedAddress),
+      [stateUpdate.property.toStruct(), inclusionProof.toStruct()].map(
+        EthCoder.encode
+      )
+    )
+    await client['adjudicationContract'].claimProperty(exitProperty)
   }
 
   beforeEach(async () => {
@@ -460,28 +513,48 @@ describe('light client', () => {
     )
   })
 
+  test('invalid inclusion proof', async () => {
+    console.log('invalid inclusion proof')
+
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.5')
+
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await sleep(20000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.0')
+    expect(await getBalance(bobLightClient)).toEqual('0.5')
+
+    const blockNumber: BigNumber = await aliceLightClient[
+      'commitmentContract'
+    ].getCurrentBlock()
+
+    const invalidStateUpdate = await createInvalidStateUpdate(
+      bobLightClient,
+      blockNumber
+    )
+    const block = createBlock(blockNumber, [invalidStateUpdate])
+
+    await exitInvalidStateUpdate(aliceLightClient, invalidStateUpdate, block)
+
+    await increaseBlock()
+
+    await expect(finalizeExit(aliceLightClient)).rejects.toEqual(
+      new Error('revert')
+    )
+  })
+
   test('invalid history challenge', async () => {
     console.log('invalid history challenge')
-    const createInvalidStateUpdate = (blockNumber: BigNumber, owner: Address) =>
-      new StateUpdate(
-        Address.from(
-          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
-        ),
-        Address.from(config.payoutContracts.DepositContract),
-        new Range(BigNumber.from(0), BigNumber.from(1000)),
-        blockNumber,
-        new Property(
-          new Address(
-            config.deployedPredicateTable.OwnershipPredicate.deployedAddress
-          ),
-          [EthCoder.encode(owner)]
-        )
-      )
-    const createBlock = (stateUpdates: StateUpdate[]) => {
-      const suMap = new Map()
-      suMap.set(config.payoutContracts.DepositContract, stateUpdates)
-      return new Block(BigNumber.from(0), suMap)
-    }
     const submitInvalidBlock = async (blockNumber: BigNumber, block: Block) => {
       const abi = ['function submitRoot(uint64 blkNumber, bytes32 _root)']
       const connection = new ethers.Contract(
@@ -496,25 +569,6 @@ describe('light client', () => {
           .getRoot()
           .toHexString()
       )
-    }
-    const exitInvalidStateUpdate = async (
-      client: LightClient,
-      stateUpdate: StateUpdate,
-      block: Block
-    ) => {
-      const inclusionProof = block.getInclusionProof(stateUpdate)
-      if (inclusionProof === null) {
-        throw new Error("stateUpdate doesn't included")
-      }
-      const exitProperty = new Property(
-        Address.from(
-          config.deployedPredicateTable.ExitPredicate.deployedAddress
-        ),
-        [stateUpdate.property.toStruct(), inclusionProof.toStruct()].map(
-          EthCoder.encode
-        )
-      )
-      await client['adjudicationContract'].claimProperty(exitProperty)
     }
 
     await aliceLightClient.deposit(
@@ -539,12 +593,12 @@ describe('light client', () => {
       'commitmentContract'
     ].getCurrentBlock()
 
-    const invalidStateUpdate = createInvalidStateUpdate(
-      blockNumber,
-      Address.from(aliceLightClient.address)
+    const invalidStateUpdate = await createInvalidStateUpdate(
+      bobLightClient,
+      blockNumber
     )
 
-    const block = createBlock([invalidStateUpdate])
+    const block = createBlock(blockNumber, [invalidStateUpdate])
     await submitInvalidBlock(
       BigNumber.from(Number(blockNumber.data.toString()) + 1),
       block
@@ -553,7 +607,7 @@ describe('light client', () => {
 
     await increaseBlock()
 
-    await expect(finalizeExit(bobLightClient)).rejects.toEqual(
+    await expect(finalizeExit(aliceLightClient)).rejects.toEqual(
       new Error('revert')
     )
   })
