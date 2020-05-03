@@ -1,5 +1,10 @@
 import * as ethers from 'ethers'
-import { Address, Bytes } from '@cryptoeconomicslab/primitives'
+import {
+  Address,
+  Bytes,
+  BigNumber,
+  Range
+} from '@cryptoeconomicslab/primitives'
 import { LevelKeyValueStore } from '@cryptoeconomicslab/level-kvs'
 import initializeLightClient from '@cryptoeconomicslab/eth-plasma-light-client'
 import LightClient from '@cryptoeconomicslab/plasma-light-client'
@@ -8,8 +13,11 @@ import parseEther = ethers.utils.parseEther
 import parseUnits = ethers.utils.parseUnits
 import formatUnits = ethers.utils.formatUnits
 import { ActionType } from '@cryptoeconomicslab/plasma-light-client/lib/UserAction'
+import { EthCoder } from '@cryptoeconomicslab/eth-coder'
 
 import config from '../config.local.json'
+import { Block, StateUpdate } from '@cryptoeconomicslab/plasma'
+import { Property } from '@cryptoeconomicslab/ovm'
 
 jest.setTimeout(120000)
 
@@ -34,6 +42,7 @@ describe('light client', () => {
   let bobLightClient: LightClient
   let senderWallet: ethers.Wallet
   let recieverWallet: ethers.Wallet
+  let operatorWallet: ethers.Wallet
 
   async function createClient(wallet: ethers.Wallet) {
     const kvs = new LevelKeyValueStore(
@@ -92,20 +101,22 @@ describe('light client', () => {
     const provider = new ethers.providers.JsonRpcProvider(nodeEndpoint)
     senderWallet = ethers.Wallet.createRandom().connect(provider)
     recieverWallet = ethers.Wallet.createRandom().connect(provider)
-
-    const defaultWallet1 = new ethers.Wallet(
+    operatorWallet = new ethers.Wallet(
       '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
       provider
     )
-    const defaultWallet2 = new ethers.Wallet(
-      '0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f',
-      provider
+    const kvs1 = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_' + senderWallet.address)
     )
-    await defaultWallet1.sendTransaction({
+    const kvs2 = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_' + recieverWallet.address)
+    )
+
+    await operatorWallet.sendTransaction({
       to: senderWallet.address,
       value: parseEther('1.0')
     })
-    await defaultWallet2.sendTransaction({
+    await operatorWallet.sendTransaction({
       to: recieverWallet.address,
       value: parseEther('1.0')
     })
@@ -367,14 +378,10 @@ describe('light client', () => {
       return await client['stateManager'].resolveStateUpdate(addr, amount)
     }
     const exit = async (client: LightClient, stateUpdates: any[]) => {
-      if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
-        for (const stateUpdate of stateUpdates) {
-          const exitProperty = await client['createExitProperty'](stateUpdate)
-          await client['adjudicationContract'].claimProperty(exitProperty)
-          await client['saveExit'](stateUpdate)
-        }
-      } else {
-        throw new Error('Insufficient amount')
+      for (const stateUpdate of stateUpdates) {
+        const exitProperty = await client['createExitProperty'](stateUpdate)
+        await client['adjudicationContract'].claimProperty(exitProperty)
+        await client['saveExit'](stateUpdate)
       }
     }
 
@@ -413,6 +420,104 @@ describe('light client', () => {
     expect(await getBalance(bobLightClient)).toEqual('0.4')
 
     await exit(bobLightClient, stateUpdates)
+
+    await increaseBlock()
+
+    await expect(finalizeExit(bobLightClient)).rejects.toEqual(
+      new Error('revert')
+    )
+  })
+
+  test('invalid history challenge', async () => {
+    console.log('invalid history challenge')
+    const createInvalidStateUpdate = (blockNumber: BigNumber, owner: Address) =>
+      new StateUpdate(
+        Address.from(
+          config.deployedPredicateTable.StateUpdatePredicate.deployedAddress
+        ),
+        Address.from(config.payoutContracts.DepositContract),
+        new Range(BigNumber.from(0), BigNumber.from(1000)),
+        blockNumber,
+        new Property(
+          new Address(
+            config.deployedPredicateTable.OwnershipPredicate.deployedAddress
+          ),
+          [EthCoder.encode(owner)]
+        )
+      )
+    const createBlock = (stateUpdates: StateUpdate[]) => {
+      const suMap = new Map()
+      suMap.set(config.payoutContracts.DepositContract, stateUpdates)
+      return new Block(BigNumber.from(0), suMap)
+    }
+    const submitInvalidBlock = async (blockNumber: BigNumber, block: Block) => {
+      const abi = ['function submitRoot(uint64 blkNumber, bytes32 _root)']
+      const connection = new ethers.Contract(
+        config.commitmentContract,
+        abi,
+        operatorWallet
+      )
+      await connection.submitRoot(
+        blockNumber.raw,
+        block
+          .getTree()
+          .getRoot()
+          .toHexString()
+      )
+    }
+    const exitInvalidStateUpdate = async (
+      client: LightClient,
+      stateUpdate: StateUpdate,
+      block: Block
+    ) => {
+      const inclusionProof = block.getInclusionProof(stateUpdate)
+      if (inclusionProof === null) {
+        throw new Error("stateUpdate doesn't included")
+      }
+      const exitProperty = new Property(
+        Address.from(
+          config.deployedPredicateTable.ExitPredicate.deployedAddress
+        ),
+        [stateUpdate.property.toStruct(), inclusionProof.toStruct()].map(
+          EthCoder.encode
+        )
+      )
+      await client['adjudicationContract'].claimProperty(exitProperty)
+    }
+
+    await aliceLightClient.deposit(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract
+    )
+    await sleep(10000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.5')
+
+    await aliceLightClient.transfer(
+      parseUnitsToJsbi('0.5'),
+      config.payoutContracts.DepositContract,
+      bobLightClient.address
+    )
+    await sleep(20000)
+
+    expect(await getBalance(aliceLightClient)).toEqual('0.0')
+    expect(await getBalance(bobLightClient)).toEqual('0.5')
+
+    const blockNumber: BigNumber = await aliceLightClient[
+      'commitmentContract'
+    ].getCurrentBlock()
+
+    const invalidStateUpdate = createInvalidStateUpdate(
+      blockNumber,
+      Address.from(aliceLightClient.address)
+    )
+
+    const block = createBlock([invalidStateUpdate])
+    await submitInvalidBlock(
+      BigNumber.from(Number(blockNumber.data.toString()) + 1),
+      block
+    )
+    await exitInvalidStateUpdate(aliceLightClient, invalidStateUpdate, block)
 
     await increaseBlock()
 
