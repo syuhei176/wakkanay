@@ -1,12 +1,11 @@
 import * as ethers from 'ethers'
-import { parseUnits, SigningKey } from 'ethers/utils'
+import { SigningKey } from 'ethers/utils'
 import {
   Secp256k1Signer,
   secp256k1Verifier
 } from '@cryptoeconomicslab/signature'
 import { Address, Bytes, BigNumber } from '@cryptoeconomicslab/primitives'
 import { Wallet, Balance } from '@cryptoeconomicslab/wallet'
-import JSBI from 'jsbi'
 
 const ERC20abi = [
   'function balanceOf(address tokenOwner) view returns (uint)',
@@ -40,16 +39,15 @@ export class EthWallet implements Wallet {
         this.ethersWallet.provider
       )
       const ERC20 = contract.connect(this.ethersWallet)
-      const balanceRes = await ERC20.balanceOf(this.getAddress().data)
-      value = new BigNumber(balanceRes.toString())
+      const balance = await ERC20.balanceOf(this.getAddress().data)
+      value = BigNumber.fromString(balance.toString())
       decimals = Number(await ERC20.decimals())
       symbol = await ERC20.symbol()
     } else {
-      const balanceRes = await this.ethersWallet.getBalance()
-      const balanceGwei = parseUnits(balanceRes.toString(), 'gwei')
-      value = new BigNumber(JSBI.BigInt(balanceGwei.toString()))
-      decimals = 9
-      symbol = 'gwei'
+      const balance = await this.ethersWallet.getBalance()
+      value = BigNumber.fromString(balance.toString())
+      decimals = 18
+      symbol = 'ETH'
     }
     return new Balance(value, decimals, symbol)
   }
