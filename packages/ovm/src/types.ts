@@ -94,7 +94,7 @@ const createVariableUtility = (prefix: string, prefixRegex: RegExp) => {
 }
 
 const VARIABLE_PREFIX = 'V'
-const VARIABLE_PREFIX_REGEX = /V(.*)/
+const VARIABLE_PREFIX_REGEX = /^V(.*)/
 /**
  * Free variable for property to handle quantifier.
  * free variable is a Bytes whose string representation starts from prefix __VARIABLE__.
@@ -105,7 +105,7 @@ export const FreeVariable = createVariableUtility(
 )
 
 const LABEL_PREFIX = 'L'
-const LABEL_PREFIX_REGEX = /L(.*)/
+const LABEL_PREFIX_REGEX = /^L(.*)/
 /**
  * Label variable for the label of Compiled Predicate.
  * It is used in 0th input of Compiled Predicate.
