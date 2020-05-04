@@ -14,8 +14,102 @@ import { setupContext } from '@cryptoeconomicslab/context'
 setupContext({ coder: Coder })
 
 describe('QuantifierTranslater', () => {
-  beforeEach(async () => {})
   describe('applyLibraries', () => {
+    test('nested library application', () => {
+      const parser = new Parser()
+      const library: PropertyDef[] = applyLibraries(
+        parser.parse(`
+@library
+@quantifier("v,KEY,\${c2}")
+def Q3(v, c, c2) := Equal(v, c2)
+
+@library
+@quantifier("v.\${b2},KEY,\${b}")
+def Q2(v, b, b2) := Q3(v, b).any()
+
+@library
+@quantifier("v,KEY,\${a}")
+def Q1(v, a) := Equal(v, a)`).declarations,
+        []
+      )
+
+      const input = parser.parse(`
+def origin(arg) :=
+  Q1(arg.0).all(q -> Q2(arg.0, q).all(q1 -> q1()))
+      `).declarations
+      const output = applyLibraries(input, library)
+      expect(output).toStrictEqual([
+        {
+          name: 'origin',
+          inputDefs: ['arg'],
+          body: {
+            type: 'PropertyNode',
+            predicate: 'ForAllSuchThat',
+            inputs: [
+              'v,KEY,${arg.0}',
+              'q',
+              {
+                type: 'PropertyNode',
+                predicate: 'Or',
+                inputs: [
+                  {
+                    type: 'PropertyNode',
+                    predicate: 'Not',
+                    inputs: [
+                      {
+                        type: 'PropertyNode',
+                        predicate: 'Equal',
+                        inputs: ['q', 'arg.0']
+                      }
+                    ]
+                  },
+                  {
+                    type: 'PropertyNode',
+                    predicate: 'ForAllSuchThat',
+                    inputs: [
+                      'v.${q},KEY,${arg.0}',
+                      'q1',
+                      {
+                        type: 'PropertyNode',
+                        predicate: 'Or',
+                        inputs: [
+                          {
+                            type: 'PropertyNode',
+                            predicate: 'Not',
+                            inputs: [
+                              {
+                                type: 'PropertyNode',
+                                predicate: 'ThereExistsSuchThat',
+                                inputs: [
+                                  'v,KEY,${arg.0}',
+                                  'v0',
+                                  {
+                                    type: 'PropertyNode',
+                                    predicate: 'Equal',
+                                    inputs: ['v0', 'arg.0']
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            type: 'PropertyNode',
+                            predicate: 'q1',
+                            inputs: []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          annotations: []
+        }
+      ])
+    })
+
     test('SignedBy', () => {
       const input: PropertyDef[] = [
         {
@@ -479,6 +573,16 @@ def SignedBy(sig, message, owner) := IsValidSignature(message, sig, owner)
   describe('replaceHint', () => {
     test('replace hint', () => {
       expect(replaceHint('a,b,${param}', { param: 'c' })).toStrictEqual('a,b,c')
+    })
+
+    test('replace hint replace itself', () => {
+      expect(replaceHint('a,b,${q}', { q: '${q}' })).toStrictEqual('a,b,${q}')
+    })
+
+    test('replace hint replace itself with comma', () => {
+      expect(replaceHint('a,b,${su.0}', { 'su.0': '${su.0}' })).toStrictEqual(
+        'a,b,${su.0}'
+      )
     })
   })
 

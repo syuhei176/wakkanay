@@ -1,10 +1,14 @@
-import { generateEVMByteCode } from './'
+import { generateSolidityCode } from '@cryptoeconomicslab/ovm-solidity-generator'
+import { generateEVMByteCode, SolcSettings } from './'
 import { transpile } from '@cryptoeconomicslab/ovm-transpiler'
 import { Import, Parser } from '@cryptoeconomicslab/ovm-parser'
 import fs from 'fs'
 import path from 'path'
 import { AbiCoder } from 'ethers/utils'
 const abi = new AbiCoder()
+
+const load = (loadPath: string, contractName: string) =>
+  fs.readFileSync(path.join(loadPath, contractName + '.ovm')).toString()
 
 /**
  * @name compileAllSourceFiles
@@ -14,7 +18,8 @@ const abi = new AbiCoder()
  */
 export async function compileAllSourceFiles(
   sourceDir: string,
-  outputDir: string
+  outputDir: string,
+  solcSettings: SolcSettings
 ) {
   const files = fs.readdirSync(sourceDir)
 
@@ -23,30 +28,33 @@ export async function compileAllSourceFiles(
       const ext = path.extname(f)
       if (ext == '.ovm') {
         const contractName = path.basename(f, ext)
-        const result = await compile(sourceDir, contractName)
-        fs.writeFileSync(path.join(outputDir, `${contractName}.json`), result)
+        const source = load(sourceDir, contractName)
+        const options = {
+          ovmPath: '.',
+          addressTable: {}
+        }
+        const importHandler = (_import: Import) =>
+          load(path.join(sourceDir, _import.path), _import.module)
+        const solidityCode = await generateSolidityCode(
+          source,
+          importHandler,
+          options
+        )
+        const byteCode = await generateEVMByteCode(source, importHandler, {
+          solcSettings,
+          ...options
+        })
+        console.log(
+          `${contractName} = 
+          ${JSON.parse(byteCode).evm.bytecode.object.length / 2} byte`
+        )
+        fs.writeFileSync(
+          path.join(outputDir, `${contractName}.sol`),
+          solidityCode
+        )
+        fs.writeFileSync(path.join(outputDir, `${contractName}.json`), byteCode)
       }
     })
-  )
-}
-
-const load = (loadPath: string, contractName: string) =>
-  fs.readFileSync(path.join(loadPath, contractName + '.ovm')).toString()
-
-export async function compile(
-  basePath: string,
-  contractName: string
-): Promise<string> {
-  const source = load(basePath, contractName)
-  return await generateEVMByteCode(
-    source,
-    (_import: Import) => {
-      return load(path.join(basePath, _import.path), _import.module)
-    },
-    {
-      ovmPath: '.',
-      addressTable: {}
-    }
   )
 }
 

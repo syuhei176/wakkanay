@@ -536,7 +536,7 @@ describe('SolidityCodeGenerator', () => {
         valName: 'items',
         index: 0
       })
-      expect(output).toBe('        items[0] = utils.prefixConstant(aaa);\n')
+      expect(output).toBe('        items[0] = aaa;\n')
     })
 
     test('NormalInput', async () => {

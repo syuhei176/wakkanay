@@ -8,7 +8,12 @@ import { compileAllSourceFiles } from './compileProperty'
  */
 compileAllSourceFiles(
   path.join(__dirname, '../contracts/predicate'),
-  path.join(__dirname, '../build')
+  path.join(__dirname, '../build'),
+  {
+    optimizer: {
+      enabled: true
+    }
+  }
 ).then(() => {
   console.log('all compiled')
 })

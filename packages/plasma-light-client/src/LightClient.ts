@@ -829,10 +829,9 @@ export default class LightClient {
           // challenged property is the one this client claimed
           const game = await this.adjudicationContract.getGame(challengeGameId)
           const decision = await this.deciderManager.decide(game.property)
-          if (!decision.outcome) {
+          if (!decision.outcome && decision.challenge) {
             // challenge again
-            const challenge = decision.challenges[0]
-            await this.executeChallenge(gameId, challenge)
+            await this.executeChallenge(gameId, decision.challenge)
           }
         }
       }
@@ -864,9 +863,9 @@ export default class LightClient {
             if (this.getOwner(exit.stateUpdate).data === this.address) {
               // exit initiated with this client. save exit into db
               await this.saveExit(exit.stateUpdate)
-            } else if (!decision.outcome && decision.challenges.length > 0) {
+            } else if (!decision.outcome && decision.challenge) {
               // exit is others. need to challenge
-              const challenge = decision.challenges[0]
+              const challenge = decision.challenge
               await this.executeChallenge(gameId, challenge)
             }
           }

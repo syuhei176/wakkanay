@@ -4,13 +4,12 @@ import { decodeStructable } from '@cryptoeconomicslab/coder'
 import { Parser } from '@cryptoeconomicslab/ovm-parser'
 import {
   CompiledPredicate as TranspilerCompiledPredicate,
-  NormalInput,
   AtomicProposition,
   LogicalConnective,
   IntermediateCompiledPredicate,
   transpile
 } from '@cryptoeconomicslab/ovm-transpiler'
-import { Property, FreeVariable } from '../types'
+import { Property, FreeVariable, PredicateLabel } from '../types'
 
 /**
  * When we have a property below, We can use CompiledPredicate  class to make a property from predicate and concrete inputs.
@@ -85,18 +84,16 @@ export class CompiledPredicate {
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
     const name: string = compiledProperty.inputs[0].intoString()
-    const findContract = (name: string) => {
-      return this.compiled.contracts.find(c => c.name == name)
-    }
-
-    let c = findContract(name)
-    if (!c) {
-      // If contract is not found, use entry point.
-      c = findContract(this.compiled.entryPoint)
+    const label = PredicateLabel.getVariableName(compiledProperty.inputs[0])
+    if (label === null) {
       compiledProperty.inputs.unshift(
         Bytes.fromString(this.compiled.entryPoint)
       )
     }
+    const findContract = (name: string) => {
+      return this.compiled.contracts.find(c => c.name == name)
+    }
+    const c = findContract(label || this.compiled.entryPoint)
     if (c === undefined) {
       throw new Error(`cannot find ${name} in contracts`)
     }
@@ -116,7 +113,11 @@ export class CompiledPredicate {
       def.connective == LogicalConnective.ForAllSuchThat ||
       def.connective == LogicalConnective.ThereExistsSuchThat
     ) {
-      const hint = def.inputs[0] as string
+      let hint = def.inputs[0] as string
+      // replace constant placeholders before hand
+      Object.entries(constantTable).forEach(([key, value]) => {
+        hint = hint.replace(`\${$${key}}`, value.toHexString())
+      })
       return new Property(predicateAddress, [
         Bytes.fromString(
           replaceHint(
@@ -203,6 +204,22 @@ export const createAtomicPropositionCall = (
   } else if (input.predicate.type == 'VariablePredicateCall') {
     // When predicateDef has VariablePredicate, inputs[1] must be variable name
     return FreeVariable.from(def.inputs[1] as string)
+  } else if (input.predicate.type == 'CompiledPredicateCall') {
+    const compiledPredicateAddress = context.predicateTable.get(
+      input.predicate.source
+    )
+    if (compiledPredicateAddress === undefined) {
+      throw new Error(`The address of ${input.predicate.source} not found.`)
+    }
+    // creating child property using external CompiledPredicate address
+    return ovmContext.coder.encode(
+      createChildProperty(
+        compiledPredicateAddress,
+        input,
+        context.compiledProperty,
+        context.constantTable
+      ).toStruct()
+    )
   } else {
     throw new Error('predicate must be atomic, input or variable.')
   }
@@ -233,7 +250,7 @@ const createChildProperty = (
       } else if (i.type == 'VariableInput') {
         return FreeVariable.from(i.placeholder)
       } else if (i.type == 'LabelInput') {
-        return Bytes.fromString(i.label)
+        return PredicateLabel.from(i.label)
       } else if (i.type == 'ConstantInput') {
         const constVar = constantsTable[i.name]
         if (constVar === undefined) {
@@ -271,6 +288,12 @@ export const createSubstitutions = (
         (description.children.length > 0
           ? '.' + description.children.join('.')
           : '')
+      if (!inputs[inputIndex])
+        throw new Error(
+          `Input length does not match: given ${
+            inputs.length
+          }, expected more than ${inputIndex + 1}`
+        )
       result[key] = constructInput(inputs[inputIndex], description.children)
       return result
     },

@@ -5,7 +5,8 @@ import {
   DeciderManager,
   FreeVariable,
   AtomicPredicate,
-  LogicalConnective
+  LogicalConnective,
+  PredicateLabel
 } from '../../src'
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
 import { initializeDeciderManager } from '../helpers/initiateDeciderManager'
@@ -14,14 +15,9 @@ import { setupContext } from '@cryptoeconomicslab/context'
 import { Secp256k1Signer } from '@cryptoeconomicslab/signature'
 import { Wallet } from 'ethers'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
+import { OWNERSHIP_SOURCE } from './TestSource'
 setupContext({ coder: Coder })
 
-const OWNERSHIP_SOURCE = `
-  @library
-  @quantifier("signatures,KEY,\${m}")
-  def SignedBy(sig, m, signer) := IsValidSignature(m, sig, signer, $secp256k1)
-  def ownership(owner, tx) := SignedBy(tx, owner).any()
-`
 const MESSAGE = Bytes.fromString('message')
 const SECP256K1 = Bytes.fromHexString('0x736563703235366b31')
 
@@ -59,7 +55,7 @@ describe('OwnershipProperty', () => {
   test('ownership decides to true', async () => {
     deciderManager.setDecider(predicateAddress, compiledDecider)
     const property = new Property(predicateAddress, [
-      Bytes.fromString('OwnershipT'),
+      PredicateLabel.from('OwnershipT'),
       Coder.encode(aliceAddress),
       MESSAGE
     ])
@@ -77,7 +73,7 @@ describe('OwnershipProperty', () => {
 
     expect(decision).toStrictEqual({
       witnesses: [signature],
-      challenges: [],
+      challenge: null,
       outcome: true
     })
   })
@@ -85,7 +81,7 @@ describe('OwnershipProperty', () => {
   test('ownership decides to false and challenge inputs is correct', async () => {
     deciderManager.setDecider(predicateAddress, compiledDecider)
     const property = new Property(predicateAddress, [
-      Bytes.fromString('OwnershipT'),
+      PredicateLabel.from('OwnershipT'),
       Coder.encode(aliceAddress),
       MESSAGE
     ])
@@ -125,11 +121,9 @@ describe('OwnershipProperty', () => {
     )
 
     expect(decision.outcome).toBe(false)
-    expect(decision.challenges).toStrictEqual([
-      {
-        challengeInput: null,
-        property: challengeProperty
-      }
-    ])
+    expect(decision.challenge).toStrictEqual({
+      challengeInputs: [],
+      property: challengeProperty
+    })
   })
 })

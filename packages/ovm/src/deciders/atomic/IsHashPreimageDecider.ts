@@ -24,14 +24,14 @@ export class IsHashPreimageDecider implements Decider {
     if (inputs.length !== 2) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
     const [hash, preimage] = inputs
     return {
       outcome: verifyHashPreimage(hash, preimage),
-      challenges: []
+      challenge: null
     }
   }
 }

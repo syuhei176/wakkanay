@@ -1,4 +1,3 @@
-import { Wallet } from 'ethers'
 import {
   Address,
   Range,
@@ -19,29 +18,12 @@ import {
   DeciderManager,
   LogicalConnective,
   FreeVariable,
-  encodeProperty
+  encodeProperty,
+  PredicateLabel
 } from '../../src'
 import { putWitness, replaceHint } from '@cryptoeconomicslab/db'
+import { STATEUPDATE_SOURCE } from './TestSource'
 setupContext({ coder: Coder })
-
-const STATEUPDATE_SOURCE = `
-@library
-def IsValidTx(tx, token, range, block_number) :=
-  Equal(tx.address, $txAddress)
-  and Equal(tx.0, token)
-  and IsContained(range, tx.1)
-  and IsLessThan(block_number, tx.2)
-
-@library
-@quantifier("tx.block\${b}.range\${token},RANGE,\${range}")
-def Tx(tx, token, range, b) :=
-  IsValidTx(tx, token, range, b)
-
-def stateUpdate(token, range, block_number, so) :=
-  Tx(token, range, block_number).any(tx ->
-    so(tx)
-  )
-`
 
 describe('StateUpdate', () => {
   let deciderManager: DeciderManager
@@ -65,7 +47,7 @@ describe('StateUpdate', () => {
   const blockNumber = BigNumber.from(1)
   const range = new Range(BigNumber.from(0), BigNumber.from(5))
   const inputs = [
-    Bytes.fromString('StateUpdateT'),
+    PredicateLabel.from('StateUpdateT'),
     Coder.encode(tokenAddress),
     Coder.encode(range.toStruct()),
     Coder.encode(blockNumber),
@@ -120,7 +102,7 @@ describe('StateUpdate', () => {
 
     expect(decision).toStrictEqual({
       witnesses,
-      challenges: [],
+      challenge: null,
       outcome: true
     })
   })
@@ -164,7 +146,7 @@ describe('StateUpdate', () => {
               encodeProperty(
                 Coder,
                 new Property(predicateAddress, [
-                  Bytes.fromString('StateUpdateTA'),
+                  PredicateLabel.from('StateUpdateTA'),
                   FreeVariable.from('tx'),
                   Coder.encode(tokenAddress),
                   Coder.encode(range.toStruct()),
@@ -179,8 +161,9 @@ describe('StateUpdate', () => {
     )
 
     expect(decision.outcome).toBeFalsy()
-    expect(decision.challenges).toStrictEqual([
-      { challengeInput: null, property: challengeProperty }
-    ])
+    expect(decision.challenge).toStrictEqual({
+      challengeInputs: [],
+      property: challengeProperty
+    })
   })
 })

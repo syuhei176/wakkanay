@@ -9,7 +9,7 @@ import { TraceInfo } from './Tracer'
 
 export interface Challenge {
   property: Property
-  challengeInput: Bytes | null
+  challengeInputs: Bytes[]
 }
 
 export interface Decision {
@@ -17,7 +17,7 @@ export interface Decision {
   // witnesses is empty if outcome is false
   witnesses?: Bytes[]
   // challenges is empty if outcome is true
-  challenges: Challenge[]
+  challenge: Challenge | null
   // traceInfo is the snapshot when false decision is made.
   // If outcome is true, traceInfo is undefined.
   traceInfo?: TraceInfo
@@ -73,31 +73,47 @@ export class ChallengeGame {
   ) {}
 }
 
-const VARIABLE_PREFIX = '__VARIABLE__'
-const VARIABLE_PREFIX_REGEX = /__VARIABLE__(.*)/
+const createVariableUtility = (prefix: string, prefixRegex: RegExp) => {
+  return {
+    /**
+     * return variable removing prefix if input bytes has prefix defined by prefix_regex
+     * otherwise return null
+     * @param prefixRegex
+     * @param input
+     */
+    getVariableName: (input: Bytes) => {
+      const s = input.intoString()
+      const result = prefixRegex.exec(s)
+      if (result) {
+        return result[1] || null
+      }
+      return null
+    },
+    from: (name: string): Bytes => Bytes.fromString(`${prefix}${name}`)
+  }
+}
+
+const VARIABLE_PREFIX = 'V'
+const VARIABLE_PREFIX_REGEX = /V(.*)/
 /**
  * Free variable for property to handle quantifier.
  * free variable is a Bytes whose string representation starts from prefix __VARIABLE__.
  */
-export class FreeVariable {
-  /**
-   * return variable name string if input bytes is well formed free variable
-   * otherwise return null
-   * @param input input bytes
-   */
-  static getVariableName(input: Bytes): string | null {
-    const s = input.intoString()
-    const result = VARIABLE_PREFIX_REGEX.exec(s)
-    if (result) {
-      return result[1] || null
-    }
-    return null
-  }
+export const FreeVariable = createVariableUtility(
+  VARIABLE_PREFIX,
+  VARIABLE_PREFIX_REGEX
+)
 
-  static from(name: string): Bytes {
-    return Bytes.fromString(`${VARIABLE_PREFIX}${name}`)
-  }
-}
+const LABEL_PREFIX = 'L'
+const LABEL_PREFIX_REGEX = /L(.*)/
+/**
+ * Label variable for the label of Compiled Predicate.
+ * It is used in 0th input of Compiled Predicate.
+ */
+export const PredicateLabel = createVariableUtility(
+  LABEL_PREFIX,
+  LABEL_PREFIX_REGEX
+)
 
 export enum LogicalConnective {
   And = 'And',
@@ -118,7 +134,8 @@ export enum AtomicPredicate {
   GreaterThan = 'GreaterThan',
   IsSameAmount = 'IsSameAmount',
   IsContained = 'IsContained',
-  IsHashPreimage = 'IsHashPreimage'
+  IsHashPreimage = 'IsHashPreimage',
+  IsStored = 'IsStored'
 }
 
 export type LogicalConnectiveStrings = keyof typeof LogicalConnective

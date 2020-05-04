@@ -17,7 +17,7 @@ export class IsSameAmountDecider implements Decider {
     if (inputs.length !== 2) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
@@ -28,7 +28,7 @@ export class IsSameAmountDecider implements Decider {
 
     return {
       outcome: JSBI.equal(firstAmount, secondAmount),
-      challenges: []
+      challenge: null
     }
   }
 }

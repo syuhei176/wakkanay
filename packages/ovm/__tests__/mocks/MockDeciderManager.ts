@@ -40,7 +40,7 @@ export class MockDeciderManager implements DeciderManagerInterface {
       outcome:
         property.inputs.length > 0 &&
         property.inputs[0].intoString() === 'true',
-      challenges: [],
+      challenge: null,
       traceInfo: TraceInfoCreator.create('Bool', property.inputs)
     }
   }
@@ -62,7 +62,10 @@ export class MockDeciderManager implements DeciderManagerInterface {
   async getStorageDb(): Promise<KeyValueStore> {
     return this.db
   }
+  isDecompiledProperty(property: Property) {
+    return false
+  }
   decompile(property: Property) {
-    return property
+    return null
   }
 }

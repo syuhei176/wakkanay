@@ -17,7 +17,7 @@ export class IsValidSignatureDecider implements Decider {
     if (inputs.length !== 4) {
       return {
         outcome: false,
-        challenges: []
+        challenge: null
       }
     }
 
@@ -36,7 +36,7 @@ export class IsValidSignatureDecider implements Decider {
 
     return {
       outcome: result,
-      challenges: []
+      challenge: null
     }
   }
 }

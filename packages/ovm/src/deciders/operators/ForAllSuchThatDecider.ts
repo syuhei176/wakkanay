@@ -43,18 +43,30 @@ export class ForAllSuchThatDecider implements Decider {
         if (decision.outcome) {
           return null
         }
-        // If outcome is false, add new challenge object to call challenge method in UAC.
-        const challenge: Challenge = {
-          property: new Property(
-            manager.getDeciderAddress(LogicalConnective.Not),
-            [ovmContext.coder.encode(innerProperty.toStruct())]
-          ),
-          challengeInput: q
+        let challenge: Challenge | null = null
+        if (manager.isDecompiledProperty(innerProperty)) {
+          if (decision.challenge === null) {
+            throw new Error('decision.challenge must not be null.')
+          }
+          // if `innerProperty` is the property using CompiledPredicate, ForAllSuchThatDecider should return valid challenge of "innerProperty".
+          challenge = {
+            property: decision.challenge.property,
+            challengeInputs: [q].concat(decision.challenge.challengeInputs)
+          }
+        } else {
+          // If outcome is false, add new challenge object to call challenge method in UAC.
+          challenge = {
+            property: new Property(
+              manager.getDeciderAddress(LogicalConnective.Not),
+              [ovmContext.coder.encode(innerProperty.toStruct())]
+            ),
+            challengeInputs: [q]
+          }
         }
         return {
           outcome: false,
           witnesses: [],
-          challenges: [challenge].concat(decision.challenges),
+          challenge,
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createFor(q, decision.traceInfo)
             : undefined
@@ -66,7 +78,7 @@ export class ForAllSuchThatDecider implements Decider {
       falseDecision || {
         outcome: true,
         witnesses: [],
-        challenges: []
+        challenge: null
       }
     )
   }
