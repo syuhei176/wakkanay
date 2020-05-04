@@ -2,8 +2,8 @@ FROM node:10.18.1
 WORKDIR /HOME
 
 # prepare dependency
-COPY . /HOME/wakkanay
-WORKDIR /HOME/wakkanay
+COPY . /HOME/gazelle
+WORKDIR /HOME/gazelle
 RUN npm i
 RUN npm run bootstrap
 RUN npm run build

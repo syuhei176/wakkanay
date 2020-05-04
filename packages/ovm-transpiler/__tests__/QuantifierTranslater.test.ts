@@ -463,7 +463,7 @@ def Tx(tx, token, range, block) := IsTx(tx, token, range, block)
     })
 
     test('Optimizing ThereExistsSuchThat Quantifier', () => {
-      // related issue is https://github.com/cryptoeconomicslab/wakkanay/issues/267
+      // related issue is https://github.com/cryptoeconomicslab/gazelle/issues/267
       const input: PropertyDef[] = [
         {
           annotations: [],

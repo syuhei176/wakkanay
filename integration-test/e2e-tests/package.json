@@ -1,5 +1,5 @@
 {
-  "name": "wakkanay-plasma-e2e-tests",
+  "name": "gazelle-plasma-e2e-tests",
   "version": "0.0.1",
   "description": "e2e tests",
   "scripts": {
@@ -25,15 +25,15 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@cryptoeconomicslab/context": "file:../wakkanay/packages/context",
-    "@cryptoeconomicslab/db": "file:../wakkanay/packages/db",
-    "@cryptoeconomicslab/eth-coder": "file:../wakkanay/packages/eth-coder",
-    "@cryptoeconomicslab/eth-contract": "file:../wakkanay/packages/eth-contract",
-    "@cryptoeconomicslab/eth-plasma-light-client": "file:../wakkanay/packages/eth-plasma-light-client",
-    "@cryptoeconomicslab/eth-wallet": "file:../wakkanay/packages/eth-wallet",
+    "@cryptoeconomicslab/context": "file:../gazelle/packages/context",
+    "@cryptoeconomicslab/db": "file:../gazelle/packages/db",
+    "@cryptoeconomicslab/eth-coder": "file:../gazelle/packages/eth-coder",
+    "@cryptoeconomicslab/eth-contract": "file:../gazelle/packages/eth-contract",
+    "@cryptoeconomicslab/eth-plasma-light-client": "file:../gazelle/packages/eth-plasma-light-client",
+    "@cryptoeconomicslab/eth-wallet": "file:../gazelle/packages/eth-wallet",
     "@cryptoeconomicslab/level-kvs": "0.0.6",
-    "@cryptoeconomicslab/plasma-light-client": "file:../wakkanay/packages/plasma-light-client",
-    "@cryptoeconomicslab/primitives": "file:../wakkanay/packages/primitives",
+    "@cryptoeconomicslab/plasma-light-client": "file:../gazelle/packages/plasma-light-client",
+    "@cryptoeconomicslab/primitives": "file:../gazelle/packages/primitives",
     "dotenv": "^8.2.0",
     "ethers": "4.0.47",
     "jsbi": "^3.1.2",
