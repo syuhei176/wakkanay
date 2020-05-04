@@ -35,6 +35,20 @@ describe('light client', () => {
   let senderWallet: ethers.Wallet
   let recieverWallet: ethers.Wallet
 
+  async function createClient(wallet: ethers.Wallet) {
+    const kvs = new LevelKeyValueStore(
+      Bytes.fromString('plasma_light_client_' + wallet.address)
+    )
+    const client = await initializeLightClient({
+      wallet,
+      kvs,
+      config: config as any,
+      aggregatorEndpoint
+    })
+    await client.start()
+    return client
+  }
+
   async function increaseBlock() {
     for (let i = 0; i < 10; i++) {
       await senderWallet.sendTransaction({
@@ -78,6 +92,7 @@ describe('light client', () => {
     const provider = new ethers.providers.JsonRpcProvider(nodeEndpoint)
     senderWallet = ethers.Wallet.createRandom().connect(provider)
     recieverWallet = ethers.Wallet.createRandom().connect(provider)
+
     const defaultWallet1 = new ethers.Wallet(
       '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
       provider
@@ -86,13 +101,6 @@ describe('light client', () => {
       '0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f',
       provider
     )
-    const kvs1 = new LevelKeyValueStore(
-      Bytes.fromString('plasma_light_client_' + defaultWallet1.address)
-    )
-    const kvs2 = new LevelKeyValueStore(
-      Bytes.fromString('plasma_light_client_' + defaultWallet2.address)
-    )
-
     await defaultWallet1.sendTransaction({
       to: senderWallet.address,
       value: parseEther('1.0')
@@ -102,20 +110,8 @@ describe('light client', () => {
       value: parseEther('1.0')
     })
 
-    aliceLightClient = await initializeLightClient({
-      wallet: senderWallet,
-      kvs: kvs1,
-      config: config as any,
-      aggregatorEndpoint
-    })
-    bobLightClient = await initializeLightClient({
-      wallet: recieverWallet,
-      kvs: kvs2,
-      config: config as any,
-      aggregatorEndpoint
-    })
-    await aliceLightClient.start()
-    await bobLightClient.start()
+    aliceLightClient = await createClient(senderWallet)
+    bobLightClient = await createClient(recieverWallet)
   })
 
   afterEach(async () => {
@@ -185,6 +181,11 @@ describe('light client', () => {
    * Alice exit 0.05 ETH
    */
   test('user attempts exit depositted asset', async () => {
+    const createClientFromPrivateKey = async (privateKey: string) => {
+      const provider = new ethers.providers.JsonRpcProvider(nodeEndpoint)
+      const wallet = new ethers.Wallet(privateKey, provider)
+      return await createClient(wallet)
+    }
     await aliceLightClient.deposit(
       parseUnitsToJsbi('0.1'),
       config.payoutContracts.DepositContract
@@ -198,17 +199,24 @@ describe('light client', () => {
       config.payoutContracts.DepositContract
     )
     await sleep(10000)
+    const client = await createClientFromPrivateKey(
+      aliceLightClient['wallet']['ethersWallet'].privateKey
+    )
+    await sleep(10000)
 
     expect(await getBalance(aliceLightClient)).toEqual('0.05')
 
     const exitList = await aliceLightClient.getExitList()
     expect(exitList.length).toBe(1)
+    const syncedExitList = await client.getExitList()
+    expect(syncedExitList.length).toBe(1)
 
     await increaseBlock()
 
     expect(await getL1PETHBalance(aliceLightClient)).toEqual('0.0')
     await finalizeExit(aliceLightClient)
     expect(await getL1PETHBalance(aliceLightClient)).toEqual('0.05')
+    client.stop()
   })
 
   /**

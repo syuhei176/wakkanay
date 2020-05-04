@@ -811,18 +811,31 @@ export default class LightClient {
 
     this.adjudicationContract.subscribeNewPropertyClaimed(
       async (gameId, property, createdBlock) => {
+        const deciderAddress = property.deciderAddress
+        const createExitFromProperty = (property: Property) => {
+          if (
+            deciderAddress.equals(this.deciderManager.getDeciderAddress('Exit'))
+          ) {
+            return Exit.fromProperty(property)
+          } else if (
+            deciderAddress.equals(
+              this.deciderManager.getDeciderAddress('ExitDeposit')
+            )
+          ) {
+            return ExitDeposit.fromProperty(property)
+          } else {
+            return null
+          }
+        }
         console.log(
           'property is claimed',
           gameId.toHexString(),
-          property.deciderAddress.data,
+          deciderAddress.data,
           createdBlock
         )
-        if (
-          property.deciderAddress.data ===
-          this.deciderManager.getDeciderAddress('Exit').data
-        ) {
+        const exit = createExitFromProperty(property)
+        if (exit) {
           console.log('Exit property claimed')
-          const exit = Exit.fromProperty(property)
           const { range, depositContractAddress } = exit.stateUpdate
 
           // TODO: implement general way to check if client should challenge claimed property.

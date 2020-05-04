@@ -83,7 +83,6 @@ export class CompiledPredicate {
     predicateTable: ReadonlyMap<string, Address>,
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
-    const name: string = compiledProperty.inputs[0].intoString()
     const label = PredicateLabel.getVariableName(compiledProperty.inputs[0])
     if (label === null) {
       compiledProperty.inputs.unshift(
@@ -93,7 +92,8 @@ export class CompiledPredicate {
     const findContract = (name: string) => {
       return this.compiled.contracts.find(c => c.name == name)
     }
-    const c = findContract(label || this.compiled.entryPoint)
+    const name = label || this.compiled.entryPoint
+    const c = findContract(name)
     if (c === undefined) {
       throw new Error(`cannot find ${name} in contracts`)
     }
