@@ -82,6 +82,7 @@ const createVariableUtility = (prefix: string, prefixRegex: RegExp) => {
      * @param input
      */
     getVariableName: (input: Bytes) => {
+      // TODO: we should check length of input because bytes which is larger than 32 byte must not be free variable or label
       const s = input.intoString()
       const result = prefixRegex.exec(s)
       if (result) {
