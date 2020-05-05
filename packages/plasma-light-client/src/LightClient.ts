@@ -402,15 +402,13 @@ export default class LightClient {
   }
 
   /**
-   * create exit property from StateUpdate
+   * create exit object from StateUpdate
    * If a checkpoint that is same range and block as `stateUpdate` exists, return exitDeposit property.
    * If inclusion proof for `stateUpdate` exists, return exit property.
    * otherwise throw exception
    * @param stateUpdate
    */
-  private async createExitProperty(
-    stateUpdate: StateUpdate
-  ): Promise<Property> {
+  private async createExit(stateUpdate: StateUpdate): Promise<IExit> {
     const exitPredicate = this.deciderManager.compiledPredicateMap.get('Exit')
     const exitDepositPredicate = this.deciderManager.compiledPredicateMap.get(
       'ExitDeposit'
@@ -442,7 +440,9 @@ export default class LightClient {
         inputsOfExitProperty.push(
           coder.encode(checkpoints[0].property.toStruct())
         )
-        return exitDepositPredicate.makeProperty(inputsOfExitProperty)
+        return ExitDeposit.fromProperty(
+          exitDepositPredicate.makeProperty(inputsOfExitProperty)
+        )
       }
     }
     // making exit property
@@ -458,7 +458,28 @@ export default class LightClient {
     }
     const proof = quantified[0]
     inputsOfExitProperty.push(proof)
-    return exitPredicate.makeProperty(inputsOfExitProperty)
+    return Exit.fromProperty(exitPredicate.makeProperty(inputsOfExitProperty))
+  }
+
+  /**
+   * create exit object from Property
+   * @param property
+   */
+  private createExitFromProperty(property: Property): IExit | null {
+    if (
+      property.deciderAddress.equals(
+        this.deciderManager.getDeciderAddress('Exit')
+      )
+    ) {
+      return Exit.fromProperty(property)
+    } else if (
+      property.deciderAddress.equals(
+        this.deciderManager.getDeciderAddress('ExitDeposit')
+      )
+    ) {
+      return ExitDeposit.fromProperty(property)
+    }
+    return null
   }
 
   /**
@@ -702,9 +723,9 @@ export default class LightClient {
       // resolve promises in serial to avoid an error of ethers.js on calling claimProperty
       // "the tx doesn't have the correct nonce."
       for (const stateUpdate of stateUpdates) {
-        const exitProperty = await this.createExitProperty(stateUpdate)
-        await this.adjudicationContract.claimProperty(exitProperty)
-        await this.saveExit(stateUpdate)
+        const exit = await this.createExit(stateUpdate)
+        await this.adjudicationContract.claimProperty(exit.property)
+        await this.saveExit(exit)
       }
     } else {
       throw new Error('Insufficient amount')
@@ -761,13 +782,9 @@ export default class LightClient {
         const result: IExit[] = []
         while (item !== null) {
           const p = decodeStructable(Property, coder, item.value)
-          if (
-            p.deciderAddress.data ===
-            this.deciderManager.getDeciderAddress('Exit').data
-          ) {
-            result.push(Exit.fromProperty(p))
-          } else {
-            result.push(ExitDeposit.fromProperty(p))
+          const exit = this.createExitFromProperty(p)
+          if (exit) {
+            result.push(exit)
           }
           item = await iter.next()
         }
@@ -817,12 +834,9 @@ export default class LightClient {
           property.deciderAddress.data,
           createdBlock
         )
-        if (
-          property.deciderAddress.data ===
-          this.deciderManager.getDeciderAddress('Exit').data
-        ) {
+        const exit = this.createExitFromProperty(property)
+        if (exit) {
           console.log('Exit property claimed')
-          const exit = Exit.fromProperty(property)
           const { range, depositContractAddress } = exit.stateUpdate
 
           // TODO: implement general way to check if client should challenge claimed property.
@@ -834,7 +848,7 @@ export default class LightClient {
             const decision = await this.deciderManager.decide(property)
             if (this.getOwner(exit.stateUpdate).data === this.address) {
               // exit initiated with this client. save exit into db
-              await this.saveExit(exit.stateUpdate)
+              await this.saveExit(exit)
             } else if (!decision.outcome && decision.challenge) {
               // exit is others. need to challenge
               const challenge = decision.challenge
@@ -855,10 +869,10 @@ export default class LightClient {
     await this.adjudicationContract.startWatchingEvents()
   }
 
-  private async saveExit(stateUpdate: StateUpdate) {
+  private async saveExit(exit: IExit) {
     const { coder } = ovmContext
-    const exitProperty = await this.createExitProperty(stateUpdate)
-    const propertyBytes = coder.encode(exitProperty.toStruct())
+    const stateUpdate = exit.stateUpdate
+    const propertyBytes = coder.encode(exit.property.toStruct())
     const exitDb = await this.getExitDb(stateUpdate.depositContractAddress)
     await exitDb.put(
       stateUpdate.range.start.data,
