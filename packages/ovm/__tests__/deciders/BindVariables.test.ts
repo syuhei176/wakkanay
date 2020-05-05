@@ -15,6 +15,11 @@ describe('FreeVariable', () => {
     expect(FreeVariable.getVariableName(v)).toBeNull()
   })
 
+  test('return null with bytes which has "V(0x56)" but it is not prefix', () => {
+    const v = Bytes.fromHexString('0x0000563c')
+    expect(FreeVariable.getVariableName(v)).toBeNull()
+  })
+
   test('create free variable Bytes from variable name', () => {
     const v = FreeVariable.from('n')
     expect(v.intoString()).toBe('Vn')

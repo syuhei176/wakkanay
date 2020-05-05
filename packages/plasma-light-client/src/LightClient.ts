@@ -20,8 +20,7 @@ import {
   Bytes,
   FixedBytes,
   BigNumber,
-  Range,
-  List
+  Range
 } from '@cryptoeconomicslab/primitives'
 import {
   KeyValueStore,
@@ -33,7 +32,6 @@ import {
 import {
   ICommitmentContract,
   IDepositContract,
-  IERC20Contract,
   IERC20DetailedContract,
   IAdjudicationContract,
   IOwnershipPayoutContract
@@ -86,7 +84,6 @@ interface LightClientOptions {
 }
 
 export default class LightClient {
-  private depositContracts: Map<string, IDepositContract> = new Map()
   private _syncing = false
   private ee = EventEmitter()
   private ownershipPredicate: CompiledPredicate
@@ -207,18 +204,19 @@ export default class LightClient {
       decimals: number
     }>
   > {
-    const addrs = Array.from(this.depositContracts.keys())
-    const resultPromise = addrs.map(async addr => {
-      const data = await this.stateManager.getVerifiedStateUpdates(
-        Address.from(addr),
-        new Range(BigNumber.from(0), BigNumber.MAX_NUMBER) // TODO: get all stateUpdate method
-      )
-      return {
-        depositContractAddress: addr,
-        amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
-        decimals: this.tokenManager.getDecimal(Address.from(addr))
+    const resultPromise = this.tokenManager.depositContractAddresses.map(
+      async addr => {
+        const data = await this.stateManager.getVerifiedStateUpdates(
+          addr,
+          new Range(BigNumber.from(0), BigNumber.MAX_NUMBER) // TODO: get all stateUpdate method
+        )
+        return {
+          depositContractAddress: addr.data,
+          amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
+          decimals: this.tokenManager.getDecimal(addr)
+        }
       }
-    })
+    )
     return await Promise.all(resultPromise)
   }
 
@@ -245,8 +243,8 @@ export default class LightClient {
   public stop() {
     this.adjudicationContract.unsubscribeAll()
     this.commitmentContract.unsubscribeAll()
-    Object.keys(this.depositContracts).forEach(async addr => {
-      const depositContract = this.depositContracts.get(addr)
+    this.tokenManager.depositContractAddresses.forEach(async addr => {
+      const depositContract = this.tokenManager.getDepositContract(addr)
       if (depositContract) {
         depositContract.unsubscribeAll()
       }
@@ -331,9 +329,9 @@ export default class LightClient {
 
   private async verifyPendingStateUpdates(blockNumber: BigNumber) {
     console.group('VERIFY PENDING STATE UPDATES: ', blockNumber.raw)
-    Object.keys(this.depositContracts).forEach(async addr => {
+    this.tokenManager.depositContractAddresses.forEach(async addr => {
       const pendingStateUpdates = await this.stateManager.getPendingStateUpdates(
-        Address.from(addr),
+        addr,
         new Range(BigNumber.from(0), BigNumber.MAX_NUMBER)
       )
       const verifier = new DoubleLayerTreeVerifier()
@@ -476,8 +474,8 @@ export default class LightClient {
   ) {
     const addr = Address.from(depositContractAddress)
     const myAddress = this.wallet.getAddress()
-    const depositContract = this.getDepositContract(addr)
-    const erc20Contract = this.getERC20TokenContract(addr)
+    const depositContract = this.tokenManager.getDepositContract(addr)
+    const erc20Contract = this.tokenManager.getTokenContract(addr)
     if (!depositContract || !erc20Contract) {
       throw new Error('Contract not found')
     }
@@ -588,26 +586,6 @@ export default class LightClient {
   }
 
   /**
-   * given ERC20 deposit contract address, returns corresponding deposit contract.
-   * @param depositContractAddress deposit contract address
-   */
-  private getDepositContract(
-    depositContractAddress: Address
-  ): IDepositContract | undefined {
-    return this.depositContracts.get(depositContractAddress.data)
-  }
-
-  /**
-   * given deposit contract address, returns ERC20 contract instance.
-   * @param depositContractAddress corresponding deposit contract address
-   */
-  private getERC20TokenContract(
-    depositContractAddress: Address
-  ): IERC20Contract | undefined {
-    return this.tokenManager.getTokenContract(depositContractAddress)
-  }
-
-  /**
    * register ERC20 custom token.
    * ERC20 contract wrapper is passed directly. This method should be used
    * when you want to use custom IERC20 contract. PETH contract use this method.
@@ -618,23 +596,17 @@ export default class LightClient {
     erc20Contract: IERC20DetailedContract,
     depositContract: IDepositContract
   ) {
-    const depositContractAddress = depositContract.address
-    this.depositContracts.set(depositContractAddress.data, depositContract)
-    await this.tokenManager.addTokenContract(
-      depositContractAddress,
-      erc20Contract
-    )
-
+    await this.tokenManager.addContracts(erc20Contract, depositContract)
     depositContract.subscribeDepositedRangeExtended(async (range: Range) => {
       await this.depositedRangeManager.extendRange(
-        depositContractAddress,
+        depositContract.address,
         range
       )
     })
 
     depositContract.subscribeDepositedRangeRemoved(async (range: Range) => {
       await this.depositedRangeManager.removeRange(
-        depositContractAddress,
+        depositContract.address,
         range
       )
     })
@@ -652,12 +624,12 @@ export default class LightClient {
           checkpoint[0]
         )
         await this.checkpointManager.insertCheckpoint(
-          depositContractAddress,
+          depositContract.address,
           checkpointId,
           c
         )
         await this.checkpointManager.insertCheckpointWithRange(
-          depositContractAddress,
+          depositContract.address,
           c
         )
 
@@ -665,7 +637,7 @@ export default class LightClient {
         const owner = this.getOwner(stateUpdate)
         if (owner && owner.data === this.wallet.getAddress().data) {
           await this.stateManager.insertVerifiedStateUpdate(
-            depositContractAddress,
+            depositContract.address,
             stateUpdate
           )
 
@@ -686,7 +658,7 @@ export default class LightClient {
         )
       }
     )
-    await depositContract.startWatchingEvents()
+    depositContract.startWatchingEvents()
   }
 
   /**
@@ -782,8 +754,8 @@ export default class LightClient {
   public async getExitList(): Promise<IExit[]> {
     const { coder } = ovmContext
     const exitList = await Promise.all(
-      Array.from(this.depositContracts.keys()).map(async addr => {
-        const exitDb = await this.getExitDb(Address.from(addr))
+      this.tokenManager.depositContractAddresses.map(async addr => {
+        const exitDb = await this.getExitDb(addr)
         const iter = exitDb.iter(JSBI.BigInt(0))
         let item = await iter.next()
         const result: IExit[] = []
