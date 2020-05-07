@@ -6,7 +6,7 @@ import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
 import { KeyValueStore } from '@cryptoeconomicslab/db'
 import { LevelKeyValueStore } from '@cryptoeconomicslab/level-kvs'
-import { createInclusionProofHint } from '../src/hintString'
+import { hint } from '@cryptoeconomicslab/ovm'
 
 const mockClaimProperty = jest.fn()
 const mockIsDecided = jest.fn().mockResolvedValue(true)
@@ -365,7 +365,7 @@ describe('LightClient', () => {
         su2
       )
       // store inclusion proof
-      const hint1 = createInclusionProofHint(
+      const hint1 = hint.createInclusionProofHint(
         su1.blockNumber,
         su1.depositContractAddress,
         su1.range
@@ -375,7 +375,7 @@ describe('LightClient', () => {
         hint1,
         coder.encode(proof.toStruct())
       )
-      const hint2 = createInclusionProofHint(
+      const hint2 = hint.createInclusionProofHint(
         su2.blockNumber,
         su2.depositContractAddress,
         su2.range
