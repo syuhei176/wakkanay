@@ -13,7 +13,8 @@ import {
   CompiledPredicate,
   DeciderManager,
   DeciderConfig,
-  Challenge
+  Challenge,
+  hint as Hint
 } from '@cryptoeconomicslab/ovm'
 import {
   Address,
@@ -45,7 +46,6 @@ import {
 } from '@cryptoeconomicslab/merkle-tree'
 import { Keccak256 } from '@cryptoeconomicslab/hash'
 import JSBI from 'jsbi'
-import { createInclusionProofHint } from './hintString'
 import UserAction, {
   createDepositUserAction,
   createExitUserAction,
@@ -291,7 +291,7 @@ export default class LightClient {
       )
       const promises = stateUpdates.map(async su => {
         const inclusionProof = await this.apiClient.inclusionProof(su)
-        const hint = createInclusionProofHint(
+        const hint = Hint.createInclusionProofHint(
           blockNumber,
           su.depositContractAddress,
           su.range
@@ -372,7 +372,7 @@ export default class LightClient {
           )
 
           // store inclusionProof as witness
-          const hint = createInclusionProofHint(
+          const hint = Hint.createInclusionProofHint(
             blockNumber,
             su.depositContractAddress,
             su.range
@@ -446,7 +446,7 @@ export default class LightClient {
       }
     }
     // making exit property
-    const hint = createInclusionProofHint(
+    const hint = Hint.createInclusionProofHint(
       stateUpdate.blockNumber,
       stateUpdate.depositContractAddress,
       stateUpdate.range

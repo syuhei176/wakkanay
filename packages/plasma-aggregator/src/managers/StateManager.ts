@@ -7,7 +7,8 @@ import {
 import {
   DeciderManager,
   Property,
-  CompiledPredicate
+  CompiledPredicate,
+  hint
 } from '@cryptoeconomicslab/ovm'
 import {
   Bytes,
@@ -15,7 +16,12 @@ import {
   BigNumber,
   Range
 } from '@cryptoeconomicslab/primitives'
-import { RangeDb, RangeStore, KeyValueStore } from '@cryptoeconomicslab/db'
+import {
+  RangeStore,
+  KeyValueStore,
+  RangeDb,
+  putWitness
+} from '@cryptoeconomicslab/db'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
 import JSBI from 'jsbi'
 
@@ -179,7 +185,6 @@ export default class StateManager {
   }
 
   /**
-   * // TODO: use putWitness to store data
    * store transaction and signature to witness database
    * @param witnessDb witness database
    * @param tx transaction data
@@ -190,30 +195,22 @@ export default class StateManager {
     prevBlockNumbers: BigNumber[],
     prevStateRanges: Range[]
   ) {
-    const signaturesBucket = await witnessDb.bucket(
-      Bytes.fromString('signatures')
-    )
-    const txBucket = await witnessDb.bucket(Bytes.fromString('tx'))
     for await (const [index, prevBlockNumber] of prevBlockNumbers.entries()) {
-      const blockBucket = await txBucket.bucket(
-        Bytes.fromString(
-          'block' + ovmContext.coder.encode(prevBlockNumber).toHexString()
-        )
-      )
-      const rangeBucket = await blockBucket.bucket(
-        Bytes.fromString(
-          'range' +
-            ovmContext.coder.encode(tx.depositContractAddress).toHexString()
-        )
-      )
-      const rangeDb = new RangeDb(rangeBucket)
       const message = ovmContext.coder.encode(
         tx.toProperty(Address.default()).toStruct()
       )
-      await signaturesBucket.put(message, tx.signature)
-      await rangeDb.put(
-        prevStateRanges[index].start.data,
-        prevStateRanges[index].end.data,
+      await putWitness(
+        witnessDb,
+        hint.createSignatureHint(message),
+        tx.signature
+      )
+      await putWitness(
+        witnessDb,
+        hint.createTxHint(
+          prevBlockNumber,
+          tx.depositContractAddress,
+          prevStateRanges[index]
+        ),
         message
       )
     }
