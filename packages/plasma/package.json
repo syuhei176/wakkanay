@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/plasma",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "plasma module",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -37,16 +37,16 @@
     "url": "https://github.com/cryptoeconomicslab/gazelle/issues"
   },
   "dependencies": {
-    "@cryptoeconomicslab/db": "^0.3.4",
-    "@cryptoeconomicslab/hash": "^0.3.4",
-    "@cryptoeconomicslab/merkle-tree": "^0.3.5",
-    "@cryptoeconomicslab/ovm": "^0.3.5",
+    "@cryptoeconomicslab/db": "^0.4.0",
+    "@cryptoeconomicslab/hash": "^0.4.0",
+    "@cryptoeconomicslab/merkle-tree": "^0.4.0",
+    "@cryptoeconomicslab/ovm": "^0.4.0",
     "jsbi": "^3.1.2"
   },
   "devDependencies": {
-    "@cryptoeconomicslab/coder": "^0.3.4",
-    "@cryptoeconomicslab/context": "^0.3.4",
-    "@cryptoeconomicslab/primitives": "^0.3.4"
+    "@cryptoeconomicslab/coder": "^0.4.0",
+    "@cryptoeconomicslab/context": "^0.4.0",
+    "@cryptoeconomicslab/primitives": "^0.4.0"
   },
   "peerDependencies": {
     "@cryptoeconomicslab/primitives": "^0.0.36"
