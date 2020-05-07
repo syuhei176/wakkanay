@@ -37,3 +37,14 @@ export const createSignatureHint = (message: Bytes) => {
     m: message
   })
 }
+
+export const createRootHint = (
+  blockNumber: BigNumber,
+  commitmentContractAddress: Address
+) => {
+  const { coder } = ovmContext
+  return replaceHint('stored.${contract},KEY,${key}', {
+    contract: coder.encode(commitmentContractAddress),
+    key: coder.encode(blockNumber)
+  })
+}

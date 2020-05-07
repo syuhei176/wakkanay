@@ -20,7 +20,7 @@ import {
   Block,
   PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
-import { KeyValueStore } from '@cryptoeconomicslab/db'
+import { KeyValueStore, getWitnesses } from '@cryptoeconomicslab/db'
 import {
   ICommitmentContract,
   IDepositContract
@@ -28,10 +28,16 @@ import {
 import { Wallet } from '@cryptoeconomicslab/wallet'
 
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import JSBI from 'jsbi'
 
 import { BlockManager, StateManager } from './managers'
 import { sleep } from './utils'
 import cors from 'cors'
+import { DoubleLayerInclusionProof } from '@cryptoeconomicslab/merkle-tree'
+import {
+  createTxHint,
+  createSignatureHint
+} from '@cryptoeconomicslab/ovm/lib/hintString'
 
 export default class Aggregator {
   readonly decider: DeciderManager
@@ -110,6 +116,12 @@ export default class Aggregator {
       '/inclusion_proof',
       this.handleGetInclusionProof.bind(this)
     )
+    this.httpServer.get(
+      '/inclusion_proofs',
+      this.handleGetInclusionProofs.bind(this)
+    )
+    this.httpServer.get('/state_updates', this.handleGetStateUpdates.bind(this))
+    this.httpServer.get('/transactions', this.handleGetTransactions.bind(this))
 
     this.httpServer.listen(this.option.port, () =>
       console.log(`server is listening on port ${this.option.port}!`)
@@ -239,6 +251,168 @@ export default class Aggregator {
     } catch (e) {
       res.status(404).end()
     }
+  }
+
+  /**
+   * get inclusion proofs for given range of stateUpdates until
+   * blockNumber specified with request parameter
+   */
+  private async handleGetInclusionProofs(req: Request, res: Response) {
+    const { coder } = ovmContext
+    let blockNumber: BigNumber, range: Range, address: Address
+    try {
+      blockNumber = BigNumber.from(req.query.blockNumber)
+      range = decodeStructable(
+        Range,
+        coder,
+        Bytes.fromHexString(req.query.range)
+      )
+      address = Address.from(req.query.address)
+    } catch (e) {
+      res
+        .status(400)
+        .send('Invalid request arguments')
+        .end()
+      return
+    }
+
+    // get inclusionProofs
+    let inclusionProofs: string[] = []
+    for (
+      let b = JSBI.BigInt(0);
+      JSBI.lessThanOrEqual(blockNumber.data, b);
+      b = JSBI.add(b, JSBI.BigInt(1))
+    ) {
+      const block = await this.blockManager.getBlock(BigNumber.from(b))
+      if (!block) {
+        res
+          .status(400)
+          .send(
+            `Invalid request with blockNumber: ${blockNumber.data.toString()}`
+          )
+          .end()
+        return
+      }
+
+      // TODO: have to resolve with depositContractAddress
+      const sus = await this.stateManager.resolveStateUpdates(
+        range.start,
+        range.end
+      )
+      inclusionProofs = inclusionProofs.concat(
+        sus
+          .map(block.getInclusionProof)
+          .filter<DoubleLayerInclusionProof>(
+            (p): p is DoubleLayerInclusionProof => !!p
+          )
+          .map((p: DoubleLayerInclusionProof) =>
+            coder.encode(p.toStruct()).toHexString()
+          )
+      )
+    }
+    res.send({
+      data: inclusionProofs
+    })
+    res.status(200).end()
+  }
+
+  private async handleGetStateUpdates(req: Request, res: Response) {
+    // get parameters
+    const { coder } = ovmContext
+    let blockNumber: BigNumber, range: Range, address: Address
+    try {
+      blockNumber = BigNumber.from(req.query.blockNumber)
+      range = decodeStructable(
+        Range,
+        coder,
+        Bytes.fromHexString(req.query.range)
+      )
+      address = Address.from(req.query.address)
+    } catch (e) {
+      res
+        .status(400)
+        .send('Invalid request arguments')
+        .end()
+      return
+    }
+
+    // get stateUpdates
+    let stateUpdates: string[] = []
+    for (
+      let b = JSBI.BigInt(0);
+      JSBI.lessThanOrEqual(blockNumber.data, b);
+      b = JSBI.add(b, JSBI.BigInt(1))
+    ) {
+      const block = await this.blockManager.getBlock(BigNumber.from(b))
+      if (!block) {
+        res
+          .status(400)
+          .send(
+            `Invalid request with blockNumber: ${blockNumber.data.toString()}`
+          )
+          .end()
+        return
+      }
+
+      // TODO: have to resolve with depositContractAddress
+      const sus = await this.stateManager.resolveStateUpdates(
+        range.start,
+        range.end
+      )
+      stateUpdates = stateUpdates.concat(
+        sus.map(su => coder.encode(su.property.toStruct()).toHexString())
+      )
+    }
+    res.send({
+      data: stateUpdates
+    })
+    res.status(200).end()
+  }
+
+  private async handleGetTransactions(req: Request, res: Response) {
+    // get parameters
+    const { coder } = ovmContext
+    let blockNumber: BigNumber, range: Range, address: Address
+    try {
+      blockNumber = BigNumber.from(req.query.blockNumber)
+      range = decodeStructable(
+        Range,
+        coder,
+        Bytes.fromHexString(req.query.range)
+      )
+      address = Address.from(req.query.address)
+    } catch (e) {
+      res
+        .status(400)
+        .send('Invalid request arguments')
+        .end()
+      return
+    }
+
+    // get transactions
+    let transactions: Array<{ tx: string; witness: string }> = []
+    for (
+      let b = JSBI.BigInt(0);
+      JSBI.lessThanOrEqual(blockNumber.data, b);
+      b = JSBI.add(b, JSBI.BigInt(1))
+    ) {
+      const hint = createTxHint(BigNumber.from(b), address, range)
+      const txs = await Promise.all(
+        (await getWitnesses(this.decider.witnessDb, hint)).map(async b => {
+          const witness = await getWitnesses(
+            this.decider.witnessDb,
+            createSignatureHint(b)
+          )
+          return { tx: b.toHexString(), witness: witness[0].toHexString() }
+        })
+      )
+
+      transactions = transactions.concat(txs)
+    }
+    res.send({
+      data: transactions
+    })
+    res.status(200).end()
   }
 
   /**

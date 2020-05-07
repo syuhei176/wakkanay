@@ -16,12 +16,7 @@ import {
   BigNumber,
   Range
 } from '@cryptoeconomicslab/primitives'
-import {
-  RangeStore,
-  KeyValueStore,
-  RangeDb,
-  putWitness
-} from '@cryptoeconomicslab/db'
+import { RangeStore, KeyValueStore, putWitness } from '@cryptoeconomicslab/db'
 import { decodeStructable } from '@cryptoeconomicslab/coder'
 import JSBI from 'jsbi'
 
@@ -130,6 +125,7 @@ export default class StateManager {
       )
     )
 
+    // store data in witness db
     await this.db.put(
       tx.range.start.data,
       tx.range.end.data,

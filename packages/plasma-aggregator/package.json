@@ -32,6 +32,7 @@
     "@cryptoeconomicslab/coder": "^0.4.0",
     "@cryptoeconomicslab/contract": "^0.4.0",
     "@cryptoeconomicslab/db": "^0.4.0",
+    "@cryptoeconomicslab/merkle-tree": "^0.4.0",
     "@cryptoeconomicslab/ovm": "^0.4.0",
     "@cryptoeconomicslab/plasma": "^0.4.0",
     "@cryptoeconomicslab/wallet": "^0.4.0",
