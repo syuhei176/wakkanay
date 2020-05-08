@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { BigNumber } from '@cryptoeconomicslab/primitives'
+import { Address, BigNumber, Range } from '@cryptoeconomicslab/primitives'
 import { StateUpdate, Transaction } from '@cryptoeconomicslab/plasma'
 
 class APIClient {
@@ -29,6 +29,15 @@ class APIClient {
     return axios.post(`${this.endpoint}/send_tx`, {
       data
     })
+  }
+  checkpointWitness(address: Address, blockNumber: BigNumber, range: Range) {
+    return axios.get(
+      `${this.endpoint}/checkpoint_witness?address=${
+        address.data
+      }&blockNumber=${blockNumber.data.toString()}&range=${ovmContext.coder.encode(
+        range.toStruct()
+      )}`
+    )
   }
 }
 
