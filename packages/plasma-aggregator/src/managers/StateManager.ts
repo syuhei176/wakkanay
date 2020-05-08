@@ -1,7 +1,6 @@
 import {
   StateUpdate,
   Transaction,
-  StateUpdateRecord,
   DepositTransaction
 } from '@cryptoeconomicslab/plasma'
 import {
@@ -17,18 +16,30 @@ import {
   Range
 } from '@cryptoeconomicslab/primitives'
 import { RangeStore, KeyValueStore, putWitness } from '@cryptoeconomicslab/db'
-import { decodeStructable } from '@cryptoeconomicslab/coder'
 import JSBI from 'jsbi'
 
 export default class StateManager {
   constructor(private db: RangeStore) {}
 
   public async resolveStateUpdates(
+    address: Address,
     start: BigNumber,
     end: BigNumber
   ): Promise<StateUpdate[]> {
-    return (await this.db.get(start.data, end.data)).map(
+    const bucket = await this.db.bucket(Bytes.fromHexString(address.data))
+    return (await bucket.get(start.data, end.data)).map(
       StateUpdate.fromRangeRecord
+    )
+  }
+
+  private async putStateUpdate(su: StateUpdate) {
+    const bucket = await this.db.bucket(
+      Bytes.fromHexString(su.depositContractAddress.data)
+    )
+    await bucket.put(
+      su.range.start.data,
+      su.range.end.data,
+      ovmContext.coder.encode(su.toRecord().toStruct())
     )
   }
 
@@ -48,14 +59,11 @@ export default class StateManager {
     console.log('execute state transition', tx.range)
     const range = tx.range
 
-    const prevStates = (
-      await this.db.get(range.start.data, range.end.data)
-    ).map(r => {
-      return StateUpdate.fromRecord(
-        decodeStructable(StateUpdateRecord, ovmContext.coder, r.value),
-        new Range(r.start, r.end)
-      )
-    })
+    const prevStates = await this.resolveStateUpdates(
+      tx.depositContractAddress,
+      range.start,
+      range.end
+    )
 
     if (prevStates.length === 0) {
       throw new Error('InvalidTransaction')
@@ -125,13 +133,8 @@ export default class StateManager {
       )
     )
 
-    // store data in witness db
-    await this.db.put(
-      tx.range.start.data,
-      tx.range.end.data,
-      ovmContext.coder.encode(nextStateUpdate.toRecord().toStruct())
-    )
-
+    // store data in db
+    await this.putStateUpdate(nextStateUpdate)
     return nextStateUpdate
   }
 
@@ -147,11 +150,7 @@ export default class StateManager {
     console.log('insertDepositRange: ', tx)
     const stateUpdate = StateUpdate.fromProperty(tx.stateUpdate)
     stateUpdate.update({ blockNumber })
-    await this.db.put(
-      stateUpdate.range.start.data,
-      stateUpdate.range.end.data,
-      ovmContext.coder.encode(stateUpdate.toRecord().toStruct())
-    )
+    await this.putStateUpdate(stateUpdate)
   }
 
   /**
@@ -159,12 +158,18 @@ export default class StateManager {
    * @param addr owner address
    */
   public async queryOwnershipyStateUpdates(
+    depositContractAddress: Address,
     ownershipPredicateAddress: Address,
     addr: Address,
     blockNumber?: BigNumber
   ) {
-    return (await this.db.get(JSBI.BigInt(0), BigNumber.MAX_NUMBER.data))
-      .map(StateUpdate.fromRangeRecord)
+    return (
+      await this.resolveStateUpdates(
+        depositContractAddress,
+        BigNumber.from(JSBI.BigInt(0)),
+        BigNumber.MAX_NUMBER
+      )
+    )
       .filter(su =>
         blockNumber ? JSBI.equal(su.blockNumber.data, blockNumber.data) : true
       )

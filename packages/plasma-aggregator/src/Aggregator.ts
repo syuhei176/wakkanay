@@ -33,7 +33,6 @@ import JSBI from 'jsbi'
 import { BlockManager, StateManager } from './managers'
 import { sleep } from './utils'
 import cors from 'cors'
-import { DoubleLayerInclusionProof } from '@cryptoeconomicslab/merkle-tree'
 import {
   createTxHint,
   createSignatureHint
@@ -117,12 +116,9 @@ export default class Aggregator {
       this.handleGetInclusionProof.bind(this)
     )
     this.httpServer.get(
-      '/inclusion_proofs',
-      this.handleGetInclusionProofs.bind(this)
+      '/checkpoint_witness',
+      this.handleGetCheckpointWitness.bind(this)
     )
-    this.httpServer.get('/state_updates', this.handleGetStateUpdates.bind(this))
-    this.httpServer.get('/transactions', this.handleGetTransactions.bind(this))
-
     this.httpServer.listen(this.option.port, () =>
       console.log(`server is listening on port ${this.option.port}!`)
     )
@@ -174,18 +170,20 @@ export default class Aggregator {
   }
 
   private handleGetSyncState(req: Request, res: Response) {
-    let addr
+    let addr, depositContractAddress
     const blockNumber = req.query.blockNumber
       ? BigNumber.from(Number(req.query.blockNumber))
       : undefined
 
     try {
       addr = Address.from(req.query.address)
+      depositContractAddress = Address.from(req.query.address)
     } catch (e) {
       return res.status(400).end()
     }
     this.stateManager
       .queryOwnershipyStateUpdates(
+        depositContractAddress,
         this.ownershipPredicate.deployedAddress,
         addr,
         blockNumber
@@ -257,7 +255,7 @@ export default class Aggregator {
    * get inclusion proofs for given range of stateUpdates until
    * blockNumber specified with request parameter
    */
-  private async handleGetInclusionProofs(req: Request, res: Response) {
+  private async handleGetCheckpointWitness(req: Request, res: Response) {
     const { coder } = ovmContext
     let blockNumber: BigNumber, range: Range, address: Address
     try {
@@ -277,7 +275,11 @@ export default class Aggregator {
     }
 
     // get inclusionProofs
-    let inclusionProofs: string[] = []
+    let witnesses: Array<{
+      stateUpdate: string
+      transactions: Array<{ tx: string; witness: string }>
+      inclusionProof: string
+    }> = []
     for (
       let b = JSBI.BigInt(0);
       JSBI.lessThanOrEqual(blockNumber.data, b);
@@ -296,121 +298,42 @@ export default class Aggregator {
 
       // TODO: have to resolve with depositContractAddress
       const sus = await this.stateManager.resolveStateUpdates(
+        address,
         range.start,
         range.end
       )
-      inclusionProofs = inclusionProofs.concat(
-        sus
-          .map(block.getInclusionProof)
-          .filter<DoubleLayerInclusionProof>(
-            (p): p is DoubleLayerInclusionProof => !!p
-          )
-          .map((p: DoubleLayerInclusionProof) =>
-            coder.encode(p.toStruct()).toHexString()
-          )
+      witnesses = witnesses.concat(
+        await Promise.all(
+          sus.map(async su => {
+            const inclusionProof = block.getInclusionProof(su)
+            if (!inclusionProof) return res.status(500).end()
+            const hint = createTxHint(BigNumber.from(b), address, range)
+            const txs = await Promise.all(
+              (await getWitnesses(this.decider.witnessDb, hint)).map(
+                async b => {
+                  const witness = await getWitnesses(
+                    this.decider.witnessDb,
+                    createSignatureHint(b)
+                  )
+                  return {
+                    tx: b.toHexString(),
+                    witness: witness[0].toHexString()
+                  }
+                }
+              )
+            )
+            return {
+              stateUpdate: coder.encode(su.property.toStruct()),
+              inclusionProof: coder.encode(inclusionProof.toStruct()),
+              transactions: txs
+            }
+          })
+        )
       )
     }
+
     res.send({
-      data: inclusionProofs
-    })
-    res.status(200).end()
-  }
-
-  private async handleGetStateUpdates(req: Request, res: Response) {
-    // get parameters
-    const { coder } = ovmContext
-    let blockNumber: BigNumber, range: Range, address: Address
-    try {
-      blockNumber = BigNumber.from(req.query.blockNumber)
-      range = decodeStructable(
-        Range,
-        coder,
-        Bytes.fromHexString(req.query.range)
-      )
-      address = Address.from(req.query.address)
-    } catch (e) {
-      res
-        .status(400)
-        .send('Invalid request arguments')
-        .end()
-      return
-    }
-
-    // get stateUpdates
-    let stateUpdates: string[] = []
-    for (
-      let b = JSBI.BigInt(0);
-      JSBI.lessThanOrEqual(blockNumber.data, b);
-      b = JSBI.add(b, JSBI.BigInt(1))
-    ) {
-      const block = await this.blockManager.getBlock(BigNumber.from(b))
-      if (!block) {
-        res
-          .status(400)
-          .send(
-            `Invalid request with blockNumber: ${blockNumber.data.toString()}`
-          )
-          .end()
-        return
-      }
-
-      // TODO: have to resolve with depositContractAddress
-      const sus = await this.stateManager.resolveStateUpdates(
-        range.start,
-        range.end
-      )
-      stateUpdates = stateUpdates.concat(
-        sus.map(su => coder.encode(su.property.toStruct()).toHexString())
-      )
-    }
-    res.send({
-      data: stateUpdates
-    })
-    res.status(200).end()
-  }
-
-  private async handleGetTransactions(req: Request, res: Response) {
-    // get parameters
-    const { coder } = ovmContext
-    let blockNumber: BigNumber, range: Range, address: Address
-    try {
-      blockNumber = BigNumber.from(req.query.blockNumber)
-      range = decodeStructable(
-        Range,
-        coder,
-        Bytes.fromHexString(req.query.range)
-      )
-      address = Address.from(req.query.address)
-    } catch (e) {
-      res
-        .status(400)
-        .send('Invalid request arguments')
-        .end()
-      return
-    }
-
-    // get transactions
-    let transactions: Array<{ tx: string; witness: string }> = []
-    for (
-      let b = JSBI.BigInt(0);
-      JSBI.lessThanOrEqual(blockNumber.data, b);
-      b = JSBI.add(b, JSBI.BigInt(1))
-    ) {
-      const hint = createTxHint(BigNumber.from(b), address, range)
-      const txs = await Promise.all(
-        (await getWitnesses(this.decider.witnessDb, hint)).map(async b => {
-          const witness = await getWitnesses(
-            this.decider.witnessDb,
-            createSignatureHint(b)
-          )
-          return { tx: b.toHexString(), witness: witness[0].toHexString() }
-        })
-      )
-
-      transactions = transactions.concat(txs)
-    }
-    res.send({
-      data: transactions
+      data: witnesses
     })
     res.status(200).end()
   }
@@ -450,6 +373,7 @@ export default class Aggregator {
     console.log('transaction received: ', tx.range, tx.depositContractAddress)
     const nextBlockNumber = await this.blockManager.getNextBlockNumber()
     const stateUpdates = await this.stateManager.resolveStateUpdates(
+      tx.depositContractAddress,
       tx.range.start,
       tx.range.end
     )
