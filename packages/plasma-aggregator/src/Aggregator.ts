@@ -231,12 +231,14 @@ export default class Aggregator {
       )
       this.blockManager.getBlock(blockNumber).then(block => {
         if (!block) {
+          console.log('block not found')
           res.status(404)
           res.end()
           return
         }
         const proof = block.getInclusionProof(stateUpdate)
         if (!proof) {
+          console.log('proof not found')
           res.status(404)
           res.end()
           return
@@ -247,6 +249,7 @@ export default class Aggregator {
         res.status(200).end()
       })
     } catch (e) {
+      console.log('not found because', e)
       res.status(404).end()
     }
   }

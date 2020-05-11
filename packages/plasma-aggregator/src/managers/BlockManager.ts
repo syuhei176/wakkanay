@@ -142,7 +142,7 @@ export default class BlockManager {
       BigNumber.from(JSBI.add(blockNumber.data, JSBI.BigInt(1))),
       stateUpdatesMap
     )
-    this.putBlock(block)
+    await this.putBlock(block)
 
     return block
   }

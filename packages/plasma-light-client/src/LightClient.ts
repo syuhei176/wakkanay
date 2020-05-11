@@ -323,8 +323,8 @@ export default class LightClient {
         )
       )
       const promises = stateUpdates.map(async su => {
-        const verified = await this.verifyStateUpdateHistory(su, blockNumber)
-        if (!verified) return
+        // const verified = await this.verifyStateUpdateHistory(su, blockNumber)
+        // if (!verified) return
 
         await this.stateManager.insertVerifiedStateUpdate(
           su.depositContractAddress,
@@ -374,7 +374,13 @@ export default class LightClient {
         console.info(
           `Verify pended state update: (${su.range.start.data.toString()}, ${su.range.end.data.toString()})`
         )
-        const res = await this.apiClient.inclusionProof(su)
+        let res
+        try {
+          res = await this.apiClient.inclusionProof(su)
+        } catch (e) {
+          console.log('requesting inclusion proof failed')
+          console.log(e)
+        }
         if (res.status === 404) {
           return
         }
@@ -715,7 +721,13 @@ export default class LightClient {
       })
     )
 
-    const res = await this.apiClient.sendTransaction(transactions)
+    let res
+    try {
+      res = await this.apiClient.sendTransaction(transactions)
+    } catch (e) {
+      console.log('requesting send transaction failed')
+      console.log(e)
+    }
 
     if (Array.isArray(res.data)) {
       const receipts = res.data.map(d => {
