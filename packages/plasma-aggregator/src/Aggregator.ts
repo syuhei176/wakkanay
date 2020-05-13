@@ -33,10 +33,7 @@ import JSBI from 'jsbi'
 import { BlockManager, StateManager } from './managers'
 import { sleep } from './utils'
 import cors from 'cors'
-import {
-  createTxHint,
-  createSignatureHint
-} from '@cryptoeconomicslab/ovm/lib/hintString'
+import { createSignatureHint } from '@cryptoeconomicslab/ovm/lib/hintString'
 
 export default class Aggregator {
   readonly decider: DeciderManager
@@ -169,37 +166,45 @@ export default class Aggregator {
       })
   }
 
-  private handleGetSyncState(req: Request, res: Response) {
-    let addr, depositContractAddress
+  private async handleGetSyncState(req: Request, res: Response) {
+    let addr: Address
     const blockNumber = req.query.blockNumber
       ? BigNumber.from(Number(req.query.blockNumber))
       : undefined
 
     try {
       addr = Address.from(req.query.address)
-      depositContractAddress = Address.from(req.query.address)
     } catch (e) {
       return res.status(400).end()
     }
-    this.stateManager
-      .queryOwnershipyStateUpdates(
-        depositContractAddress,
-        this.ownershipPredicate.deployedAddress,
-        addr,
-        blockNumber
-      )
-      .then(data => {
-        res.send(
-          data.map(s =>
+    try {
+      const stateUpdates = (
+        await Promise.all(
+          this.depositContracts
+            .map(d => d.address)
+            .map(async depositContractAddress => {
+              return await this.stateManager.queryOwnershipyStateUpdates(
+                depositContractAddress,
+                this.ownershipPredicate.deployedAddress,
+                addr,
+                blockNumber
+              )
+            })
+        )
+      ).reduce((acc, val) => [...acc, ...val], [])
+      console.log(stateUpdates)
+      res
+        .send(
+          stateUpdates.map(s =>
             ovmContext.coder.encode(s.property.toStruct()).toHexString()
           )
         )
-        res.status(200).end()
-      })
-      .catch(e => {
-        console.log(e)
-        res.status(500).end()
-      })
+        .status(200)
+        .end()
+    } catch (e) {
+      console.log(e)
+      res.status(500).end()
+    }
   }
 
   private handleGetBlock(req: Request, res: Response) {
@@ -231,14 +236,12 @@ export default class Aggregator {
       )
       this.blockManager.getBlock(blockNumber).then(block => {
         if (!block) {
-          console.log('block not found')
           res.status(404)
           res.end()
           return
         }
         const proof = block.getInclusionProof(stateUpdate)
         if (!proof) {
-          console.log('proof not found')
           res.status(404)
           res.end()
           return
@@ -249,7 +252,7 @@ export default class Aggregator {
         res.status(200).end()
       })
     } catch (e) {
-      console.log('not found because', e)
+      console.log(e)
       res.status(404).end()
     }
   }
@@ -280,12 +283,12 @@ export default class Aggregator {
     // get inclusionProofs
     let witnesses: Array<{
       stateUpdate: string
-      transactions: Array<{ tx: string; witness: string }>
+      transaction: { tx: string; witness: string }
       inclusionProof: string
     }> = []
     for (
-      let b = JSBI.BigInt(0);
-      JSBI.lessThanOrEqual(blockNumber.data, b);
+      let b = JSBI.BigInt(1);
+      JSBI.lessThanOrEqual(b, blockNumber.data);
       b = JSBI.add(b, JSBI.BigInt(1))
     ) {
       const block = await this.blockManager.getBlock(BigNumber.from(b))
@@ -299,7 +302,6 @@ export default class Aggregator {
         return
       }
 
-      // TODO: have to resolve with depositContractAddress
       const sus = await this.stateManager.resolveStateUpdates(
         address,
         range.start,
@@ -309,26 +311,41 @@ export default class Aggregator {
         await Promise.all(
           sus.map(async su => {
             const inclusionProof = block.getInclusionProof(su)
-            if (!inclusionProof) return res.status(500).end()
-            const hint = createTxHint(BigNumber.from(b), address, range)
-            const txs = await Promise.all(
-              (await getWitnesses(this.decider.witnessDb, hint)).map(
-                async b => {
-                  const witness = await getWitnesses(
-                    this.decider.witnessDb,
-                    createSignatureHint(b)
-                  )
-                  return {
-                    tx: b.toHexString(),
-                    witness: witness[0].toHexString()
-                  }
-                }
+            if (!inclusionProof) {
+              return res
+                .send('InclusionProof not found')
+                .status(404)
+                .end()
+            }
+            const tx = await this.stateManager.getTx(
+              address,
+              blockNumber,
+              su.range
+            )
+            if (!tx)
+              return res
+                .send('Transaction not found')
+                .status(404)
+                .end()
+            const b = coder.encode(tx.toStruct())
+            const witness = await getWitnesses(
+              this.decider.witnessDb,
+              createSignatureHint(
+                coder.encode(tx.toProperty(Address.default()).toStruct())
               )
             )
+
+            const txs = {
+              tx: b.toHexString(),
+              witness: witness[0].toHexString()
+            }
+
             return {
-              stateUpdate: coder.encode(su.property.toStruct()),
-              inclusionProof: coder.encode(inclusionProof.toStruct()),
-              transactions: txs
+              stateUpdate: coder.encode(su.property.toStruct()).toHexString(),
+              inclusionProof: coder
+                .encode(inclusionProof.toStruct())
+                .toHexString(),
+              transaction: txs
             }
           })
         )

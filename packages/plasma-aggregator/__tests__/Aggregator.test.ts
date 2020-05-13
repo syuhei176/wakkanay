@@ -205,9 +205,12 @@ describe('Aggregator integration', () => {
     const receipt = await aggregator['ingestTransaction'](tx)
     expect(receipt.status).toBe(TRANSACTION_STATUS.TRUE)
 
-    const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
-    expect(result.length).toBe(2)
-    const stateUpdates = result.map(StateUpdate.fromRangeRecord)
+    const stateUpdates = await aggregator['stateManager'].resolveStateUpdates(
+      depositContractAddress,
+      BigNumber.from(0),
+      BigNumber.from(100)
+    )
+    expect(stateUpdates.length).toBe(2)
     expect(stateUpdates).toEqual([
       new StateUpdate(
         decider.getDeciderAddress('StateUpdate'),

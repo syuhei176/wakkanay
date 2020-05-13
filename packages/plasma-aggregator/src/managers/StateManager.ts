@@ -18,6 +18,9 @@ import {
 import { RangeStore, KeyValueStore, putWitness } from '@cryptoeconomicslab/db'
 import JSBI from 'jsbi'
 
+/**
+ * StateManager stores the latest states
+ */
 export default class StateManager {
   constructor(private db: RangeStore) {}
 
@@ -57,8 +60,8 @@ export default class StateManager {
     deciderManager: DeciderManager
   ): Promise<StateUpdate> {
     console.log('execute state transition', tx.range)
+    const { coder } = ovmContext
     const range = tx.range
-
     const prevStates = await this.resolveStateUpdates(
       tx.depositContractAddress,
       range.start,
@@ -122,7 +125,7 @@ export default class StateManager {
       nextBlockNumber,
       tx.stateObject.toStruct(),
       tx.range.toStruct()
-    ].map(ovmContext.coder.encode)
+    ].map(coder.encode)
 
     const nextStateUpdate = StateUpdate.fromProperty(
       new Property(
@@ -134,6 +137,16 @@ export default class StateManager {
     )
 
     // store data in db
+    const txBucket = await this.db.bucket(Bytes.fromString('TX'))
+    const blockBucket = await txBucket.bucket(coder.encode(nextBlockNumber))
+    const addrBucket = await blockBucket.bucket(
+      Bytes.fromHexString(nextStateUpdate.depositContractAddress.data)
+    )
+    await addrBucket.put(
+      nextStateUpdate.range.start.data,
+      nextStateUpdate.range.end.data,
+      coder.encode(tx.toStruct())
+    )
     await this.putStateUpdate(nextStateUpdate)
     return nextStateUpdate
   }
@@ -215,5 +228,23 @@ export default class StateManager {
         message
       )
     }
+  }
+
+  public async getTx(
+    depositContractAddress: Address,
+    blockNumber: BigNumber,
+    range: Range
+  ) {
+    const { coder } = ovmContext
+    const txBucket = await this.db.bucket(Bytes.fromString('TX'))
+    const blockBucket = await txBucket.bucket(coder.encode(blockNumber))
+    const addrBucket = await blockBucket.bucket(
+      Bytes.fromHexString(depositContractAddress.data)
+    )
+    const ranges = await addrBucket.get(range.start.data, range.end.data)
+    if (ranges.length == 0) return null
+    return Transaction.fromStruct(
+      ovmContext.coder.decode(Transaction.getParamTypes(), ranges[0].value)
+    )
   }
 }
