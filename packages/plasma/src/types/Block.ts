@@ -38,8 +38,9 @@ export default class Block {
       stateUpdate.range.start,
       FixedBytes.from(
         32,
-        Keccak256.hash(ovmContext.coder.encode(stateUpdate.property.toStruct()))
-          .data
+        Keccak256.hash(
+          ovmContext.coder.encode(stateUpdate.stateObject.toStruct())
+        ).data
       )
     )
   }
