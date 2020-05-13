@@ -120,7 +120,9 @@ export class DeciderManager implements DeciderManagerInterface {
       }
       return decision
     } else {
-      throw new Error('Decider not found')
+      throw new Error(
+        'Decider not found: ' + property.deciderAddress.toString()
+      )
     }
   }
 
