@@ -314,6 +314,13 @@ export default class LightClient {
       rootHint,
       coder.encode(root)
     )
+    const storageDb = await this.deciderManager.getStorageDb()
+    const bucket = await storageDb.bucket(
+      Bytes.fromHexString(
+        this.deciderConfig.constantVariableTable.commitmentContract
+      )
+    )
+    await bucket.put(coder.encode(blockNumber), coder.encode(root))
 
     try {
       const res = await this.apiClient.syncState(this.address, blockNumber)
@@ -323,8 +330,12 @@ export default class LightClient {
         )
       )
       const promises = stateUpdates.map(async su => {
-        // const verified = await this.verifyStateUpdateHistory(su, blockNumber)
-        // if (!verified) return
+        try {
+          const verified = await this.verifyStateUpdateHistory(su, blockNumber)
+          if (!verified) return
+        } catch (e) {
+          console.log(e)
+        }
 
         await this.stateManager.insertVerifiedStateUpdate(
           su.depositContractAddress,
@@ -378,10 +389,6 @@ export default class LightClient {
         try {
           res = await this.apiClient.inclusionProof(su)
         } catch (e) {
-          console.log('requesting inclusion proof failed')
-          console.log(e)
-        }
-        if (res.status === 404) {
           return
         }
         const { coder } = ovmContext
@@ -450,6 +457,7 @@ export default class LightClient {
 
     // get inclusionProof of latest su
     let inclusionProof: DoubleLayerInclusionProof
+
     try {
       const res = await this.apiClient.inclusionProof(stateUpdate)
       inclusionProof = decodeStructable(
@@ -485,7 +493,7 @@ export default class LightClient {
 
       type CheckpointWitness = {
         stateUpdate: string
-        transactions: Array<{ tx: string; witness: string }>
+        transaction: { tx: string; witness: string }
         inclusionProof: string
       }
 
@@ -519,19 +527,17 @@ export default class LightClient {
             Bytes.fromHexString(witness.inclusionProof)
           )
 
-          for (const transaction of witness.transactions) {
-            const txBytes = Bytes.fromHexString(transaction.tx)
-            await putWitness(
-              witnessDb,
-              Hint.createTxHint(blockNumber, depositContractAddress, range),
-              txBytes
-            )
-            await putWitness(
-              witnessDb,
-              Hint.createSignatureHint(txBytes),
-              Bytes.fromHexString(transaction.witness)
-            )
-          }
+          const txBytes = Bytes.fromHexString(witness.transaction.tx)
+          await putWitness(
+            witnessDb,
+            Hint.createTxHint(blockNumber, depositContractAddress, range),
+            txBytes
+          )
+          await putWitness(
+            witnessDb,
+            Hint.createSignatureHint(txBytes),
+            Bytes.fromHexString(witness.transaction.witness)
+          )
         })
       )
     } catch (e) {
@@ -725,7 +731,6 @@ export default class LightClient {
     try {
       res = await this.apiClient.sendTransaction(transactions)
     } catch (e) {
-      console.log('requesting send transaction failed')
       console.log(e)
     }
 
