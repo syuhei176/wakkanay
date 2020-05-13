@@ -34,9 +34,9 @@ class APIClient {
     return axios.get(
       `${this.endpoint}/checkpoint_witness?address=${
         address.data
-      }&blockNumber=${blockNumber.data.toString()}&range=${ovmContext.coder.encode(
-        range.toStruct()
-      )}`
+      }&blockNumber=${blockNumber.data.toString()}&range=${ovmContext.coder
+        .encode(range.toStruct())
+        .toHexString()}`
     )
   }
 }
