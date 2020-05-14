@@ -335,7 +335,7 @@ export default class Aggregator {
               )
             )
 
-            const txs = {
+            const transaction = {
               tx: b.toHexString(),
               witness: witness[0].toHexString()
             }
@@ -345,7 +345,7 @@ export default class Aggregator {
               inclusionProof: coder
                 .encode(inclusionProof.toStruct())
                 .toHexString(),
-              transaction: txs
+              transaction
             }
           })
         )
