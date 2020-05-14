@@ -494,7 +494,7 @@ export default class LightClient {
       type CheckpointWitness = {
         stateUpdate: string
         transaction: { tx: string; witness: string }
-        inclusionProof: string
+        inclusionProof: string | null
       }
 
       const witnessDb = this.deciderManager.witnessDb
@@ -517,15 +517,17 @@ export default class LightClient {
             ),
             Bytes.fromHexString(witness.stateUpdate)
           )
-          await putWitness(
-            witnessDb,
-            Hint.createInclusionProofHint(
-              blockNumber,
-              depositContractAddress,
-              range
-            ),
-            Bytes.fromHexString(witness.inclusionProof)
-          )
+          if (witness.inclusionProof) {
+            await putWitness(
+              witnessDb,
+              Hint.createInclusionProofHint(
+                blockNumber,
+                depositContractAddress,
+                range
+              ),
+              Bytes.fromHexString(witness.inclusionProof)
+            )
+          }
 
           const txBytes = Bytes.fromHexString(witness.transaction.tx)
           await putWitness(

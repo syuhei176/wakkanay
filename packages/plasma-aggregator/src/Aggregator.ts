@@ -284,7 +284,7 @@ export default class Aggregator {
     let witnesses: Array<{
       stateUpdate: string
       transaction: { tx: string; witness: string }
-      inclusionProof: string
+      inclusionProof: string | null
     }> = []
     for (
       let b = JSBI.BigInt(1);
@@ -307,55 +307,58 @@ export default class Aggregator {
         range.start,
         range.end
       )
-      witnesses = witnesses.concat(
-        await Promise.all(
-          sus.map(async su => {
-            const inclusionProof = block.getInclusionProof(su)
-            if (!inclusionProof) {
-              return res
-                .send('InclusionProof not found')
-                .status(404)
-                .end()
-            }
-            const tx = await this.stateManager.getTx(
-              address,
-              blockNumber,
-              su.range
-            )
-            if (!tx)
-              return res
-                .send('Transaction not found')
-                .status(404)
-                .end()
-            const b = coder.encode(tx.toStruct())
-            const witness = await getWitnesses(
-              this.decider.witnessDb,
-              createSignatureHint(
-                coder.encode(tx.toProperty(Address.default()).toStruct())
+
+      try {
+        witnesses = witnesses.concat(
+          await Promise.all(
+            sus.map(async su => {
+              const inclusionProof = block.getInclusionProof(su)
+              const tx = await this.stateManager.getTx(
+                address,
+                blockNumber,
+                su.range
               )
-            )
+              if (!tx) throw new Error('Transaction not found')
+              const b = coder.encode(tx.toStruct())
+              const witness = await getWitnesses(
+                this.decider.witnessDb,
+                createSignatureHint(
+                  coder.encode(tx.toProperty(Address.default()).toStruct())
+                )
+              )
+              if (!witness[0]) throw new Error('Signature not found')
 
-            const transaction = {
-              tx: b.toHexString(),
-              witness: witness[0].toHexString()
-            }
+              const transaction = {
+                tx: b.toHexString(),
+                witness: witness[0].toHexString()
+              }
 
-            return {
-              stateUpdate: coder.encode(su.property.toStruct()).toHexString(),
-              inclusionProof: coder
-                .encode(inclusionProof.toStruct())
-                .toHexString(),
-              transaction
-            }
-          })
+              return {
+                stateUpdate: coder.encode(su.property.toStruct()).toHexString(),
+                inclusionProof: inclusionProof
+                  ? coder.encode(inclusionProof.toStruct()).toHexString()
+                  : null,
+                transaction
+              }
+            })
+          )
         )
-      )
+      } catch (e) {
+        console.log(e)
+        res
+          .send('witness not found: ' + String(e))
+          .status(404)
+          .end()
+        return
+      }
     }
 
-    res.send({
-      data: witnesses
-    })
-    res.status(200).end()
+    res
+      .send({
+        data: witnesses
+      })
+      .status(200)
+      .end()
   }
 
   /**
