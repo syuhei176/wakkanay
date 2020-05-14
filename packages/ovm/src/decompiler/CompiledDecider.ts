@@ -4,6 +4,13 @@ import { Decision, Property } from '../types'
 import { DeciderManager } from '../DeciderManager'
 import { CompiledPredicate } from './CompiledPredicate'
 
+function constantSubstitutions(constantTable: { [key: string]: Bytes }) {
+  return Object.keys(constantTable).reduce((acc, key) => {
+    const newKey = `$${key}`
+    return { ...acc, [newKey]: constantTable[key] }
+  }, {})
+}
+
 export class CompiledDecider implements Decider {
   constructor(
     private predicateSource: CompiledPredicate,
@@ -19,7 +26,10 @@ export class CompiledDecider implements Decider {
       manager.shortnameMap,
       this.constantTable
     )
-    return manager.decide(property, substitutions)
+    return manager.decide(property, {
+      ...substitutions,
+      ...constantSubstitutions(this.constantTable)
+    })
   }
 
   public decompile(manager: DeciderManager, inputs: Bytes[]) {

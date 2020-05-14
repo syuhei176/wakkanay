@@ -20,7 +20,7 @@ import {
   Block,
   PlasmaContractConfig
 } from '@cryptoeconomicslab/plasma'
-import { KeyValueStore } from '@cryptoeconomicslab/db'
+import { KeyValueStore, getWitnesses } from '@cryptoeconomicslab/db'
 import {
   ICommitmentContract,
   IDepositContract
@@ -28,10 +28,12 @@ import {
 import { Wallet } from '@cryptoeconomicslab/wallet'
 
 import { decodeStructable } from '@cryptoeconomicslab/coder'
+import JSBI from 'jsbi'
 
 import { BlockManager, StateManager } from './managers'
 import { sleep } from './utils'
 import cors from 'cors'
+import { createSignatureHint } from '@cryptoeconomicslab/ovm/lib/hintString'
 
 export default class Aggregator {
   readonly decider: DeciderManager
@@ -110,7 +112,10 @@ export default class Aggregator {
       '/inclusion_proof',
       this.handleGetInclusionProof.bind(this)
     )
-
+    this.httpServer.get(
+      '/checkpoint_witness',
+      this.handleGetCheckpointWitness.bind(this)
+    )
     this.httpServer.listen(this.option.port, () =>
       console.log(`server is listening on port ${this.option.port}!`)
     )
@@ -161,8 +166,8 @@ export default class Aggregator {
       })
   }
 
-  private handleGetSyncState(req: Request, res: Response) {
-    let addr
+  private async handleGetSyncState(req: Request, res: Response) {
+    let addr: Address
     const blockNumber = req.query.blockNumber
       ? BigNumber.from(Number(req.query.blockNumber))
       : undefined
@@ -172,24 +177,34 @@ export default class Aggregator {
     } catch (e) {
       return res.status(400).end()
     }
-    this.stateManager
-      .queryOwnershipyStateUpdates(
-        this.ownershipPredicate.deployedAddress,
-        addr,
-        blockNumber
-      )
-      .then(data => {
-        res.send(
-          data.map(s =>
+    try {
+      const stateUpdates = (
+        await Promise.all(
+          this.depositContracts
+            .map(d => d.address)
+            .map(async depositContractAddress => {
+              return await this.stateManager.queryOwnershipyStateUpdates(
+                depositContractAddress,
+                this.ownershipPredicate.deployedAddress,
+                addr,
+                blockNumber
+              )
+            })
+        )
+      ).reduce((acc, val) => [...acc, ...val], [])
+      console.log(stateUpdates)
+      res
+        .send(
+          stateUpdates.map(s =>
             ovmContext.coder.encode(s.property.toStruct()).toHexString()
           )
         )
-        res.status(200).end()
-      })
-      .catch(e => {
-        console.log(e)
-        res.status(500).end()
-      })
+        .status(200)
+        .end()
+    } catch (e) {
+      console.log(e)
+      res.status(500).end()
+    }
   }
 
   private handleGetBlock(req: Request, res: Response) {
@@ -237,8 +252,113 @@ export default class Aggregator {
         res.status(200).end()
       })
     } catch (e) {
+      console.log(e)
       res.status(404).end()
     }
+  }
+
+  /**
+   * get inclusion proofs for given range of stateUpdates until
+   * blockNumber specified with request parameter
+   */
+  private async handleGetCheckpointWitness(req: Request, res: Response) {
+    const { coder } = ovmContext
+    let blockNumber: BigNumber, range: Range, address: Address
+    try {
+      blockNumber = BigNumber.from(req.query.blockNumber)
+      range = decodeStructable(
+        Range,
+        coder,
+        Bytes.fromHexString(req.query.range)
+      )
+      address = Address.from(req.query.address)
+    } catch (e) {
+      res
+        .status(400)
+        .send('Invalid request arguments')
+        .end()
+      return
+    }
+
+    // get inclusionProofs
+    let witnesses: Array<{
+      stateUpdate: string
+      transaction: { tx: string; witness: string }
+      inclusionProof: string | null
+    }> = []
+    for (
+      let b = JSBI.BigInt(1);
+      JSBI.lessThanOrEqual(b, blockNumber.data);
+      b = JSBI.add(b, JSBI.BigInt(1))
+    ) {
+      const block = await this.blockManager.getBlock(BigNumber.from(b))
+      if (!block) {
+        res
+          .status(400)
+          .send(
+            `Invalid request with blockNumber: ${blockNumber.data.toString()}`
+          )
+          .end()
+        return
+      }
+
+      const sus = await this.stateManager.resolveStateUpdates(
+        address,
+        range.start,
+        range.end
+      )
+
+      try {
+        witnesses = witnesses.concat(
+          await Promise.all(
+            sus.map(async su => {
+              const inclusionProof = block.getInclusionProof(su)
+              const tx = await this.stateManager.getTx(
+                address,
+                blockNumber,
+                su.range
+              )
+              if (!tx) throw new Error('Transaction not found')
+              const b = coder.encode(tx.toStruct())
+              const witness = await getWitnesses(
+                this.decider.witnessDb,
+                createSignatureHint(
+                  coder.encode(tx.toProperty(Address.default()).toStruct())
+                )
+              )
+              if (!witness[0]) throw new Error('Signature not found')
+
+              const transaction = {
+                tx: b.toHexString(),
+                witness: witness[0].toHexString()
+              }
+
+              return {
+                stateUpdate: coder.encode(su.property.toStruct()).toHexString(),
+                inclusionProof: inclusionProof
+                  ? coder.encode(inclusionProof.toStruct()).toHexString()
+                  : null,
+                transaction
+              }
+            })
+          )
+        )
+      } catch (e) {
+        console.log(e)
+        res
+          .send('witness not found: ' + String(e))
+          .status(404)
+          .end()
+        return
+      }
+    }
+
+    res
+      .send({
+        data: witnesses
+      })
+      .status(200)
+      .end()
   }
 
   /**
@@ -276,6 +396,7 @@ export default class Aggregator {
     console.log('transaction received: ', tx.range, tx.depositContractAddress)
     const nextBlockNumber = await this.blockManager.getNextBlockNumber()
     const stateUpdates = await this.stateManager.resolveStateUpdates(
+      tx.depositContractAddress,
       tx.range.start,
       tx.range.end
     )

@@ -103,7 +103,7 @@ export default class LightClient {
     private syncManager: SyncManager,
     private checkpointManager: CheckpointManager,
     private depositedRangeManager: DepositedRangeManager,
-    deciderConfig: DeciderConfig,
+    private deciderConfig: DeciderConfig & PlasmaContractConfig,
     private aggregatorEndpoint: string = 'http://localhost:3000'
   ) {
     this.deciderManager = new DeciderManager(witnessDb, ovmContext.coder)
@@ -151,6 +151,27 @@ export default class LightClient {
   public ownershipProperty(owner: Address): Property {
     return this.ownershipPredicate.makeProperty([
       ovmContext.coder.encode(owner)
+    ])
+  }
+
+  /**
+   * create checkpoint property to validate stateUpdate
+   * @param stateUpdate stateUpdate of which history should be validated
+   * @param inclusionProof inclusionProof of stateUpdate
+   */
+  private checkpointProperty(
+    stateUpdate: StateUpdate,
+    inclusionProof: DoubleLayerInclusionProof
+  ): Property {
+    const checkpointPredicate = this.deciderManager.compiledPredicateMap.get(
+      'Checkpoint'
+    )
+    if (!checkpointPredicate)
+      throw new Error('Checkpoint predicate is not initialized')
+    const { coder } = ovmContext
+    return checkpointPredicate.makeProperty([
+      coder.encode(stateUpdate.property.toStruct()),
+      coder.encode(inclusionProof.toStruct())
     ])
   }
 
@@ -227,11 +248,11 @@ export default class LightClient {
     this.commitmentContract.subscribeBlockSubmitted(
       async (blockNumber, root) => {
         console.log('new block submitted event:', root.toHexString())
-        this.syncState(blockNumber, root)
-        this.verifyPendingStateUpdates(blockNumber)
+        await this.syncState(blockNumber, root)
+        await this.verifyPendingStateUpdates(blockNumber)
       }
     )
-    await this.commitmentContract.startWatchingEvents()
+    this.commitmentContract.startWatchingEvents()
     const blockNumber = await this.commitmentContract.getCurrentBlock()
     await this.syncStateUntill(blockNumber)
     await this.watchAdjudicationContract()
@@ -281,26 +302,41 @@ export default class LightClient {
    */
   private async syncState(blockNumber: BigNumber, root: FixedBytes) {
     this._syncing = true
-    console.log(`syncing state: ${blockNumber}`)
+    const { coder } = ovmContext
+    console.log(`start syncing state: ${blockNumber.toString()}`)
+
+    const rootHint = Hint.createRootHint(
+      blockNumber,
+      Address.from(this.deciderConfig.commitmentContract)
+    )
+    await putWitness(
+      this.deciderManager.witnessDb,
+      rootHint,
+      coder.encode(root)
+    )
+    const storageDb = await this.deciderManager.getStorageDb()
+    const bucket = await storageDb.bucket(
+      Bytes.fromHexString(
+        this.deciderConfig.constantVariableTable.commitmentContract
+      )
+    )
+    await bucket.put(coder.encode(blockNumber), coder.encode(root))
+
     try {
       const res = await this.apiClient.syncState(this.address, blockNumber)
       const stateUpdates: StateUpdate[] = res.data.map((s: string) =>
         StateUpdate.fromProperty(
-          decodeStructable(Property, ovmContext.coder, Bytes.fromHexString(s))
+          decodeStructable(Property, coder, Bytes.fromHexString(s))
         )
       )
       const promises = stateUpdates.map(async su => {
-        const inclusionProof = await this.apiClient.inclusionProof(su)
-        const hint = Hint.createInclusionProofHint(
-          blockNumber,
-          su.depositContractAddress,
-          su.range
-        )
-        await putWitness(
-          this.witnessDb,
-          hint,
-          Bytes.fromHexString(inclusionProof.data.data)
-        )
+        try {
+          const verified = await this.verifyStateUpdateHistory(su, blockNumber)
+          if (!verified) return
+        } catch (e) {
+          console.log(e)
+        }
+
         await this.stateManager.insertVerifiedStateUpdate(
           su.depositContractAddress,
           su
@@ -318,15 +354,20 @@ export default class LightClient {
       })
       await Promise.all(promises)
       await this.syncManager.updateSyncedBlockNumber(blockNumber, root)
-      // TODO: fetch history proofs for unverified state update and verify them.
       this.ee.emit(EmitterEvent.SYNC_FINISHED, blockNumber)
+      console.log(`Finish syncing state: ${blockNumber.toString()}`)
     } catch (e) {
-      console.log(e)
+      console.log(`Failed syncing state: ${blockNumber.toString()}`, e)
     } finally {
       this._syncing = false
     }
   }
 
+  /**
+   * checks if pending state updates which basically are state updates client transfered,
+   *  have been included in the block.
+   * @param blockNumber block number to verify pending state updates
+   */
   private async verifyPendingStateUpdates(blockNumber: BigNumber) {
     console.group('VERIFY PENDING STATE UPDATES: ', blockNumber.raw)
     this.tokenManager.depositContractAddresses.forEach(async addr => {
@@ -344,8 +385,10 @@ export default class LightClient {
         console.info(
           `Verify pended state update: (${su.range.start.data.toString()}, ${su.range.end.data.toString()})`
         )
-        const res = await this.apiClient.inclusionProof(su)
-        if (res.status === 404) {
+        let res
+        try {
+          res = await this.apiClient.inclusionProof(su)
+        } catch (e) {
           return
         }
         const { coder } = ovmContext
@@ -402,7 +445,118 @@ export default class LightClient {
   }
 
   /**
-   * create exit object from StateUpdate
+   * verify the history of given state update by deciding checkpoint property
+   * @param stateUpdate stateUpdate to verify history
+   * @param blockNumber blockNumber of the stateUpdate
+   */
+  private async verifyStateUpdateHistory(
+    stateUpdate: StateUpdate,
+    blockNumber: BigNumber
+  ): Promise<boolean> {
+    const { coder } = ovmContext
+
+    // get inclusionProof of latest su
+    let inclusionProof: DoubleLayerInclusionProof
+
+    try {
+      const res = await this.apiClient.inclusionProof(stateUpdate)
+      inclusionProof = decodeStructable(
+        DoubleLayerInclusionProof,
+        ovmContext.coder,
+        Bytes.fromHexString(res.data.data)
+      )
+    } catch (e) {
+      // return false error happens while getting inclusionProof
+      // TODO: if error other than 404 happens, set retry to get inclusion proof
+      return false
+    }
+
+    const address = stateUpdate.depositContractAddress
+
+    const hint = Hint.createInclusionProofHint(
+      blockNumber,
+      address,
+      stateUpdate.range
+    )
+    await putWitness(
+      this.witnessDb,
+      hint,
+      coder.encode(inclusionProof.toStruct())
+    )
+    try {
+      // TODO: get witness that don't exists in local database
+      const res = await this.apiClient.checkpointWitness(
+        address,
+        blockNumber,
+        stateUpdate.range
+      )
+
+      type CheckpointWitness = {
+        stateUpdate: string
+        transaction: { tx: string; witness: string }
+        inclusionProof: string | null
+      }
+
+      const witnessDb = this.deciderManager.witnessDb
+      await Promise.all(
+        res.data.data.map(async (witness: CheckpointWitness) => {
+          const stateUpdate = StateUpdate.fromProperty(
+            decodeStructable(
+              Property,
+              coder,
+              Bytes.fromHexString(witness.stateUpdate)
+            )
+          )
+          const { blockNumber, depositContractAddress, range } = stateUpdate
+          await putWitness(
+            witnessDb,
+            Hint.createStateUpdateHint(
+              blockNumber,
+              depositContractAddress,
+              range
+            ),
+            Bytes.fromHexString(witness.stateUpdate)
+          )
+          if (witness.inclusionProof) {
+            await putWitness(
+              witnessDb,
+              Hint.createInclusionProofHint(
+                blockNumber,
+                depositContractAddress,
+                range
+              ),
+              Bytes.fromHexString(witness.inclusionProof)
+            )
+          }
+
+          const txBytes = Bytes.fromHexString(witness.transaction.tx)
+          await putWitness(
+            witnessDb,
+            Hint.createTxHint(blockNumber, depositContractAddress, range),
+            txBytes
+          )
+          await putWitness(
+            witnessDb,
+            Hint.createSignatureHint(txBytes),
+            Bytes.fromHexString(witness.transaction.witness)
+          )
+        })
+      )
+    } catch (e) {
+      return false
+    }
+
+    // verify received state update
+    const checkpointProperty = this.checkpointProperty(
+      stateUpdate,
+      inclusionProof
+    )
+    const decision = await this.deciderManager.decide(checkpointProperty)
+    return decision.outcome
+  }
+
+  /**
+   * create exit property from StateUpdate
    * If a checkpoint that is same range and block as `stateUpdate` exists, return exitDeposit property.
    * If inclusion proof for `stateUpdate` exists, return exit property.
    * otherwise throw exception
@@ -575,7 +729,12 @@ export default class LightClient {
       })
     )
 
-    const res = await this.apiClient.sendTransaction(transactions)
+    let res
+    try {
+      res = await this.apiClient.sendTransaction(transactions)
+    } catch (e) {
+      console.log(e)
+    }
 
     if (Array.isArray(res.data)) {
       const receipts = res.data.map(d => {
@@ -866,7 +1025,7 @@ export default class LightClient {
       }
     )
 
-    await this.adjudicationContract.startWatchingEvents()
+    this.adjudicationContract.startWatchingEvents()
   }
 
   private async saveExit(exit: IExit) {
@@ -936,6 +1095,26 @@ export default class LightClient {
       item = await iter.next()
     }
     return result
+  }
+
+  //
+  // Store witnesses
+  //
+  private async storeStateUpdates(stateUpdates: StateUpdate[]) {
+    const { coder } = ovmContext
+    await Promise.all(
+      stateUpdates.map(async su => {
+        await putWitness(
+          this.deciderManager.witnessDb,
+          Hint.createStateUpdateHint(
+            su.blockNumber,
+            su.depositContractAddress,
+            su.range
+          ),
+          coder.encode(su.property.toStruct())
+        )
+      })
+    )
   }
 
   //

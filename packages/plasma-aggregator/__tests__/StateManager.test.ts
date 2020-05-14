@@ -116,6 +116,7 @@ describe('StateManager', () => {
       )
       await stateManager.insertDepositRange(tx, BigNumber.from(0))
       const stateUpdates = await stateManager.resolveStateUpdates(
+        tx.depositContractAddress,
         BigNumber.from(0),
         BigNumber.from(1)
       )
@@ -351,6 +352,7 @@ describe('StateManager', () => {
         BigNumber.from(0)
       )
       const stateUpdates = await stateManager.queryOwnershipyStateUpdates(
+        DEPOSIT_ADDRESS,
         ownershipPredicate.deployedAddress,
         ALIS_ADDRESS
       )
@@ -380,6 +382,7 @@ describe('StateManager', () => {
       )
 
       const stateUpdates = await stateManager.queryOwnershipyStateUpdates(
+        DEPOSIT_ADDRESS,
         Address.default(),
         ALIS_ADDRESS
       )

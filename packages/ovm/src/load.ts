@@ -11,7 +11,9 @@ import {
   EqualDecider,
   IsLessThanDecider,
   IsSameAmountDecider,
-  IsContainedDecider
+  IsContainedDecider,
+  IsStoredDecider,
+  VerifyInclusionDecider
 } from './deciders'
 import {
   LogicalConnective,
@@ -38,7 +40,9 @@ const deciders: { [key: string]: Decider } = {
   IsLessThan: new IsLessThanDecider(),
   IsValidSignature: new IsValidSignatureDecider(),
   IsSameAmount: new IsSameAmountDecider(),
-  IsHashPreimage: new IsHashPreimageDecider()
+  IsHashPreimage: new IsHashPreimageDecider(),
+  IsStored: new IsStoredDecider(),
+  VerifyInclusion: new VerifyInclusionDecider()
 }
 
 export interface CompiledPredicateConfig {

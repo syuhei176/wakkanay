@@ -155,6 +155,14 @@ describe('witness', () => {
           })
         ).toEqual('a,b,0x616161')
       })
+
+      test('replace constants', async () => {
+        expect(
+          replaceHint('a,b,${$constant}', {
+            $constant: Bytes.fromString('aaa')
+          })
+        ).toEqual('a,b,0x616161')
+      })
     })
   })
 })

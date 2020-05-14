@@ -103,7 +103,6 @@ export default class BlockManager {
     const nextBlockNumber = BigNumber.from(
       JSBI.add(JSBI.BigInt(1), blockNumber.data)
     )
-    await this.setBlockNumber(nextBlockNumber)
 
     const stateUpdatesMap = new Map()
     const sus = await Promise.all(
@@ -131,10 +130,8 @@ export default class BlockManager {
       })
     )
 
-    // In case no stateUpdates have been enqueued,
-    // revert blockNumber to prevNumber. move su to prev bucket in case
+    // In case no stateUpdates have been enqueued, return undefined
     if (sus.every(arr => arr.length === 0)) {
-      await this.setBlockNumber(blockNumber)
       return
     }
 
@@ -142,7 +139,8 @@ export default class BlockManager {
       BigNumber.from(JSBI.add(blockNumber.data, JSBI.BigInt(1))),
       stateUpdatesMap
     )
-    this.putBlock(block)
+    await this.putBlock(block)
+    await this.setBlockNumber(nextBlockNumber)
 
     return block
   }
