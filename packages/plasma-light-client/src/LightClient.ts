@@ -655,7 +655,7 @@ export default class LightClient {
       throw new Error('Token Contract not found')
     }
     const depositContract = this.tokenManager.getDepositContractByTokenContractAddress(
-      erc20Contract.address
+      addr
     )
     if (!depositContract) {
       throw new Error('Deposit Contract not found')
@@ -712,7 +712,7 @@ export default class LightClient {
       Address.from(tokenContractAddress)
     )
     if (!depositContract) {
-      throw new Error('Contract not found')
+      throw new Error('Deposit Contract not found')
     }
     const depositContractAddress = depositContract.address
     const stateUpdates = await this.stateManager.resolveStateUpdate(
@@ -890,7 +890,7 @@ export default class LightClient {
       addr
     )
     if (!depositContract) {
-      throw new Error('Contract not found')
+      throw new Error('Deposit Contract not found')
     }
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       depositContract.address,

@@ -12,6 +12,7 @@ export default class TokenManager {
   private depositContracts: Map<string, IDepositContract> = new Map()
   private tokenContracts: Map<string, IERC20DetailedContract> = new Map()
   private tokenDecimals: Map<string, Integer> = new Map()
+  private contractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
 
   get depositContractAddresses(): Address[] {
     return Array.from(this.depositContractAddressStrings).map(addr =>
@@ -31,6 +32,10 @@ export default class TokenManager {
     const depositContractAddress = depositContract.address
     this.addDepositContract(depositContractAddress, depositContract)
     await this.addTokenContract(depositContractAddress, erc20Contract)
+    this.contractAddressMap.set(
+      erc20Contract.address.data,
+      depositContract.address.data
+    )
   }
 
   /**
@@ -58,16 +63,16 @@ export default class TokenManager {
 
   /**
    * get deposit contract by token contract address
-   * @param tokenContractAddress address of token contract
+   * @param addr address of token contract
    */
   getDepositContractByTokenContractAddress(
-    erc20ContractAddress: Address
+    addr: Address
   ): IDepositContract | undefined {
-    for (const [key, value] of this.tokenContracts.entries()) {
-      if (value.address.equals(erc20ContractAddress)) {
-        return this.getDepositContract(Address.from(key))
-      }
+    const depositContractAddress = this.contractAddressMap.get(addr.data)
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
     }
+    return this.depositContracts.get(depositContractAddress)
   }
 
   /**
@@ -82,6 +87,10 @@ export default class TokenManager {
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
     const decimals = await erc20Contract.decimals()
     this.tokenDecimals.set(erc20Contract.address.data, decimals)
+    this.contractAddressMap.set(
+      depositContractAddress.data,
+      erc20Contract.address.data
+    )
   }
 
   /**
