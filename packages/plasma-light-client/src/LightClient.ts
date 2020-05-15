@@ -654,8 +654,14 @@ export default class LightClient {
     if (!erc20Contract) {
       throw new Error('Token Contract not found')
     }
-    const depositContract = this.tokenManager.getDepositContractByTokenContractAddress(
+    const depositContractAddress = this.tokenManager.getDepositContractAddress(
       addr
+    )
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
+    }
+    const depositContract = this.tokenManager.getDepositContract(
+      Address.from(depositContractAddress)
     )
     if (!depositContract) {
       throw new Error('Deposit Contract not found')
@@ -708,15 +714,20 @@ export default class LightClient {
     tokenContractAddress: string,
     stateObject: Property
   ) {
-    const depositContract = this.tokenManager.getDepositContractByTokenContractAddress(
+    const depositContractAddress = this.tokenManager.getDepositContractAddress(
       Address.from(tokenContractAddress)
+    )
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
+    }
+    const depositContract = this.tokenManager.getDepositContract(
+      Address.from(depositContractAddress)
     )
     if (!depositContract) {
       throw new Error('Deposit Contract not found')
     }
-    const depositContractAddress = depositContract.address
     const stateUpdates = await this.stateManager.resolveStateUpdate(
-      depositContractAddress,
+      Address.from(depositContractAddress),
       amount
     )
     if (stateUpdates === null) {
@@ -727,7 +738,7 @@ export default class LightClient {
     const transactions = await Promise.all(
       stateUpdates.map(async su => {
         const tx = new Transaction(
-          depositContractAddress,
+          Address.from(depositContractAddress),
           su.range,
           BigNumber.from(JSBI.add(latestBlock.data, JSBI.BigInt(5))),
           stateObject,
@@ -886,8 +897,14 @@ export default class LightClient {
     tokenContractAddress: string
   ) {
     const addr = Address.from(tokenContractAddress)
-    const depositContract = this.tokenManager.getDepositContractByTokenContractAddress(
+    const depositContractAddress = this.tokenManager.getDepositContractAddress(
       addr
+    )
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
+    }
+    const depositContract = this.tokenManager.getDepositContract(
+      Address.from(depositContractAddress)
     )
     if (!depositContract) {
       throw new Error('Deposit Contract not found')

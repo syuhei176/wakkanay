@@ -62,17 +62,11 @@ export default class TokenManager {
   }
 
   /**
-   * get deposit contract by token contract address
+   * get deposit contract address by token contract address
    * @param addr address of token contract
    */
-  getDepositContractByTokenContractAddress(
-    addr: Address
-  ): IDepositContract | undefined {
-    const depositContractAddress = this.contractAddressMap.get(addr.data)
-    if (!depositContractAddress) {
-      throw new Error('Deposit Contract Address not found')
-    }
-    return this.depositContracts.get(depositContractAddress)
+  getDepositContractAddress(addr: Address): string | undefined {
+    return this.contractAddressMap.get(addr.data)
   }
 
   /**
