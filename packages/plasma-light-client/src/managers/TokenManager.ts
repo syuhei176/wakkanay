@@ -57,6 +57,20 @@ export default class TokenManager {
   }
 
   /**
+   * get deposit contract by token contract address
+   * @param tokenContractAddress address of token contract
+   */
+  getDepositContractByTokenContractAddress(
+    erc20ContractAddress: Address
+  ): IDepositContract | undefined {
+    for (const [key, value] of this.tokenContracts.entries()) {
+      if (value.address.equals(erc20ContractAddress)) {
+        return this.getDepositContract(Address.from(key))
+      }
+    }
+  }
+
+  /**
    * Add Token Contract with key of Deposit Contract's address.
    * @param depositContractAddress The address of Deposit Contract
    * @param erc20Contract Instance of ERC20Contract
