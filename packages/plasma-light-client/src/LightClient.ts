@@ -220,7 +220,7 @@ export default class LightClient {
    */
   public async getBalance(): Promise<
     Array<{
-      depositContractAddress: string
+      tokenContractAddress: string
       amount: JSBI
       decimals: number
     }>
@@ -231,8 +231,9 @@ export default class LightClient {
           addr,
           new Range(BigNumber.from(0), BigNumber.MAX_NUMBER) // TODO: get all stateUpdate method
         )
+        const tokenContract = this.tokenManager.getTokenContract(addr)
         return {
-          depositContractAddress: addr.data,
+          tokenContractAddress: tokenContract ? tokenContract.address.data : '',
           amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
           decimals: this.tokenManager.getDecimal(addr)
         }
@@ -641,18 +642,29 @@ export default class LightClient {
    * this method calls `approve` method of ERC20 contract and `deposit` method
    * of Deposit contract.
    * @param amount amount to deposit
-   * @param depositContractAddress deposit contract address to deposit into
+   * @param tokenContractAddress contract address of the token
    */
   public async deposit(
     amount: number | string | JSBI,
-    depositContractAddress: string
+    tokenContractAddress: string
   ) {
-    const addr = Address.from(depositContractAddress)
+    const addr = Address.from(tokenContractAddress)
     const myAddress = this.wallet.getAddress()
-    const depositContract = this.tokenManager.getDepositContract(addr)
     const erc20Contract = this.tokenManager.getTokenContract(addr)
-    if (!depositContract || !erc20Contract) {
-      throw new Error('Contract not found')
+    if (!erc20Contract) {
+      throw new Error('Token Contract not found')
+    }
+    const depositContractAddress = this.tokenManager.getDepositContractAddress(
+      addr
+    )
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
+    }
+    const depositContract = this.tokenManager.getDepositContract(
+      Address.from(depositContractAddress)
+    )
+    if (!depositContract) {
+      throw new Error('Deposit Contract not found')
     }
 
     await erc20Contract.approve(
@@ -668,25 +680,25 @@ export default class LightClient {
   /**
    * transfer token to new owner. throw if given invalid inputs.
    * @param amount amount to transfer
-   * @param depositContractAddress which token to transfer
+   * @param tokenContractAddress which token to transfer
    * @param to to whom transfer
    */
   public async transfer(
     amount: number | string | JSBI,
-    depositContractAddressString: string,
+    tokenContractAddress: string,
     toAddress: string
   ) {
     console.log(
       'transfer :',
       amount.toString(),
-      depositContractAddressString,
+      tokenContractAddress,
       toAddress
     )
     const to = Address.from(toAddress)
     const ownershipStateObject = this.ownershipProperty(to)
     await this.sendTransaction(
       amount,
-      depositContractAddressString,
+      tokenContractAddress,
       ownershipStateObject
     )
   }
@@ -694,17 +706,28 @@ export default class LightClient {
   /**
    * send plasma transaction with amount, Deposit Contract address and StateObject.
    * @param amount amount of transaction
-   * @param depositContractAddressString which token of transaction
+   * @param tokenContractAddress which token of transaction
    * @param stateObject property defining deprecate condition of next state
    */
   public async sendTransaction(
     amount: number | string | JSBI,
-    depositContractAddressString: string,
+    tokenContractAddress: string,
     stateObject: Property
   ) {
-    const depositContractAddress = Address.from(depositContractAddressString)
+    const depositContractAddress = this.tokenManager.getDepositContractAddress(
+      Address.from(tokenContractAddress)
+    )
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
+    }
+    const depositContract = this.tokenManager.getDepositContract(
+      Address.from(depositContractAddress)
+    )
+    if (!depositContract) {
+      throw new Error('Deposit Contract not found')
+    }
     const stateUpdates = await this.stateManager.resolveStateUpdate(
-      depositContractAddress,
+      Address.from(depositContractAddress),
       amount
     )
     if (stateUpdates === null) {
@@ -715,7 +738,7 @@ export default class LightClient {
     const transactions = await Promise.all(
       stateUpdates.map(async su => {
         const tx = new Transaction(
-          depositContractAddress,
+          Address.from(depositContractAddress),
           su.range,
           BigNumber.from(JSBI.add(latestBlock.data, JSBI.BigInt(5))),
           stateObject,
@@ -862,20 +885,32 @@ export default class LightClient {
 
   /**
    * Withdrawal process starts from calling this method.
-   * Given amount and depositContractAddress, checks if client has sufficient token amount.
+   * Given amount and tokenContractAddress, checks if client has sufficient token amount.
    * If client has sufficient amount, create exitProperty from stateUpdates this client owns,
    * calls `claimProperty` method on UniversalAdjudicationContract. Store the property in exitList.
    * User can call `finalizeExit` to withdraw actual token after the exitProperty is decided to true on-chain.
    * @param amount amount to exit
-   * @param depositContractAddress deposit contract address to exit
+   * @param tokenContractAddress token contract address to exit
    */
   public async exit(
     amount: number | string | JSBI,
-    depositContractAddress: string
+    tokenContractAddress: string
   ) {
-    const addr = Address.from(depositContractAddress)
+    const addr = Address.from(tokenContractAddress)
+    const depositContractAddress = this.tokenManager.getDepositContractAddress(
+      addr
+    )
+    if (!depositContractAddress) {
+      throw new Error('Deposit Contract Address not found')
+    }
+    const depositContract = this.tokenManager.getDepositContract(
+      Address.from(depositContractAddress)
+    )
+    if (!depositContract) {
+      throw new Error('Deposit Contract not found')
+    }
     const stateUpdates = await this.stateManager.resolveStateUpdate(
-      addr,
+      depositContract.address,
       amount
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {

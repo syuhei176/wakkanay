@@ -261,7 +261,7 @@ describe('LightClient', () => {
     test('deposit calls to unregistered contract should fail', async () => {
       await expect(
         client.deposit(20, Address.from('0x00000000000000000001').data)
-      ).rejects.toEqual(new Error('Contract not found'))
+      ).rejects.toEqual(new Error('Token Contract not found'))
     })
   })
 

@@ -12,6 +12,7 @@ export default class TokenManager {
   private depositContracts: Map<string, IDepositContract> = new Map()
   private tokenContracts: Map<string, IERC20DetailedContract> = new Map()
   private tokenDecimals: Map<string, Integer> = new Map()
+  private contractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
 
   get depositContractAddresses(): Address[] {
     return Array.from(this.depositContractAddressStrings).map(addr =>
@@ -31,6 +32,10 @@ export default class TokenManager {
     const depositContractAddress = depositContract.address
     this.addDepositContract(depositContractAddress, depositContract)
     await this.addTokenContract(depositContractAddress, erc20Contract)
+    this.contractAddressMap.set(
+      erc20Contract.address.data,
+      depositContract.address.data
+    )
   }
 
   /**
@@ -57,6 +62,14 @@ export default class TokenManager {
   }
 
   /**
+   * get deposit contract address by token contract address
+   * @param addr address of token contract
+   */
+  getDepositContractAddress(addr: Address): string | undefined {
+    return this.contractAddressMap.get(addr.data)
+  }
+
+  /**
    * Add Token Contract with key of Deposit Contract's address.
    * @param depositContractAddress The address of Deposit Contract
    * @param erc20Contract Instance of ERC20Contract
@@ -68,6 +81,10 @@ export default class TokenManager {
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
     const decimals = await erc20Contract.decimals()
     this.tokenDecimals.set(erc20Contract.address.data, decimals)
+    this.contractAddressMap.set(
+      depositContractAddress.data,
+      erc20Contract.address.data
+    )
   }
 
   /**
