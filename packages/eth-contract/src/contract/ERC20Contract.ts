@@ -5,6 +5,8 @@ import { Address, BigNumber, Integer } from '@cryptoeconomicslab/primitives'
 export class ERC20Contract implements IERC20DetailedContract {
   public static abi = [
     'function approve(address _spender, uint256 _value)',
+    'function name() view returns (string)',
+    'function symbol() view returns (string)',
     'function decimals() view returns (uint8)'
   ]
 
@@ -23,6 +25,28 @@ export class ERC20Contract implements IERC20DetailedContract {
       await this.connection.approve(spender.data, amount.raw)
     } catch (e) {
       throw new Error(`Invalid call: ${e}`)
+    }
+  }
+
+  /**
+   * name method returns name of PlasmaETH token.
+   */
+  public async name(): Promise<string> {
+    try {
+      return await this.connection.name()
+    } catch (e) {
+      throw new Error(`Invalid call: ${e}. This ERC20 doesn't have name.`)
+    }
+  }
+
+  /**
+   * symbol method returns symbol of PlasmaETH token.
+   */
+  public async symbol(): Promise<string> {
+    try {
+      return await this.connection.symbol()
+    } catch (e) {
+      throw new Error(`Invalid call: ${e}. This ERC20 doesn't have symbol.`)
     }
   }
 

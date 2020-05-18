@@ -7,6 +7,8 @@ export class PETHContract implements IERC20DetailedContract {
     'function approve(address _spender, uint256 _value)',
     'function wrap(uint256 _amount) payable',
     'function unwrap(uint256 _amount)',
+    'function name() view returns (string)',
+    'function symbol() view returns (string)',
     'function decimals() view returns (uint8)'
   ]
 
@@ -50,6 +52,32 @@ export class PETHContract implements IERC20DetailedContract {
       amount.data.toString()
     )
     await this.connection.unwrap(bigNumberifiedAmount)
+  }
+
+  /**
+   * name method returns name of PlasmaETH token.
+   */
+  public async name(): Promise<string> {
+    try {
+      return await this.connection.name()
+    } catch (e) {
+      throw new Error(
+        `Invalid call: ${e}. This PETHContract doesn't have name.`
+      )
+    }
+  }
+
+  /**
+   * symbol method returns symbol of PlasmaETH token.
+   */
+  public async symbol(): Promise<string> {
+    try {
+      return await this.connection.symbol()
+    } catch (e) {
+      throw new Error(
+        `Invalid call: ${e}. This PETHContract doesn't have symbol.`
+      )
+    }
   }
 
   /**

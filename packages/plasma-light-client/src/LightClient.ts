@@ -220,9 +220,11 @@ export default class LightClient {
    */
   public async getBalance(): Promise<
     Array<{
-      tokenContractAddress: string
-      amount: JSBI
+      name: string
+      symbol: string
       decimals: number
+      amount: JSBI
+      tokenContractAddress: string
     }>
   > {
     const resultPromise = this.tokenManager.depositContractAddresses.map(
@@ -233,9 +235,11 @@ export default class LightClient {
         )
         const tokenContract = this.tokenManager.getTokenContract(addr)
         return {
-          tokenContractAddress: tokenContract ? tokenContract.address.data : '',
+          name: this.tokenManager.getName(addr),
+          symbol: this.tokenManager.getSymbol(addr),
+          decimals: this.tokenManager.getDecimal(addr),
           amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
-          decimals: this.tokenManager.getDecimal(addr)
+          tokenContractAddress: tokenContract ? tokenContract.address.data : ''
         }
       }
     )
