@@ -13,6 +13,9 @@ export class PETHContract implements IERC20DetailedContract {
   ]
 
   private connection: ethers.Contract
+  private _name?: string
+  private _symbol?: string
+  private _decimals?: Integer
 
   constructor(readonly address: Address, signer: ethers.Signer) {
     this.connection = new ethers.Contract(
@@ -58,8 +61,11 @@ export class PETHContract implements IERC20DetailedContract {
    * name method returns name of PlasmaETH token.
    */
   public async name(): Promise<string> {
+    if (this._name) return this._name
     try {
-      return await this.connection.name()
+      const name = await this.connection.name()
+      this._name = name
+      return name
     } catch (e) {
       throw new Error(
         `Invalid call: ${e}. This PETHContract doesn't have name.`
@@ -71,8 +77,11 @@ export class PETHContract implements IERC20DetailedContract {
    * symbol method returns symbol of PlasmaETH token.
    */
   public async symbol(): Promise<string> {
+    if (this._symbol) return this._symbol
     try {
-      return await this.connection.symbol()
+      const symbol = await this.connection.symbol()
+      this._symbol = symbol
+      return symbol
     } catch (e) {
       throw new Error(
         `Invalid call: ${e}. This PETHContract doesn't have symbol.`
@@ -85,8 +94,11 @@ export class PETHContract implements IERC20DetailedContract {
    * @returns return Integer object of decimal value. It returns 18.
    */
   public async decimals(): Promise<Integer> {
+    if (this._decimals) return this._decimals
     try {
-      return Integer.from(await this.connection.decimals())
+      const decimals = Integer.from(await this.connection.decimals())
+      this._decimals = decimals
+      return decimals
     } catch (e) {
       throw new Error(
         `Invalid call: ${e}. This PETHContract doesn't have decimals.`
