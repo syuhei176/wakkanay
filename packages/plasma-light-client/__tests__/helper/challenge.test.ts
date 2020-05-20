@@ -1,7 +1,7 @@
 import { setupContext } from '@cryptoeconomicslab/context'
 import JsonCoder from '@cryptoeconomicslab/coder'
 import { Address, Bytes } from '@cryptoeconomicslab/primitives'
-import { executeChallenge, getGameId } from '../../src/helper/challenge'
+import { executeChallenge } from '../../src/helper/challenge'
 import { Challenge, Property } from '@cryptoeconomicslab/ovm'
 setupContext({ coder: JsonCoder })
 
@@ -41,12 +41,13 @@ const MockDeciderManagerFalse = jest.fn().mockImplementation(() => {
 })
 
 describe('challenge', () => {
-  const gameId = Bytes.default()
+  const property = new Property(Address.default(), [
+    Bytes.fromHexString('0x01')
+  ])
   const challenge: Challenge = {
     property: new Property(Address.default(), []),
     challengeInputs: [Bytes.default()]
   }
-  const challengeGameId = getGameId(challenge.property)
 
   beforeEach(async () => {
     MockAdjudicationContract.mockClear()
@@ -62,18 +63,18 @@ describe('challenge', () => {
       await executeChallenge(
         new MockAdjudicationContract(),
         new MockDeciderManager(),
-        gameId,
+        property,
         challenge
       )
       expect(mockClaimProperty).toHaveBeenCalled()
       expect(mockChallenge).toHaveBeenCalled()
       expect(mockDecideClaimWithWitness).toHaveBeenCalledWith(
-        challengeGameId,
+        challenge.property,
         witnesses
       )
       expect(mockDecideClaimToFalse).toHaveBeenCalledWith(
-        gameId,
-        challengeGameId
+        property,
+        challenge.property
       )
     })
 
@@ -81,7 +82,7 @@ describe('challenge', () => {
       await executeChallenge(
         new MockAdjudicationContract(),
         new MockDeciderManagerFalse(),
-        gameId,
+        property,
         challenge
       )
       expect(mockClaimProperty).toHaveBeenCalled()
