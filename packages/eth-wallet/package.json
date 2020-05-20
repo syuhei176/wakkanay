@@ -32,14 +32,15 @@
     "@cryptoeconomicslab/signature": "^0.4.0",
     "@cryptoeconomicslab/wallet": "^0.4.0",
     "bignumber.js": "^9.0.0",
-    "ethers": "4.0.47",
     "jsbi": "^3.1.2"
   },
   "devDependencies": {
+    "ethers": "4.0.47",
     "@cryptoeconomicslab/level-kvs": "0.0.6",
     "@cryptoeconomicslab/primitives": "^0.4.0"
   },
   "peerDependencies": {
+    "ethers": "4.0.47",
     "@cryptoeconomicslab/primitives": "^0.0.5"
   },
   "gitHead": "21764a1554bc98825f094d8ce514e9799a391e5d"
