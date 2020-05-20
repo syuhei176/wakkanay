@@ -65,7 +65,7 @@ export class ThereExistsSuchThatDecider implements Decider {
       let nextWitnesses: Bytes[] | undefined = undefined
       const witness = witnesses[indexOfTrueDecision]
       const childWitnesses = decisions[indexOfTrueDecision].witnesses || []
-      nextWitnesses = childWitnesses.concat([witness])
+      nextWitnesses = [witness].concat(childWitnesses)
       return {
         outcome: true,
         witnesses: nextWitnesses,
