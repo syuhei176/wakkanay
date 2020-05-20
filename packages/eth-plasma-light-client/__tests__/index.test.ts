@@ -46,6 +46,12 @@ jest.mock('@cryptoeconomicslab/eth-contract', () => {
         approve: jest.fn().mockImplementation(async () => {
           return
         }),
+        name: jest.fn().mockImplementation(async () => {
+          return 'PlasmaETH'
+        }),
+        symbol: jest.fn().mockImplementation(async () => {
+          return 'PETH'
+        }),
         decimals: jest.fn().mockImplementation(async () => {
           return Integer.from(18)
         })

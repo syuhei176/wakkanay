@@ -13,7 +13,6 @@ const mockIsDecided = jest.fn().mockResolvedValue(true)
 const mockIsDecidable = jest.fn().mockResolvedValue(true)
 const mockDecideClaimToTrue = jest.fn()
 const mockGetClaimedProperties = jest.fn().mockResolvedValue([])
-
 const MockAdjudicationContract = jest.fn().mockImplementation(() => {
   return {
     isDecided: mockIsDecided,
@@ -25,7 +24,6 @@ const MockAdjudicationContract = jest.fn().mockImplementation(() => {
 })
 
 const mockDeposit = jest.fn()
-
 const MockDepositContract = jest
   .fn()
   .mockImplementation((addr: Address, eventDb: KeyValueStore) => {
@@ -40,10 +38,14 @@ const MockDepositContract = jest
   })
 
 const mockApprove = jest.fn()
+const mockName = jest.fn().mockImplementation(() => 'PlasmaETH')
+const mockSymbol = jest.fn().mockImplementation(() => 'PETH')
 const mockDecimals = jest.fn().mockImplementation(() => Integer.from(6))
 const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
   return {
     approve: mockApprove,
+    name: mockName,
+    symbol: mockSymbol,
     decimals: mockDecimals,
     address
   }

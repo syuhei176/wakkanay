@@ -11,6 +11,8 @@ export default class TokenManager {
   private depositContractAddressStrings: Set<string> = new Set()
   private depositContracts: Map<string, IDepositContract> = new Map()
   private tokenContracts: Map<string, IERC20DetailedContract> = new Map()
+  private tokenNames: Map<string, string> = new Map()
+  private tokenSymbols: Map<string, string> = new Map()
   private tokenDecimals: Map<string, Integer> = new Map()
   private contractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
 
@@ -79,7 +81,11 @@ export default class TokenManager {
     erc20Contract: IERC20DetailedContract
   ) {
     this.tokenContracts.set(depositContractAddress.data, erc20Contract)
+    const name = await erc20Contract.name()
+    const symbol = await erc20Contract.symbol()
     const decimals = await erc20Contract.decimals()
+    this.tokenNames.set(erc20Contract.address.data, name)
+    this.tokenSymbols.set(erc20Contract.address.data, symbol)
     this.tokenDecimals.set(erc20Contract.address.data, decimals)
     this.contractAddressMap.set(
       depositContractAddress.data,
@@ -98,6 +104,48 @@ export default class TokenManager {
   }
 
   /**
+   * Get name of token by deposit contract address.
+   * @param depositContractAddress The address of Deposit Contract
+   * @returns Returns the token name.
+   */
+  getName(depositContractAddress: Address): string {
+    const tokenContract = this.getTokenContract(depositContractAddress)
+    if (!tokenContract) {
+      throw new Error(
+        `Token Contract of (${depositContractAddress.data}) not found.`
+      )
+    }
+    const name = this.tokenNames.get(tokenContract.address.data)
+    if (!name) {
+      throw new Error(
+        `Token description(${tokenContract.address.data}) name not found.`
+      )
+    }
+    return name
+  }
+
+  /**
+   * Get symbol of token by deposit contract address.
+   * @param depositContractAddress The address of Deposit Contract
+   * @returns Returns the symbol value which usually a shorter value of the token's name.
+   */
+  getSymbol(depositContractAddress: Address): string {
+    const tokenContract = this.getTokenContract(depositContractAddress)
+    if (!tokenContract) {
+      throw new Error(
+        `Token Contract of (${depositContractAddress.data}) not found.`
+      )
+    }
+    const symbol = this.tokenSymbols.get(tokenContract.address.data)
+    if (!symbol) {
+      throw new Error(
+        `Token description(${tokenContract.address.data}) symbol not found.`
+      )
+    }
+    return symbol
+  }
+
+  /**
    * Get decimal of token by deposit contract address.
    * @param depositContractAddress The address of Deposit Contract
    * @returns Retuens decimal value which indicates how many "0"s there are to the right of the decimal point in token representation.
@@ -112,7 +160,7 @@ export default class TokenManager {
     const decimals = this.tokenDecimals.get(tokenContract.address.data)
     if (!decimals) {
       throw new Error(
-        `Token description(${tokenContract.address.data}) not found.`
+        `Token description(${tokenContract.address.data}) decimals not found.`
       )
     }
     return decimals.data

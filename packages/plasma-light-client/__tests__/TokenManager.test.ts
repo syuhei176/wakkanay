@@ -6,10 +6,14 @@ import {
 } from '@cryptoeconomicslab/contract'
 
 const mockApprove = jest.fn()
+const mockName = jest.fn().mockImplementation(() => 'PlasmaETH')
+const mockSymbol = jest.fn().mockImplementation(() => 'PETH')
 const mockDecimals = jest.fn().mockImplementation(() => Integer.from(6))
 const MockERC20Contract = jest.fn().mockImplementation((address: Address) => {
   return {
     approve: mockApprove,
+    name: mockName,
+    symbol: mockSymbol,
     decimals: mockDecimals,
     address
   }
