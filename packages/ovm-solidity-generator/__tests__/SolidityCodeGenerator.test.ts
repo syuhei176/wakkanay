@@ -676,7 +676,8 @@ describe('SolidityCodeGenerator', () => {
       }
       const output = generator.includeCallback('decideProperty', {
         property: input,
-        valName: 'inputs'
+        valName: 'inputs',
+        childWitnesses: 'utils.subArray(_witness, 1, _witness.length)'
       })
       expect(output).toBe(
         `        bytes[] memory inputs = new bytes[](0);
@@ -726,7 +727,8 @@ describe('SolidityCodeGenerator', () => {
       const output = generator.includeCallback('decideProperty', {
         propIndex: '',
         property: input,
-        valName: 'inputs'
+        valName: 'inputs',
+        childWitnesses: 'utils.subArray(_witness, 1, _witness.length)'
       })
       expect(output).toBe(
         `        types.Property memory inputPredicateProperty = abi.decode(_inputs[0], (types.Property));
