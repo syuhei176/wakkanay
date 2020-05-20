@@ -1,4 +1,4 @@
-<%  if(property.predicate.type == 'InputPredicateCall') { -%>
+<%   if(property.predicate.type == 'InputPredicateCall') { -%>
 <%    if(property.inputs.length == 0) { -%>
         require(adjudicationContract.isDecidedById(keccak256(_inputs[<%= property.predicate.source.inputIndex-1 %>])));
 <%    } else { -%>
@@ -9,7 +9,7 @@
         }
         <%= valName %>[inputPredicateProperty<%=propIndex%>.inputs.length] = _inputs[<%= property.inputs[0].inputIndex-1 %>];
         require(
-            CompiledPredicate(inputPredicateProperty<%=propIndex%>.predicateAddress).decide(<%= valName %>, utils.subArray(_witness, 1, _witness.length)),
+            CompiledPredicate(inputPredicateProperty<%=propIndex%>.predicateAddress).decide(<%= valName %>, <%= childWitnesses %>),
             "InputPredicate must be true"
         );
 <%    } -%>
@@ -24,7 +24,7 @@
 <%    if(property.predicate.type == 'CompiledPredicateCall') { -%>
         // This is for predicates dynamic linking
         require(
-            CompiledPredicate(<%= property.predicate.source %>).decide(<%= valName %>, utils.subArray(_witness, 1, _witness.length)),
+            CompiledPredicate(<%= property.predicate.source %>).decide(<%= valName %>, <%= childWitnesses %>),
             "<%= property.predicate.source %> must be true"
         );
 <%  } else { -%>
