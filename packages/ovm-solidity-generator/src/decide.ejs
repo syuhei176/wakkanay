@@ -26,7 +26,7 @@
 <%- include('constructInputs', {property: item, valName: 'childInputs' + index, witnessName: '_witness[0]'}) -%>
         require(decide(childInputs<%= index %>,  abi.decode(_witness[<%= index %>], (bytes[]))));
 <%      } else { %>
-<%- include('decideProperty', {propIndex: index, property: item, valName: 'childInputs' + index}) -%>
+<%- include('decideProperty', {propIndex: index, property: item, valName: 'childInputs' + index, childWitnesses: 'abi.decode(_witness['+index+'], (bytes[]))'}) -%>
 <%      } %>
 <%      }) -%>
         return true;
@@ -41,7 +41,7 @@ const innerProperty = property.inputs[2]
 <%- include('constructInputs', {property: innerProperty, valName: 'childInputs', witnessName: '_witness[0]'}) -%>
         require(decide(childInputs,  utils.subArray(_witness, 1, _witness.length)));
 <%      } else { %>
-<%- include('decideProperty', {propIndex: '', property: innerProperty, valName: 'childInputs'}) -%>
+<%- include('decideProperty', {propIndex: '', property: innerProperty, valName: 'childInputs', childWitnesses: 'utils.subArray(_witness, 1, _witness.length)'}) -%>
 <%      } %>
         return true;
 <% } else if(property.connective == 'Or') { -%>
@@ -56,7 +56,7 @@ const innerProperty = property.inputs[2]
 <%- indent(include('constructInputs', {property: item, valName: 'childInputs' + index, witnessName: '_witness[0]'}), 4) -%>
             require(decide(childInputs<%= index %>, utils.subArray(_witness, 1, _witness.length)));
 <%        } else { %>
-<%- indent(include('decideProperty', {propIndex: index, property: item, valName: 'childInputs' + index}), 4) -%>
+<%- indent(include('decideProperty', {propIndex: index, property: item, valName: 'childInputs' + index, childWitnesses: 'utils.subArray(_witness, 1, _witness.length)'}), 4) -%>
 <%        } %>
         }
 <%      }) -%>
