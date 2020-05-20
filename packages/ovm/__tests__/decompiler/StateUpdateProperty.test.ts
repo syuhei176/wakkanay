@@ -87,6 +87,7 @@ describe('StateUpdate', () => {
 
     // create witness
     const witnesses: Bytes[] = []
+    witnesses.push(Coder.encode(txProperty.toStruct()))
     witnesses.push(
       Coder.encode(
         List.from(Bytes, [
@@ -98,7 +99,6 @@ describe('StateUpdate', () => {
       )
     )
     witnesses.push(Coder.encode(List.from(Bytes, [])))
-    witnesses.push(Coder.encode(txProperty.toStruct()))
 
     expect(decision).toStrictEqual({
       witnesses,
