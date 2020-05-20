@@ -28,14 +28,14 @@
     "doc": "typedoc --out docs src",
     "clean": "rm -rf lib docs"
   },
-  "dependencies": {
-    "ethers": "^4.0.46"
-  },
+  "dependencies": {},
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
+    "ethers": "^4.0.46",
     "@cryptoeconomicslab/primitives": "^0.4.0"
   },
   "peerDependencies": {
+    "ethers": "^4.0.46",
     "@cryptoeconomicslab/primitives": "^0.0.36"
   }
 }

@@ -36,6 +36,7 @@
     "prettier": "^2.0.2",
     "ts-jest": "^25.2.1",
     "ts-node": "^8.8.1",
+    "ethers": "4.0.47",
     "typescript": "^3.8.3"
   },
   "dependencies": {
@@ -50,9 +51,11 @@
     "@cryptoeconomicslab/primitives": "file:../gazelle/packages/primitives",
     "@sentry/node": "^5.15.0",
     "dotenv": "^8.2.0",
-    "ethers": "4.0.47",
     "pg": "^7.18.2",
     "tslib": "^1.11.1"
+  },
+  "peerDependencies": {
+    "ethers": "4.0.47"
   },
   "jest": {
     "clearMocks": true,
