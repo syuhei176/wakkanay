@@ -198,6 +198,8 @@ async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
 
 MockDepositContract.prototype.address = Address.default()
 const defaultAddress = Address.default().data
+const erc20Address = deciderConfig.PlasmaETH
+const depositContractAddress = deciderConfig.payoutContracts.DepositContract
 
 describe('LightClient', () => {
   let client: LightClient
@@ -208,7 +210,7 @@ describe('LightClient', () => {
     MockERC20Contract.mockClear()
 
     client = await initialize()
-    client.registerToken(defaultAddress, defaultAddress)
+    client.registerToken(erc20Address, depositContractAddress)
   })
 
   describe('initialize', () => {
@@ -233,7 +235,7 @@ describe('LightClient', () => {
     test('deposit calls contract methods', async () => {
       // setup mock values
 
-      await client.deposit(20, defaultAddress)
+      await client.deposit(20, erc20Address)
 
       expect(mockApprove).toHaveBeenLastCalledWith(
         Address.default(),
@@ -247,7 +249,7 @@ describe('LightClient', () => {
     })
 
     test('deposit with large number as string', async () => {
-      await client.deposit('10000000000000000', defaultAddress)
+      await client.deposit('10000000000000000', erc20Address)
 
       expect(mockApprove).toHaveBeenLastCalledWith(
         Address.default(),
