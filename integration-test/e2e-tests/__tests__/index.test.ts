@@ -126,17 +126,14 @@ describe('light client', () => {
    * Bob attemts exit 0.1 ETH
    */
   test('user deposits, transfers and attempts exit asset', async () => {
-    await aliceLightClient.deposit(
-      parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.deposit(parseUnitsToJsbi('0.1'), config.PlasmaETH)
     await sleep(10000)
 
     expect(await getBalance(aliceLightClient)).toEqual('0.1')
 
     await aliceLightClient.transfer(
       parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract,
+      config.PlasmaETH,
       bobLightClient.address
     )
     await sleep(20000)
@@ -144,10 +141,7 @@ describe('light client', () => {
     expect(await getBalance(aliceLightClient)).toEqual('0.0')
     expect(await getBalance(bobLightClient)).toEqual('0.1')
 
-    await bobLightClient.exit(
-      parseUnitsToJsbi('0.05'),
-      config.payoutContracts.DepositContract
-    )
+    await bobLightClient.exit(parseUnitsToJsbi('0.05'), config.PlasmaETH)
     await sleep(10000)
 
     expect(await getBalance(bobLightClient)).toEqual('0.05')
@@ -186,18 +180,12 @@ describe('light client', () => {
       const wallet = new ethers.Wallet(privateKey, provider)
       return await createClient(wallet)
     }
-    await aliceLightClient.deposit(
-      parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.deposit(parseUnitsToJsbi('0.1'), config.PlasmaETH)
     await sleep(10000)
 
     expect(await getBalance(aliceLightClient)).toEqual('0.1')
 
-    await aliceLightClient.exit(
-      parseUnitsToJsbi('0.05'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.exit(parseUnitsToJsbi('0.05'), config.PlasmaETH)
     await sleep(10000)
     const client = await createClientFromPrivateKey(
       aliceLightClient['wallet']['ethersWallet'].privateKey
@@ -228,14 +216,8 @@ describe('light client', () => {
    */
   test('multiple transfers in same block', async () => {
     console.log('multiple transfers in same block')
-    await aliceLightClient.deposit(
-      parseUnitsToJsbi('0.5'),
-      config.payoutContracts.DepositContract
-    )
-    await bobLightClient.deposit(
-      parseUnitsToJsbi('0.5'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.deposit(parseUnitsToJsbi('0.5'), config.PlasmaETH)
+    await bobLightClient.deposit(parseUnitsToJsbi('0.5'), config.PlasmaETH)
 
     await sleep(10000)
 
@@ -244,17 +226,17 @@ describe('light client', () => {
 
     await aliceLightClient.transfer(
       parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract,
+      config.PlasmaETH,
       bobLightClient.address
     )
     await bobLightClient.transfer(
       parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract,
+      config.PlasmaETH,
       aliceLightClient.address
     )
     await aliceLightClient.transfer(
       parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract,
+      config.PlasmaETH,
       bobLightClient.address
     )
 
@@ -263,14 +245,8 @@ describe('light client', () => {
     await checkBalance(aliceLightClient, '0.4')
     await checkBalance(bobLightClient, '0.6')
 
-    await aliceLightClient.exit(
-      parseUnitsToJsbi('0.4'),
-      config.payoutContracts.DepositContract
-    )
-    await bobLightClient.exit(
-      parseUnitsToJsbi('0.6'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.exit(parseUnitsToJsbi('0.4'), config.PlasmaETH)
+    await bobLightClient.exit(parseUnitsToJsbi('0.6'), config.PlasmaETH)
     await sleep(10000)
 
     await checkBalance(aliceLightClient, '0.0')
@@ -297,17 +273,14 @@ describe('light client', () => {
    */
   test('deposit after withdraw', async () => {
     console.log('deposit after withdraw')
-    await aliceLightClient.deposit(
-      parseUnitsToJsbi('0.5'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.deposit(parseUnitsToJsbi('0.5'), config.PlasmaETH)
     await sleep(10000)
 
     expect(await getBalance(aliceLightClient)).toEqual('0.5')
 
     await aliceLightClient.transfer(
       parseUnitsToJsbi('0.5'),
-      config.payoutContracts.DepositContract,
+      config.PlasmaETH,
       bobLightClient.address
     )
     await sleep(20000)
@@ -315,10 +288,7 @@ describe('light client', () => {
     expect(await getBalance(aliceLightClient)).toEqual('0.0')
     expect(await getBalance(bobLightClient)).toEqual('0.5')
 
-    await bobLightClient.exit(
-      parseUnitsToJsbi('0.2'),
-      config.payoutContracts.DepositContract
-    )
+    await bobLightClient.exit(parseUnitsToJsbi('0.2'), config.PlasmaETH)
     await sleep(10000)
 
     expect(await getBalance(bobLightClient)).toEqual('0.3')
@@ -329,14 +299,8 @@ describe('light client', () => {
     await finalizeExit(bobLightClient)
     expect(await getL1PETHBalance(bobLightClient)).toEqual('0.2')
 
-    await aliceLightClient.deposit(
-      parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract
-    )
-    await bobLightClient.deposit(
-      parseUnitsToJsbi('0.8'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.deposit(parseUnitsToJsbi('0.1'), config.PlasmaETH)
+    await bobLightClient.deposit(parseUnitsToJsbi('0.8'), config.PlasmaETH)
     await sleep(10000)
 
     expect(await getBalance(aliceLightClient)).toEqual('0.1')
@@ -351,10 +315,7 @@ describe('light client', () => {
    * Alice sends 0.1 ETH to Bob
    */
   test('transfer after error', async () => {
-    await aliceLightClient.deposit(
-      parseUnitsToJsbi('0.2'),
-      config.payoutContracts.DepositContract
-    )
+    await aliceLightClient.deposit(parseUnitsToJsbi('0.2'), config.PlasmaETH)
     await sleep(10000)
 
     await checkBalance(aliceLightClient, '0.2')
@@ -363,16 +324,13 @@ describe('light client', () => {
     await expect(
       aliceLightClient.transfer(
         parseUnitsToJsbi('0.5'),
-        config.payoutContracts.DepositContract,
+        config.PlasmaETH,
         bobLightClient.address
       )
     ).rejects.toEqual(new Error('Not enough amount'))
 
     await expect(
-      aliceLightClient.exit(
-        parseUnitsToJsbi('0.5'),
-        config.payoutContracts.DepositContract
-      )
+      aliceLightClient.exit(parseUnitsToJsbi('0.5'), config.PlasmaETH)
     ).rejects.toEqual(new Error('Insufficient amount'))
 
     await checkBalance(aliceLightClient, '0.2')
@@ -380,7 +338,7 @@ describe('light client', () => {
 
     aliceLightClient.transfer(
       parseUnitsToJsbi('0.1'),
-      config.payoutContracts.DepositContract,
+      config.PlasmaETH,
       bobLightClient.address
     )
     await sleep(20000)
