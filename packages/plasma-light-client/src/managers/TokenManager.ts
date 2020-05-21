@@ -10,14 +10,21 @@ import { Integer, Address } from '@cryptoeconomicslab/primitives'
 export default class TokenManager {
   private depositContractAddressStrings: Set<string> = new Set()
   private depositContracts: Map<string, IDepositContract> = new Map()
+  private tokenContractAddressStrings: Set<string> = new Set()
   private tokenContracts: Map<string, IERC20DetailedContract> = new Map()
-  private tokenNames: Map<string, string> = new Map()
-  private tokenSymbols: Map<string, string> = new Map()
-  private tokenDecimals: Map<string, Integer> = new Map()
+  private tokenNames: Map<string, string> = new Map() // key: tokenContractAddress, value: name
+  private tokenSymbols: Map<string, string> = new Map() // key: tokenContractAddress, value: symbol
+  private tokenDecimals: Map<string, Integer> = new Map() // key: tokenContractAddress, value: decimals
   private contractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
 
   get depositContractAddresses(): Address[] {
     return Array.from(this.depositContractAddressStrings).map(addr =>
+      Address.from(addr)
+    )
+  }
+
+  get tokenContractAddresses(): Address[] {
+    return Array.from(this.tokenContractAddressStrings).map(addr =>
       Address.from(addr)
     )
   }
@@ -33,7 +40,7 @@ export default class TokenManager {
   ) {
     const depositContractAddress = depositContract.address
     this.addDepositContract(depositContractAddress, depositContract)
-    await this.addTokenContract(depositContractAddress, erc20Contract)
+    await this.addTokenContract(erc20Contract)
     this.contractAddressMap.set(
       erc20Contract.address.data,
       depositContract.address.data
@@ -76,49 +83,43 @@ export default class TokenManager {
    * @param depositContractAddress The address of Deposit Contract
    * @param erc20Contract Instance of ERC20Contract
    */
-  async addTokenContract(
-    depositContractAddress: Address,
-    erc20Contract: IERC20DetailedContract
-  ) {
-    this.tokenContracts.set(depositContractAddress.data, erc20Contract)
+  async addTokenContract(erc20Contract: IERC20DetailedContract) {
+    this.tokenContracts.set(erc20Contract.address.data, erc20Contract)
+    this.tokenContractAddressStrings.add(erc20Contract.address.data)
     const name = await erc20Contract.name()
     const symbol = await erc20Contract.symbol()
     const decimals = await erc20Contract.decimals()
     this.tokenNames.set(erc20Contract.address.data, name)
     this.tokenSymbols.set(erc20Contract.address.data, symbol)
     this.tokenDecimals.set(erc20Contract.address.data, decimals)
-    this.contractAddressMap.set(
-      depositContractAddress.data,
-      erc20Contract.address.data
-    )
   }
 
   /**
-   * Get Token Contract by deposit contract address.
-   * @param depositContractAddress The address of Deposit Contract
+   * Get Token Contract by token contract address.
+   * @param tokenContractAddress The address of Token Contract
    */
   getTokenContract(
-    depositContractAddress: Address
+    tokenContractAddress: Address
   ): IERC20DetailedContract | undefined {
-    return this.tokenContracts.get(depositContractAddress.data)
+    return this.tokenContracts.get(tokenContractAddress.data)
   }
 
   /**
    * Get name of token by deposit contract address.
-   * @param depositContractAddress The address of Deposit Contract
+   * @param tokenContractAddress The address of Token Contract
    * @returns Returns the token name.
    */
-  getName(depositContractAddress: Address): string {
-    const tokenContract = this.getTokenContract(depositContractAddress)
+  getName(tokenContractAddress: Address): string {
+    const tokenContract = this.getTokenContract(tokenContractAddress)
     if (!tokenContract) {
       throw new Error(
-        `Token Contract of (${depositContractAddress.data}) not found.`
+        `Token Contract of (${tokenContractAddress.data}) not found.`
       )
     }
-    const name = this.tokenNames.get(tokenContract.address.data)
+    const name = this.tokenNames.get(tokenContractAddress.data)
     if (!name) {
       throw new Error(
-        `Token description(${tokenContract.address.data}) name not found.`
+        `Token description(${tokenContractAddress.data}) name not found.`
       )
     }
     return name
@@ -126,20 +127,20 @@ export default class TokenManager {
 
   /**
    * Get symbol of token by deposit contract address.
-   * @param depositContractAddress The address of Deposit Contract
+   * @param tokenContractAddress The address of Token Contract
    * @returns Returns the symbol value which usually a shorter value of the token's name.
    */
-  getSymbol(depositContractAddress: Address): string {
-    const tokenContract = this.getTokenContract(depositContractAddress)
+  getSymbol(tokenContractAddress: Address): string {
+    const tokenContract = this.getTokenContract(tokenContractAddress)
     if (!tokenContract) {
       throw new Error(
-        `Token Contract of (${depositContractAddress.data}) not found.`
+        `Token Contract of (${tokenContractAddress.data}) not found.`
       )
     }
-    const symbol = this.tokenSymbols.get(tokenContract.address.data)
+    const symbol = this.tokenSymbols.get(tokenContractAddress.data)
     if (!symbol) {
       throw new Error(
-        `Token description(${tokenContract.address.data}) symbol not found.`
+        `Token description(${tokenContractAddress.data}) symbol not found.`
       )
     }
     return symbol
@@ -147,20 +148,20 @@ export default class TokenManager {
 
   /**
    * Get decimal of token by deposit contract address.
-   * @param depositContractAddress The address of Deposit Contract
+   * @param tokenContractAddress The address of Token Contract
    * @returns Retuens decimal value which indicates how many "0"s there are to the right of the decimal point in token representation.
    */
-  getDecimal(depositContractAddress: Address): number {
-    const tokenContract = this.getTokenContract(depositContractAddress)
+  getDecimal(tokenContractAddress: Address): number {
+    const tokenContract = this.getTokenContract(tokenContractAddress)
     if (!tokenContract) {
       throw new Error(
-        `Token Contract of (${depositContractAddress.data}) not found.`
+        `Token Contract of (${tokenContractAddress.data}) not found.`
       )
     }
-    const decimals = this.tokenDecimals.get(tokenContract.address.data)
+    const decimals = this.tokenDecimals.get(tokenContractAddress.data)
     if (!decimals) {
       throw new Error(
-        `Token description(${tokenContract.address.data}) decimals not found.`
+        `Token description(${tokenContractAddress.data}) decimals not found.`
       )
     }
     return decimals.data

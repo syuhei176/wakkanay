@@ -4,6 +4,7 @@ import {
   IERC20DetailedContract,
   IDepositContract
 } from '@cryptoeconomicslab/contract'
+import deciderConfig from './config.local'
 
 const mockApprove = jest.fn()
 const mockName = jest.fn().mockImplementation(() => 'PlasmaETH')
@@ -25,10 +26,10 @@ const MockDepositContract = jest.fn().mockImplementation((address: Address) => {
 
 describe('TokenManager', () => {
   let tokenManager: TokenManager
-  const tokenAddress = Address.default()
   const depositContractAddress = Address.from(
-    '0x0000000000000000000000000000000000000001'
+    deciderConfig.payoutContracts.DepositContract
   )
+  const tokenContractAddress = Address.from(deciderConfig.PlasmaETH)
 
   beforeEach(async () => {
     mockApprove.mockClear()
@@ -47,29 +48,36 @@ describe('TokenManager', () => {
     ])
   })
 
+  test('get tokenContractAddresses', () => {
+    tokenManager.addTokenContract(new MockERC20Contract(tokenContractAddress))
+    expect(tokenManager.tokenContractAddresses).toEqual([tokenContractAddress])
+  })
+
   test('add token', async () => {
     await tokenManager.addContracts(
-      new MockERC20Contract(tokenAddress),
+      new MockERC20Contract(tokenContractAddress),
       new MockDepositContract(depositContractAddress)
     )
-    const tokenContract = tokenManager.getTokenContract(depositContractAddress)
+    const tokenContract = tokenManager.getTokenContract(tokenContractAddress)
     expect(tokenContract).not.toBeUndefined()
-    expect(tokenContract?.address).toEqual(tokenAddress)
+    expect(tokenContract?.address).toEqual(tokenContractAddress)
     const depositContract = tokenManager.getDepositContract(
       depositContractAddress
     )
     expect(depositContract).not.toBeUndefined()
     expect(depositContract?.address).toEqual(depositContractAddress)
+    expect(
+      tokenManager.getDepositContractAddress(tokenContractAddress)
+    ).toEqual(depositContractAddress.data)
   })
 
   test('addTokenContract and getTokenContract', async () => {
     await tokenManager.addTokenContract(
-      depositContractAddress,
-      new MockERC20Contract(tokenAddress)
+      new MockERC20Contract(tokenContractAddress)
     )
-    const tokenContract = tokenManager.getTokenContract(depositContractAddress)
+    const tokenContract = tokenManager.getTokenContract(tokenContractAddress)
     expect(tokenContract).not.toBeUndefined()
-    expect(tokenContract?.address).toEqual(tokenAddress)
+    expect(tokenContract?.address).toEqual(tokenContractAddress)
   })
 
   test('addDepositContract and getDepositContract', () => {
@@ -84,17 +92,42 @@ describe('TokenManager', () => {
     expect(depositContract?.address).toEqual(depositContractAddress)
   })
 
+  test('addTokenContract and getName', async () => {
+    await tokenManager.addTokenContract(
+      new MockERC20Contract(tokenContractAddress)
+    )
+    expect(tokenManager.getName(tokenContractAddress)).toEqual('PlasmaETH')
+  })
+
+  test('getName throw exception', async () => {
+    expect(() => {
+      tokenManager.getName(tokenContractAddress)
+    }).toThrow(`Token Contract of (${tokenContractAddress.data}) not found.`)
+  })
+
+  test('addTokenContract and getSymbol', async () => {
+    await tokenManager.addTokenContract(
+      new MockERC20Contract(tokenContractAddress)
+    )
+    expect(tokenManager.getSymbol(tokenContractAddress)).toEqual('PETH')
+  })
+
+  test('getSymbol throw exception', async () => {
+    expect(() => {
+      tokenManager.getSymbol(tokenContractAddress)
+    }).toThrow(`Token Contract of (${tokenContractAddress.data}) not found.`)
+  })
+
   test('addTokenContract and getDecimals', async () => {
     await tokenManager.addTokenContract(
-      depositContractAddress,
-      new MockERC20Contract(tokenAddress)
+      new MockERC20Contract(tokenContractAddress)
     )
-    expect(tokenManager.getDecimal(depositContractAddress)).toEqual(6)
+    expect(tokenManager.getDecimal(tokenContractAddress)).toEqual(6)
   })
 
   test('getDecimals throw exception', async () => {
     expect(() => {
-      tokenManager.getDecimal(depositContractAddress)
-    }).toThrow(`Token Contract of (${depositContractAddress.data}) not found.`)
+      tokenManager.getDecimal(tokenContractAddress)
+    }).toThrow(`Token Contract of (${tokenContractAddress.data}) not found.`)
   })
 })

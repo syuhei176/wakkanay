@@ -227,7 +227,7 @@ export default class LightClient {
       tokenContractAddress: string
     }>
   > {
-    const resultPromise = this.tokenManager.depositContractAddresses.map(
+    const resultPromise = this.tokenManager.tokenContractAddresses.map(
       async addr => {
         const data = await this.stateManager.getVerifiedStateUpdates(
           addr,
