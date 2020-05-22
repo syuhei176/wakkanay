@@ -239,12 +239,13 @@ export default class LightClient {
           new Range(BigNumber.from(0), BigNumber.MAX_NUMBER) // TODO: get all stateUpdate method
         )
         const tokenContract = this.tokenManager.getTokenContract(addr)
+        if (!tokenContract) throw new Error('Token Contract not found')
         return {
           name: this.tokenManager.getName(addr),
           symbol: this.tokenManager.getSymbol(addr),
           decimals: this.tokenManager.getDecimal(addr),
           amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
-          tokenContractAddress: tokenContract ? tokenContract.address.data : ''
+          tokenContractAddress: tokenContract.address.data
         }
       }
     )
