@@ -197,7 +197,6 @@ async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
 }
 const erc20Address = deciderConfig.PlasmaETH
 const depositContractAddress = deciderConfig.payoutContracts.DepositContract
-MockDepositContract.prototype.address = Address.from(depositContractAddress)
 
 describe('LightClient', () => {
   let client: LightClient
