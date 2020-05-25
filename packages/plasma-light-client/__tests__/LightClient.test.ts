@@ -195,9 +195,8 @@ async function initialize(aggregatorEndpoint?: string): Promise<LightClient> {
     aggregatorEndpoint
   })
 }
-
-MockDepositContract.prototype.address = Address.default()
-const defaultAddress = Address.default().data
+const erc20Address = deciderConfig.PlasmaETH
+const depositContractAddress = deciderConfig.payoutContracts.DepositContract
 
 describe('LightClient', () => {
   let client: LightClient
@@ -208,7 +207,7 @@ describe('LightClient', () => {
     MockERC20Contract.mockClear()
 
     client = await initialize()
-    client.registerToken(defaultAddress, defaultAddress)
+    client.registerToken(erc20Address, depositContractAddress)
   })
 
   describe('initialize', () => {
@@ -232,11 +231,10 @@ describe('LightClient', () => {
   describe('deposit', () => {
     test('deposit calls contract methods', async () => {
       // setup mock values
-
-      await client.deposit(20, defaultAddress)
+      await client.deposit(20, erc20Address)
 
       expect(mockApprove).toHaveBeenLastCalledWith(
-        Address.default(),
+        Address.from(depositContractAddress),
         BigNumber.from(20)
       )
 
@@ -247,10 +245,10 @@ describe('LightClient', () => {
     })
 
     test('deposit with large number as string', async () => {
-      await client.deposit('10000000000000000', defaultAddress)
+      await client.deposit('10000000000000000', erc20Address)
 
       expect(mockApprove).toHaveBeenLastCalledWith(
-        Address.default(),
+        Address.from(depositContractAddress),
         BigNumber.fromString('10000000000000000')
       )
 
@@ -277,7 +275,7 @@ describe('LightClient', () => {
           deciderConfig.deployedPredicateTable.StateUpdatePredicate
             .deployedAddress
         ),
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(20)),
         BigNumber.from(0),
         client.ownershipProperty(Address.from(client.address))
@@ -286,13 +284,13 @@ describe('LightClient', () => {
 
     test('call sendTransaction without exception', async () => {
       await client['stateManager'].insertVerifiedStateUpdate(
-        Address.default(),
+        Address.from(depositContractAddress),
         su
       )
 
       await client.sendTransaction(
         10,
-        defaultAddress,
+        erc20Address,
         new Property(Address.default(), [])
       )
       expect(mockSendTransaction).toBeCalled()
@@ -302,7 +300,7 @@ describe('LightClient', () => {
       await expect(
         client.sendTransaction(
           50,
-          defaultAddress,
+          erc20Address,
           new Property(Address.default(), [])
         )
       ).rejects.toEqual(new Error('Not enough amount'))
@@ -322,7 +320,7 @@ describe('LightClient', () => {
           deciderConfig.deployedPredicateTable.StateUpdatePredicate
             .deployedAddress
         ),
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(20)),
         BigNumber.from(0),
         client.ownershipProperty(Address.from(client.address))
@@ -332,7 +330,7 @@ describe('LightClient', () => {
           deciderConfig.deployedPredicateTable.StateUpdatePredicate
             .deployedAddress
         ),
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(30), BigNumber.from(40)),
         BigNumber.from(1),
         client.ownershipProperty(Address.from(client.address))
@@ -359,11 +357,11 @@ describe('LightClient', () => {
       // setup
       // store ownership stateupdate
       await client['stateManager'].insertVerifiedStateUpdate(
-        Address.default(),
+        Address.from(depositContractAddress),
         su1
       )
       await client['stateManager'].insertVerifiedStateUpdate(
-        Address.default(),
+        Address.from(depositContractAddress),
         su2
       )
       // store inclusion proof
@@ -392,7 +390,7 @@ describe('LightClient', () => {
 
     test('exit calls claimProperty of adjudicationContract', async () => {
       const { coder } = ovmContext
-      await client.exit(20, defaultAddress)
+      await client.exit(20, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -405,7 +403,7 @@ describe('LightClient', () => {
       const exitingStateUpdate = await client[
         'stateManager'
       ].getExitStateUpdates(
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(20))
       )
       expect(exitingStateUpdate).toEqual([su1])
@@ -414,12 +412,12 @@ describe('LightClient', () => {
     test('exit calls claimProperty with exitDeposit property', async () => {
       // store checkpoint
       await client['checkpointManager'].insertCheckpointWithRange(
-        Address.default(),
+        Address.from(depositContractAddress),
         checkpoint
       )
 
       const { coder } = ovmContext
-      await client.exit(20, defaultAddress)
+      await client.exit(20, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'ExitDeposit'
@@ -435,7 +433,7 @@ describe('LightClient', () => {
 
     test('exit with multiple range', async () => {
       const { coder } = ovmContext
-      await client.exit(25, defaultAddress)
+      await client.exit(25, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -459,20 +457,20 @@ describe('LightClient', () => {
       const exitingStateUpdates = await client[
         'stateManager'
       ].getExitStateUpdates(
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(40))
       )
       expect(exitingStateUpdates).toEqual([su1, su2])
     })
 
     test('exit calls fail with unsufficient amount', async () => {
-      await expect(client.exit(31, defaultAddress)).rejects.toEqual(
+      await expect(client.exit(31, erc20Address)).rejects.toEqual(
         new Error('Insufficient amount')
       )
     })
 
     test('exitList', async () => {
-      await client.exit(25, defaultAddress)
+      await client.exit(25, erc20Address)
       const exitList = await client.getExitList()
 
       const { coder } = ovmContext
@@ -501,7 +499,7 @@ describe('LightClient', () => {
     test('finalizeExit', async () => {
       // setup depositedRangeId
       await client['depositedRangeManager'].extendRange(
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(50))
       )
 
@@ -526,7 +524,7 @@ describe('LightClient', () => {
     test('finalizeExit with exitDeposit', async () => {
       // setup depositedRangeId
       await client['depositedRangeManager'].extendRange(
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(50))
       )
 
@@ -589,7 +587,7 @@ describe('LightClient', () => {
           deciderConfig.deployedPredicateTable.StateUpdatePredicate
             .deployedAddress
         ),
-        Address.default(),
+        Address.from(depositContractAddress),
         new Range(BigNumber.from(0), BigNumber.from(20)),
         BigNumber.from(0),
         client.ownershipProperty(Address.from(client.address))
