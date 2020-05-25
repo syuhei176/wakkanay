@@ -327,7 +327,9 @@ export default class LightClient {
     )
     const storageDb = await this.deciderManager.getStorageDb()
     const bucket = await storageDb.bucket(
-      Bytes.fromHexString(this.deciderConfig.commitmentContract)
+      ovmContext.coder.encode(
+        Address.from(this.deciderConfig.commitmentContract)
+      )
     )
     await bucket.put(coder.encode(blockNumber), coder.encode(root))
 
