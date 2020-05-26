@@ -64,7 +64,7 @@ import APIClient from './APIClient'
 import TokenManager from './managers/TokenManager'
 import { executeChallenge } from './helper/challenge'
 
-type Numberable =
+type Numberish =
   | {
       toString(): string
     }
@@ -665,7 +665,7 @@ export default class LightClient {
    * @param amount amount to deposit
    * @param tokenContractAddress contract address of the token
    */
-  public async deposit(amount: Numberable, tokenContractAddress: string) {
+  public async deposit(amount: Numberish, tokenContractAddress: string) {
     const addr = Address.from(tokenContractAddress)
     const myAddress = this.wallet.getAddress()
     const erc20Contract = this.tokenManager.getTokenContract(addr)
@@ -702,7 +702,7 @@ export default class LightClient {
    * @param to to whom transfer
    */
   public async transfer(
-    amount: Numberable,
+    amount: Numberish,
     tokenContractAddress: string,
     toAddress: string
   ) {
@@ -728,7 +728,7 @@ export default class LightClient {
    * @param stateObject property defining deprecate condition of next state
    */
   public async sendTransaction(
-    amount: Numberable,
+    amount: Numberish,
     tokenContractAddress: string,
     stateObject: Property
   ) {
@@ -904,7 +904,7 @@ export default class LightClient {
    * @param amount amount to exit
    * @param tokenContractAddress token contract address to exit
    */
-  public async exit(amount: Numberable, tokenContractAddress: string) {
+  public async exit(amount: Numberish, tokenContractAddress: string) {
     const addr = Address.from(tokenContractAddress)
     const depositContractAddress = this.tokenManager.getDepositContractAddress(
       addr
