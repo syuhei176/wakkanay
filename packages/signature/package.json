@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/signature",
-  "version": "0.4.0",
+  "version": "0.4.1-alpha.0",
   "description": "signatures and verifiers",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -32,13 +32,13 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "ethers": "^4.0.46",
     "@cryptoeconomicslab/primitives": "^0.4.0",
-    "@types/libsodium-wrappers-sumo": "^0.7.3"
+    "@types/libsodium-wrappers-sumo": "^0.7.3",
+    "ethers": "^4.0.46"
   },
   "peerDependencies": {
-    "ethers": "^4.0.46",
-    "@cryptoeconomicslab/primitives": "^0.0.36"
+    "@cryptoeconomicslab/primitives": "^0.0.36",
+    "ethers": "^4.0.46"
   },
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e"
 }
