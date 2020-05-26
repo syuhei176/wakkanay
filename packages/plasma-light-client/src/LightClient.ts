@@ -64,6 +64,17 @@ import APIClient from './APIClient'
 import TokenManager from './managers/TokenManager'
 import { executeChallenge } from './helper/challenge'
 
+type Numberable =
+  | {
+      toString(): string
+    }
+  | {
+      valueOf: string | number
+    }
+  | {
+      [Symbol.toPrimitive]
+    }
+
 enum EmitterEvent {
   CHECKPOINT_FINALIZED = 'CHECKPOINT_FINALIZED',
   TRANSFER_COMPLETE = 'TRANSFER_COMPLETE',
@@ -654,10 +665,7 @@ export default class LightClient {
    * @param amount amount to deposit
    * @param tokenContractAddress contract address of the token
    */
-  public async deposit(
-    amount: number | string | JSBI,
-    tokenContractAddress: string
-  ) {
+  public async deposit(amount: Numberable, tokenContractAddress: string) {
     const addr = Address.from(tokenContractAddress)
     const myAddress = this.wallet.getAddress()
     const erc20Contract = this.tokenManager.getTokenContract(addr)
@@ -694,7 +702,7 @@ export default class LightClient {
    * @param to to whom transfer
    */
   public async transfer(
-    amount: number | string | JSBI,
+    amount: Numberable,
     tokenContractAddress: string,
     toAddress: string
   ) {
@@ -720,7 +728,7 @@ export default class LightClient {
    * @param stateObject property defining deprecate condition of next state
    */
   public async sendTransaction(
-    amount: number | string | JSBI,
+    amount: Numberable,
     tokenContractAddress: string,
     stateObject: Property
   ) {
@@ -732,7 +740,7 @@ export default class LightClient {
     }
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       Address.from(depositContractAddress),
-      amount
+      JSBI.BigInt(amount)
     )
     if (stateUpdates === null) {
       throw new Error('Not enough amount')
@@ -896,10 +904,7 @@ export default class LightClient {
    * @param amount amount to exit
    * @param tokenContractAddress token contract address to exit
    */
-  public async exit(
-    amount: number | string | JSBI,
-    tokenContractAddress: string
-  ) {
+  public async exit(amount: Numberable, tokenContractAddress: string) {
     const addr = Address.from(tokenContractAddress)
     const depositContractAddress = this.tokenManager.getDepositContractAddress(
       addr
@@ -909,7 +914,7 @@ export default class LightClient {
     }
     const stateUpdates = await this.stateManager.resolveStateUpdate(
       Address.from(depositContractAddress),
-      amount
+      JSBI.BigInt(amount)
     )
     if (Array.isArray(stateUpdates) && stateUpdates.length > 0) {
       // resolve promises in serial to avoid an error of ethers.js on calling claimProperty

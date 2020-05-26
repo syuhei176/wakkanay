@@ -50,7 +50,10 @@ describe('StateManager', () => {
       su(JSBI.BigInt(10), JSBI.BigInt(20))
     )
 
-    const s = await stateManager.resolveStateUpdate(Address.default(), 5)
+    const s = await stateManager.resolveStateUpdate(
+      Address.default(),
+      JSBI.BigInt(5)
+    )
     expect(s).toEqual([su(JSBI.BigInt(0), JSBI.BigInt(5))])
   })
 
@@ -66,7 +69,7 @@ describe('StateManager', () => {
 
     const resolvedStateUpdates = await stateManager.resolveStateUpdate(
       Address.default(),
-      15
+      JSBI.BigInt(15)
     )
 
     if (!resolvedStateUpdates) throw new Error('resolvedStateUpdates is null')
@@ -88,7 +91,7 @@ describe('StateManager', () => {
 
     const resolvedStateUpdates = await stateManager.resolveStateUpdate(
       Address.default(),
-      25
+      JSBI.BigInt(25)
     )
     expect(resolvedStateUpdates).toBeNull()
   })
