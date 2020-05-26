@@ -5,7 +5,7 @@
     "build": "lerna run build",
     "clean": "lerna run clean",
     "publish": "npm run bootstrap && npm run build && lerna publish",
-    "publish:dev": "npm run bootstrap && npm run build && lerna publish",
+    "publish:canary": "npm run bootstrap && npm run build && lerna publish --canary",
     "test": "jest",
     "test:all": "npm test && npm run test:contract",
     "test:contract": "lerna run test --scope @cryptoeconomicslab/ovm-ethereum-generator",
