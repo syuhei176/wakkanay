@@ -218,7 +218,7 @@ export default class StateManager {
    */
   public async resolveStateUpdate(
     depositContractAddress: Address,
-    amount: number | string | JSBI
+    amount: JSBI
   ): Promise<StateUpdate[] | null> {
     const db = await this.getRangeDb(Kind.Verified, depositContractAddress)
     const stateUpdates: StateUpdate[] = []
@@ -226,16 +226,16 @@ export default class StateManager {
 
     let next = await iter.next()
     let sum = JSBI.BigInt(0)
-    while (next !== null && JSBI.notEqual(sum, JSBI.BigInt(amount))) {
+    while (next !== null && JSBI.notEqual(sum, amount)) {
       const su = StateUpdate.fromRangeRecord(next)
-      if (JSBI.greaterThan(JSBI.add(sum, su.amount), JSBI.BigInt(amount))) {
+      if (JSBI.greaterThan(JSBI.add(sum, su.amount), amount)) {
         su.update({
           range: new Range(
             su.range.start,
             BigNumber.from(
               JSBI.subtract(
                 su.range.end.data,
-                JSBI.subtract(JSBI.add(sum, su.amount), JSBI.BigInt(amount))
+                JSBI.subtract(JSBI.add(sum, su.amount), amount)
               )
             )
           )
@@ -249,7 +249,7 @@ export default class StateManager {
       next = await iter.next()
     }
 
-    if (JSBI.lessThan(sum, JSBI.BigInt(amount))) {
+    if (JSBI.lessThan(sum, amount)) {
       return null
     }
 
