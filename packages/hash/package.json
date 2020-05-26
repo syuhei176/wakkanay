@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/hash",
-  "version": "0.4.0",
+  "version": "0.4.1-alpha.0",
   "description": "hash",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -28,14 +28,13 @@
     "doc": "typedoc --out docs src",
     "clean": "rm -rf lib docs"
   },
-  "dependencies": {},
   "gitHead": "3da28b833795e0c0f47d0c3142496edc537c311e",
   "devDependencies": {
-    "ethers": "^4.0.46",
-    "@cryptoeconomicslab/primitives": "^0.4.0"
+    "@cryptoeconomicslab/primitives": "^0.4.0",
+    "ethers": "^4.0.46"
   },
   "peerDependencies": {
-    "ethers": "^4.0.46",
-    "@cryptoeconomicslab/primitives": "^0.0.36"
+    "@cryptoeconomicslab/primitives": "^0.0.36",
+    "ethers": "^4.0.46"
   }
 }
