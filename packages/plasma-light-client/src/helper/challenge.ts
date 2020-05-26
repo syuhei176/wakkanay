@@ -1,4 +1,3 @@
-import { Keccak256 } from '@cryptoeconomicslab/hash'
 import { Bytes, List } from '@cryptoeconomicslab/primitives'
 import { Challenge, DeciderManager, Property } from '@cryptoeconomicslab/ovm'
 import { IAdjudicationContract } from '@cryptoeconomicslab/contract'
@@ -14,33 +13,28 @@ import { IAdjudicationContract } from '@cryptoeconomicslab/contract'
 export async function executeChallenge(
   adjudicationContract: IAdjudicationContract,
   deciderManager: DeciderManager,
-  gameId: Bytes,
+  property: Property,
   challenge: Challenge
 ) {
-  const challengingGameId = getGameId(challenge.property)
   await adjudicationContract.claimProperty(challenge.property)
   await adjudicationContract.challenge(
-    gameId,
+    property,
     List.from(
       Bytes,
       challenge.challengeInputs.map(challengeInput => challengeInput)
     ),
-    challengingGameId
+    challenge.property
   )
   const decisionOfCounterClaim = await deciderManager.decide(challenge.property)
   if (decisionOfCounterClaim.outcome && decisionOfCounterClaim.witnesses) {
     // decide claim if it's needed.
     await adjudicationContract.decideClaimWithWitness(
-      challengingGameId,
+      challenge.property,
       decisionOfCounterClaim.witnesses
     )
-    await adjudicationContract.decideClaimToFalse(gameId, challengingGameId)
+    await adjudicationContract.decideClaimToFalse(property, challenge.property)
   } else {
     // TODO: how do we notify user of malicious case happening
     console.warn(`We did challenge, but the challenge hasn't decided yet.`)
   }
-}
-
-export function getGameId(property: Property) {
-  return Keccak256.hash(ovmContext.coder.encode(property.toStruct()))
 }

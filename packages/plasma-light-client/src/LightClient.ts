@@ -63,6 +63,7 @@ import {
 import APIClient from './APIClient'
 import TokenManager from './managers/TokenManager'
 import { executeChallenge } from './helper/challenge'
+import { decode } from 'punycode'
 
 type Numberish =
   | {
@@ -997,11 +998,11 @@ export default class LightClient {
    * @param gameId Id of the game to challenge
    * @param challenge challenge data structure
    */
-  private async executeChallenge(gameId: Bytes, challenge: Challenge) {
+  private async executeChallenge(property: Property, challenge: Challenge) {
     await executeChallenge(
       this.adjudicationContract,
       this.deciderManager,
-      gameId,
+      property,
       challenge
     )
   }
@@ -1010,14 +1011,22 @@ export default class LightClient {
     this.adjudicationContract.subscribeClaimChallenged(
       async (gameId, challengeGameId) => {
         const db = await this.getClaimDb()
-        const property = db.get(gameId)
-        if (property) {
+        const propertyBytes = await db.get(gameId)
+        const challengingPropertyBytes = await db.get(challengeGameId)
+        if (propertyBytes && challengingPropertyBytes) {
           // challenged property is the one this client claimed
           const game = await this.adjudicationContract.getGame(challengeGameId)
           const decision = await this.deciderManager.decide(game.property)
           if (!decision.outcome && decision.challenge) {
             // challenge again
-            await this.executeChallenge(gameId, decision.challenge)
+            await this.executeChallenge(
+              decodeStructable(
+                Property,
+                ovmContext.coder,
+                challengingPropertyBytes
+              ),
+              decision.challenge
+            )
           }
         }
       }
@@ -1031,6 +1040,9 @@ export default class LightClient {
           property.deciderAddress.data,
           createdBlock
         )
+        const claimDb = await this.getClaimDb()
+        await claimDb.put(gameId, ovmContext.coder.encode(property.toStruct()))
+
         const exit = this.createExitFromProperty(property)
         if (exit) {
           console.log('Exit property claimed')
@@ -1049,7 +1061,7 @@ export default class LightClient {
             } else if (!decision.outcome && decision.challenge) {
               // exit is others. need to challenge
               const challenge = decision.challenge
-              await this.executeChallenge(gameId, challenge)
+              await this.executeChallenge(property, challenge)
             }
           }
         }

@@ -41,38 +41,44 @@ export interface IAdjudicationContract {
   /**
    * @name decideClaimToFalse
    * @description decide claim to false
-   * @param gameId
-   * @param challengingGameId
+   * @param property
+   * @param challengingProperty
    */
-  decideClaimToFalse(gameId: Bytes, challengingGameId: Bytes): Promise<void>
+  decideClaimToFalse(
+    property: Property,
+    challengingProperty: Property
+  ): Promise<void>
 
   /**
    * @name removeChallenge
    * @description remove challenge of a game
-   * @param gameId
-   * @param challengingGameId
+   * @param property
+   * @param challengingProperty
    */
-  removeChallenge(gameId: Bytes, challengingGameId: Bytes): Promise<void>
+  removeChallenge(
+    property: Property,
+    challengingProperty: Property
+  ): Promise<void>
 
   /**
    * @name decideClaimWithWitness
    * @description decide the game decision with given witness
-   * @param gameId
+   * @param property
    * @param witnesses
    */
-  decideClaimWithWitness(gameId: Bytes, witnesses: Bytes[]): Promise<void>
+  decideClaimWithWitness(property: Property, witnesses: Bytes[]): Promise<void>
 
   /**
    * @name clallenge
    * @description challenge a game specified by gameId with a challengingGame specified by challengingGameId
-   * @param gameId
+   * @param property
    * @param challengeInputs
-   * @param challengingGameId
+   * @param challengingProperty
    */
   challenge(
-    gameId: Bytes,
+    property: Property,
     challengeInputs: List<Bytes>,
-    challengingGameId: Bytes
+    challengingProperty: Property
   ): Promise<void>
 
   // subscribe methods

@@ -41,6 +41,13 @@ export class AdjudicationContract implements IAdjudicationContract {
     this.gasLimit = 1500000
   }
 
+  private encodeProperty(property: Property) {
+    return [
+      property.deciderAddress.data,
+      property.inputs.map(i => i.toHexString())
+    ]
+  }
+
   async getGame(gameId: Bytes): Promise<ChallengeGame> {
     const challengeGame = await this.connection.getGame(gameId.toHexString())
     return new ChallengeGame(
@@ -62,12 +69,9 @@ export class AdjudicationContract implements IAdjudicationContract {
   }
 
   async claimProperty(property: Property): Promise<void> {
-    return await this.connection.claimProperty(
-      [property.deciderAddress.data, property.inputs],
-      {
-        gasLimit: this.gasLimit
-      }
-    )
+    return await this.connection.claimProperty(this.encodeProperty(property), {
+      gasLimit: this.gasLimit
+    })
   }
 
   async decideClaimToTrue(gameId: Bytes): Promise<void> {
@@ -77,12 +81,12 @@ export class AdjudicationContract implements IAdjudicationContract {
   }
 
   async decideClaimToFalse(
-    gameId: Bytes,
-    challengingGameId: Bytes
+    property: Property,
+    challengingProperty: Property
   ): Promise<void> {
     return await this.connection.decideClaimToFalse(
-      gameId.toHexString(),
-      challengingGameId.toHexString(),
+      this.encodeProperty(property),
+      this.encodeProperty(challengingProperty),
       {
         gasLimit: this.gasLimit
       }
@@ -90,12 +94,12 @@ export class AdjudicationContract implements IAdjudicationContract {
   }
 
   async removeChallenge(
-    gameId: Bytes,
-    challengingGameId: Bytes
+    property: Property,
+    challengingProperty: Property
   ): Promise<void> {
     return await this.connection.removeChallenge(
-      gameId.toHexString(),
-      challengingGameId.toHexString(),
+      this.encodeProperty(property),
+      this.encodeProperty(challengingProperty),
       {
         gasLimit: this.gasLimit
       }
@@ -103,11 +107,11 @@ export class AdjudicationContract implements IAdjudicationContract {
   }
 
   async decideClaimWithWitness(
-    gameId: Bytes,
+    property: Property,
     witnesses: Bytes[]
   ): Promise<void> {
     return await this.connection.decideClaimWithWitness(
-      gameId.toHexString(),
+      this.encodeProperty(property),
       witnesses.map(w => w.toHexString()),
       {
         gasLimit: this.gasLimit
@@ -116,14 +120,14 @@ export class AdjudicationContract implements IAdjudicationContract {
   }
 
   async challenge(
-    gameId: Bytes,
+    property: Property,
     challengeInputs: List<Bytes>,
-    challengingGameId: Bytes
+    challengingProperty: Property
   ): Promise<void> {
     return await this.connection.challenge(
-      gameId.toHexString(),
+      this.encodeProperty(property),
       challengeInputs.data.map(challengeInput => challengeInput.toHexString()),
-      challengingGameId.toHexString(),
+      this.encodeProperty(challengingProperty),
       {
         gasLimit: this.gasLimit
       }
