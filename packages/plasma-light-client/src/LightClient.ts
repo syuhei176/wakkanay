@@ -901,11 +901,14 @@ export default class LightClient {
    * Given amount and tokenContractAddress, checks if client has sufficient token amount.
    * If client has sufficient amount, create exitProperty from stateUpdates this client owns,
    * calls `claimProperty` method on UniversalAdjudicationContract. Store the property in exitList.
-   * User can call `finalizeExit` to withdraw actual token after the exitProperty is decided to true on-chain.
+   * User can call `completeWithdrawal` to withdraw actual token after the exitProperty is decided to true on-chain.
    * @param amount amount to exit
    * @param tokenContractAddress token contract address to exit
    */
-  public async exit(amount: Numberish, tokenContractAddress: string) {
+  public async initializeWithdrawal(
+    amount: Numberish,
+    tokenContractAddress: string
+  ) {
     const addr = Address.from(tokenContractAddress)
     const depositContractAddress = this.tokenManager.getDepositContractAddress(
       addr
@@ -938,7 +941,7 @@ export default class LightClient {
    *
    * @param exit Exit object to finalize
    */
-  public async finalizeExit(exit: IExit) {
+  public async completeWithdrawal(exit: IExit) {
     const exitProperty = exit.property
     const decided = await this.adjudicationContract.isDecided(exit.id)
     if (!decided) {
@@ -968,9 +971,9 @@ export default class LightClient {
   }
 
   /**
-   * Get pending exit list
+   * Get pending withdrawal list
    */
-  public async getExitList(): Promise<IExit[]> {
+  public async getPendingWithdrawals(): Promise<IExit[]> {
     const { coder } = ovmContext
     const exitList = await Promise.all(
       this.tokenManager.depositContractAddresses.map(async addr => {
