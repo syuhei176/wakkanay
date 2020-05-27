@@ -1,6 +1,6 @@
 # [gazelle](https://gzle.io/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/cryptoeconomicslab/gazelle.svg?branch=master)](https://travis-ci.org/cryptoeconomicslab/gazelle) [![Coverage Status](https://coveralls.io/repos/github/cryptoeconomicslab/gazelle/badge.svg)](https://coveralls.io/github/cryptoeconomicslab/gazelle)
 
-gazelle is a scaling technology for blockchain based on Plasma and Optimistic Virtual Machine (OVM). Current scope of it's functionality includes transfer of WrappedETH and ERC20 tokens.
+gazelle is a scaling technology for blockchain based on Plasma and Optimistic Game Semantics (OGS). Current scope of it's functionality includes transfer of WrappedETH and ERC20 tokens.
 
 Go to the [Getting Started](https://gzle.io/docs/getting-started/Try_Gazelle_In_Local).
 
