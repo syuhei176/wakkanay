@@ -550,18 +550,26 @@ export default class LightClient {
               Bytes.fromHexString(witness.inclusionProof)
             )
           }
-
-          const txBytes = Bytes.fromHexString(witness.transaction.tx)
-          await putWitness(
-            witnessDb,
-            Hint.createTxHint(blockNumber, depositContractAddress, range),
-            txBytes
-          )
-          await putWitness(
-            witnessDb,
-            Hint.createSignatureHint(txBytes),
-            Bytes.fromHexString(witness.transaction.witness)
-          )
+          if (witness.transaction) {
+            const txBytes = Bytes.fromHexString(witness.transaction.tx)
+            const txPropertyBytes = ovmContext.coder.encode(
+              Transaction.fromStruct(
+                ovmContext.coder.decode(Transaction.getParamTypes(), txBytes)
+              )
+                .toProperty(Address.default())
+                .toStruct()
+            )
+            await putWitness(
+              witnessDb,
+              Hint.createTxHint(blockNumber, depositContractAddress, range),
+              txPropertyBytes
+            )
+            await putWitness(
+              witnessDb,
+              Hint.createSignatureHint(txPropertyBytes),
+              Bytes.fromHexString(witness.transaction.witness)
+            )
+          }
         })
       )
     } catch (e) {
