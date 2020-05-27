@@ -13,7 +13,8 @@ import {
   IsSameAmountDecider,
   IsContainedDecider,
   IsStoredDecider,
-  VerifyInclusionDecider
+  VerifyInclusionDecider,
+  HasIntersectionDecider
 } from './deciders'
 import {
   LogicalConnective,
@@ -36,6 +37,7 @@ const deciders: { [key: string]: Decider } = {
   ThereExistsSuchThat: new ThereExistsSuchThatDecider(),
   Bool: new BoolDecider(),
   IsContained: new IsContainedDecider(),
+  HasIntersection: new HasIntersectionDecider(),
   Equal: new EqualDecider(),
   IsLessThan: new IsLessThanDecider(),
   IsValidSignature: new IsValidSignatureDecider(),
