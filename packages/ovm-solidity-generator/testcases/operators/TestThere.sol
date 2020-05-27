@@ -20,6 +20,7 @@ contract ThereTest {
     address Equal;
     address IsValidSignature;
     address IsContained;
+    address HasIntersection;
     address VerifyInclusion;
     address IsSameAmount;
     address IsConcatenatedWith;
@@ -50,6 +51,7 @@ contract ThereTest {
         address _equal,
         address _isValidSignature,
         address _isContained,
+        address _hasIntersection,
         address _verifyInclusion,
         address _isSameAmount,
         address _isConcatenatedWith,
@@ -62,6 +64,7 @@ contract ThereTest {
         Equal = _equal;
         IsValidSignature = _isValidSignature;
         IsContained = _isContained;
+        HasIntersection = _hasIntersection;
         VerifyInclusion = _verifyInclusion;
         IsSameAmount = _isSameAmount;
         IsConcatenatedWith = _isConcatenatedWith;
