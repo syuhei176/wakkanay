@@ -24,6 +24,21 @@ import JSBI from 'jsbi'
 export default class StateManager {
   constructor(private db: RangeStore) {}
 
+  public async resolveStateUpdatesAtBlock(
+    address: Address,
+    blockNumber: BigNumber,
+    start: BigNumber,
+    end: BigNumber
+  ): Promise<StateUpdate[]> {
+    const { coder } = ovmContext
+    const bucket = await this.db.bucket(Bytes.fromString('SU_AT_BLOCK'))
+    const addressBucket = await bucket.bucket(Bytes.fromHexString(address.data))
+    const blockBucket = await addressBucket.bucket(coder.encode(blockNumber))
+    return (await blockBucket.get(start.data, end.data)).map(
+      StateUpdate.fromRangeRecord
+    )
+  }
+
   public async resolveStateUpdates(
     address: Address,
     start: BigNumber,
@@ -40,6 +55,20 @@ export default class StateManager {
       Bytes.fromHexString(su.depositContractAddress.data)
     )
     await bucket.put(
+      su.range.start.data,
+      su.range.end.data,
+      ovmContext.coder.encode(su.toRecord().toStruct())
+    )
+  }
+
+  private async putStateUpdateAtBlock(su: StateUpdate, blockNumber: BigNumber) {
+    const { coder } = ovmContext
+    const bucket = await this.db.bucket(Bytes.fromString('SU_AT_BLOCK'))
+    const addressBucket = await bucket.bucket(
+      Bytes.fromHexString(su.depositContractAddress.data)
+    )
+    const blockBucket = await addressBucket.bucket(coder.encode(blockNumber))
+    await blockBucket.put(
       su.range.start.data,
       su.range.end.data,
       ovmContext.coder.encode(su.toRecord().toStruct())
@@ -139,6 +168,7 @@ export default class StateManager {
     // store data in db
     await this.storeTx(tx, nextStateUpdate, nextBlockNumber)
     await this.putStateUpdate(nextStateUpdate)
+    await this.putStateUpdateAtBlock(nextStateUpdate, nextBlockNumber)
     return nextStateUpdate
   }
 
@@ -155,6 +185,7 @@ export default class StateManager {
     const stateUpdate = StateUpdate.fromProperty(tx.stateUpdate)
     stateUpdate.update({ blockNumber })
     await this.putStateUpdate(stateUpdate)
+    await this.putStateUpdateAtBlock(stateUpdate, blockNumber)
   }
 
   /**

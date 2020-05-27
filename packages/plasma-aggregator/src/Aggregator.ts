@@ -302,8 +302,9 @@ export default class Aggregator {
         return
       }
 
-      const sus = await this.stateManager.resolveStateUpdates(
+      const sus = await this.stateManager.resolveStateUpdatesAtBlock(
         address,
+        BigNumber.from(b),
         range.start,
         range.end
       )

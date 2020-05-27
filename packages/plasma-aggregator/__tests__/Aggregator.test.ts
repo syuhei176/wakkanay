@@ -26,7 +26,6 @@ import {
   secp256k1Verifier
 } from '@cryptoeconomicslab/signature'
 import { setupContext } from '@cryptoeconomicslab/context'
-import JSBI from 'jsbi'
 import config from './config.local'
 setupContext({
   coder: Coder
@@ -155,10 +154,13 @@ describe('Aggregator integration', () => {
       BigNumber.from(0)
     )
 
-    const result = await stateDb.get(JSBI.BigInt(0), JSBI.BigInt(100))
+    const result = await aggregator['stateManager'].resolveStateUpdates(
+      depositContractAddress,
+      BigNumber.from(0),
+      BigNumber.from(100)
+    )
     expect(result.length).toBe(1)
-    const stateUpdates = result.map(StateUpdate.fromRangeRecord)
-    expect(stateUpdates).toEqual([stateUpdate])
+    expect(result).toEqual([stateUpdate])
   })
 
   test('state transition', async () => {
