@@ -565,9 +565,14 @@ describe('LightClient', () => {
 
   describe('getAllUserActions', () => {
     test('get an action', async () => {
+      const tokenContractAddress = Address.from(erc20Address)
       const range = new Range(BigNumber.from(0), BigNumber.from(100))
       const blockNumber = BigNumber.from(1)
-      const action = createDepositUserAction(range, blockNumber)
+      const action = createDepositUserAction(
+        tokenContractAddress,
+        range,
+        blockNumber
+      )
       const db = await client['getUserActionDb'](blockNumber)
       await db.put(
         range.start.data,

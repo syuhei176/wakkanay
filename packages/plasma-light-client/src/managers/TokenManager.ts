@@ -105,6 +105,20 @@ export default class TokenManager {
   }
 
   /**
+   * Get Token Contract by deposit contract address.
+   * @param depositContractAddress The address of deposit Contract
+   */
+  getTokenContractByDepositContractAddress(
+    depositContractAddress: Address
+  ): IERC20DetailedContract | undefined {
+    for (const [key, value] of this.contractAddressMap.entries()) {
+      if (value === depositContractAddress.data) {
+        return this.tokenContracts.get(key)
+      }
+    }
+  }
+
+  /**
    * Get name of token by deposit contract address.
    * @param tokenContractAddress The address of Token Contract
    * @returns Returns the token name.

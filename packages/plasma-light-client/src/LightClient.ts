@@ -367,7 +367,16 @@ export default class LightClient {
         // store receive user action
         const { range } = su
         const owner = this.getOwner(su)
-        const action = createReceiveUserAction(range, owner, su.blockNumber)
+        const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+          su.depositContractAddress
+        )
+        if (!tokenContract) throw new Error('Token Contract not found')
+        const action = createReceiveUserAction(
+          tokenContract.address,
+          range,
+          owner,
+          su.blockNumber
+        )
         const db = await this.getUserActionDb(su.blockNumber)
         await db.put(
           range.start.data,
@@ -452,7 +461,16 @@ export default class LightClient {
           // store send user action
           const { range } = su
           const owner = this.getOwner(su)
-          const action = createSendUserAction(range, owner, su.blockNumber)
+          const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+            su.depositContractAddress
+          )
+          if (!tokenContract) throw new Error('Token Contract not found')
+          const action = createSendUserAction(
+            tokenContract.address,
+            range,
+            owner,
+            su.blockNumber
+          )
           const db = await this.getUserActionDb(su.blockNumber)
           await db.put(
             range.start.data,
@@ -859,7 +877,15 @@ export default class LightClient {
 
           // put deposited action
           const { range, blockNumber } = stateUpdate
-          const action = createDepositUserAction(range, blockNumber)
+          const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+            depositContract.address
+          )
+          if (!tokenContract) throw new Error('Token Contract not found')
+          const action = createDepositUserAction(
+            tokenContract.address,
+            range,
+            blockNumber
+          )
           const db = await this.getUserActionDb(blockNumber)
           await db.put(
             range.start.data,
@@ -1103,7 +1129,15 @@ export default class LightClient {
     // put exit action
     const { range } = stateUpdate
     const blockNumber = await this.commitmentContract.getCurrentBlock()
-    const action = createExitUserAction(range, blockNumber)
+    const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+      stateUpdate.depositContractAddress
+    )
+    if (!tokenContract) throw new Error('Token Contract not found')
+    const action = createExitUserAction(
+      tokenContract.address,
+      range,
+      blockNumber
+    )
     const db = await this.getUserActionDb(blockNumber)
     await db.put(
       range.start.data,

@@ -69,6 +69,11 @@ describe('TokenManager', () => {
     expect(
       tokenManager.getDepositContractAddress(tokenContractAddress)
     ).toEqual(depositContractAddress.data)
+    expect(
+      tokenManager.getTokenContractByDepositContractAddress(
+        depositContractAddress
+      )
+    ).toEqual(tokenContract)
   })
 
   test('addTokenContract and getTokenContract', async () => {
