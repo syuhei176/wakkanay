@@ -128,6 +128,29 @@ describe('StateManager', () => {
         )
       ])
     })
+
+    test('resolve state update at block', async () => {
+      const tx = depositTx(
+        ALIS_ADDRESS,
+        new Range(BigNumber.from(0), BigNumber.from(1)),
+        BigNumber.from(0)
+      )
+      await stateManager.insertDepositRange(tx, BigNumber.from(0))
+      await stateManager.insertDepositRange(tx, BigNumber.from(1))
+      const stateUpdates = await stateManager.resolveStateUpdatesAtBlock(
+        tx.depositContractAddress,
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(1)
+      )
+      expect(stateUpdates).toEqual([
+        ownershipStateUpdate(
+          ALIS_ADDRESS,
+          new Range(BigNumber.from(0), BigNumber.from(1)),
+          BigNumber.from(0)
+        )
+      ])
+    })
   })
 
   describe('execute state transition', () => {
