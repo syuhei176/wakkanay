@@ -136,7 +136,8 @@ export enum AtomicPredicate {
   IsSameAmount = 'IsSameAmount',
   IsContained = 'IsContained',
   IsHashPreimage = 'IsHashPreimage',
-  IsStored = 'IsStored'
+  IsStored = 'IsStored',
+  HasIntersection = 'HasIntersection'
 }
 
 export type LogicalConnectiveStrings = keyof typeof LogicalConnective
