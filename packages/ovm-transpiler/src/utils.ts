@@ -26,6 +26,7 @@ export function isAtomicPredicate(predicate: string) {
     predicate == 'IsValidSignature' ||
     predicate == 'IsValidHash' ||
     predicate == 'IsContained' ||
+    predicate == 'HasIntersection' ||
     predicate == 'VerifyInclusion' ||
     predicate == 'IsSameAmount' ||
     predicate == 'IsConcatenatedWith' ||
