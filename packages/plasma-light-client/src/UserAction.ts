@@ -71,28 +71,28 @@ export function createReceiveUserAction(
  */
 export default class UserAction {
   constructor(
-    readonly type: ActionType,
-    readonly tokenContractAddress: Address,
-    readonly range: Range,
-    readonly counterParty: Address,
-    readonly blockNumber: BigNumber
+    private _type: ActionType,
+    private _tokenContractAddress: Address,
+    private _range: Range,
+    private _counterParty: Address,
+    private _blockNumber: BigNumber
   ) {}
 
   public toStruct(): Struct {
     return new Struct([
-      { key: 'type', value: Bytes.fromString(this.type) },
-      { key: 'tokenContractAddress', value: this.tokenContractAddress },
+      { key: 'type', value: Bytes.fromString(this._type) },
+      { key: 'tokenContractAddress', value: this._tokenContractAddress },
       {
         key: 'range',
-        value: this.range.toStruct()
+        value: this._range.toStruct()
       },
       {
         key: 'counterParty',
-        value: this.counterParty
+        value: this._counterParty
       },
       {
         key: 'blockNumber',
-        value: this.blockNumber
+        value: this._blockNumber
       }
     ])
   }
@@ -131,7 +131,23 @@ export default class UserAction {
     )
   }
 
+  public get type(): string {
+    return this._type
+  }
+
+  public get tokenAddress(): string {
+    return this._tokenContractAddress.data
+  }
+
   public get amount(): JSBI {
-    return JSBI.subtract(this.range.end.data, this.range.start.data)
+    return JSBI.subtract(this._range.end.data, this._range.start.data)
+  }
+
+  public get counterParty(): string {
+    return this._counterParty.data
+  }
+
+  public get blockNumber(): JSBI {
+    return this._blockNumber.data
   }
 }

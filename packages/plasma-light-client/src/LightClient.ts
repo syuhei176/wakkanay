@@ -250,14 +250,12 @@ export default class LightClient {
           Address.from(depositContractAddress),
           new Range(BigNumber.from(0), BigNumber.MAX_NUMBER) // TODO: get all stateUpdate method
         )
-        const tokenContract = this.tokenManager.getTokenContract(addr)
-        if (!tokenContract) throw new Error('Token Contract not found')
         return {
           name: this.tokenManager.getName(addr),
           symbol: this.tokenManager.getSymbol(addr),
           decimals: this.tokenManager.getDecimal(addr),
           amount: data.reduce((p, s) => JSBI.add(p, s.amount), JSBI.BigInt(0)),
-          tokenContractAddress: tokenContract.address.data
+          tokenContractAddress: addr.data
         }
       }
     )
@@ -367,12 +365,13 @@ export default class LightClient {
         // store receive user action
         const { range } = su
         const owner = this.getOwner(su)
-        const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+        const tokenContractAddress = this.tokenManager.getTokenContractAddress(
           su.depositContractAddress
         )
-        if (!tokenContract) throw new Error('Token Contract not found')
+        if (!tokenContractAddress)
+          throw new Error('Token Contract Address not found')
         const action = createReceiveUserAction(
-          tokenContract.address,
+          Address.from(tokenContractAddress),
           range,
           owner,
           su.blockNumber
@@ -461,12 +460,13 @@ export default class LightClient {
           // store send user action
           const { range } = su
           const owner = this.getOwner(su)
-          const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+          const tokenContractAddress = this.tokenManager.getTokenContractAddress(
             su.depositContractAddress
           )
-          if (!tokenContract) throw new Error('Token Contract not found')
+          if (!tokenContractAddress)
+            throw new Error('Token Contract Address not found')
           const action = createSendUserAction(
-            tokenContract.address,
+            Address.from(tokenContractAddress),
             range,
             owner,
             su.blockNumber
@@ -877,12 +877,13 @@ export default class LightClient {
 
           // put deposited action
           const { range, blockNumber } = stateUpdate
-          const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+          const tokenContractAddress = this.tokenManager.getTokenContractAddress(
             depositContract.address
           )
-          if (!tokenContract) throw new Error('Token Contract not found')
+          if (!tokenContractAddress)
+            throw new Error('Token Contract Address not found')
           const action = createDepositUserAction(
-            tokenContract.address,
+            Address.from(tokenContractAddress),
             range,
             blockNumber
           )
@@ -1129,12 +1130,13 @@ export default class LightClient {
     // put exit action
     const { range } = stateUpdate
     const blockNumber = await this.commitmentContract.getCurrentBlock()
-    const tokenContract = this.tokenManager.getTokenContractByDepositContractAddress(
+    const tokenContractAddress = this.tokenManager.getTokenContractAddress(
       stateUpdate.depositContractAddress
     )
-    if (!tokenContract) throw new Error('Token Contract not found')
+    if (!tokenContractAddress)
+      throw new Error('Token Contract Address not found')
     const action = createExitUserAction(
-      tokenContract.address,
+      Address.from(tokenContractAddress),
       range,
       blockNumber
     )

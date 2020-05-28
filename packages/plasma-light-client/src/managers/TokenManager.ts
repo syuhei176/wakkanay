@@ -15,7 +15,8 @@ export default class TokenManager {
   private tokenNames: Map<string, string> = new Map() // key: tokenContractAddress, value: name
   private tokenSymbols: Map<string, string> = new Map() // key: tokenContractAddress, value: symbol
   private tokenDecimals: Map<string, Integer> = new Map() // key: tokenContractAddress, value: decimals
-  private contractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
+  private tokenContractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
+  private depositContractAddressMap: Map<string, string> = new Map() // key: depositContractAddress, value: tokenContractAddress
 
   get depositContractAddresses(): Address[] {
     return Array.from(this.depositContractAddressStrings).map(addr =>
@@ -41,9 +42,13 @@ export default class TokenManager {
     const depositContractAddress = depositContract.address
     this.addDepositContract(depositContractAddress, depositContract)
     await this.addTokenContract(erc20Contract)
-    this.contractAddressMap.set(
+    this.tokenContractAddressMap.set(
       erc20Contract.address.data,
       depositContract.address.data
+    )
+    this.depositContractAddressMap.set(
+      depositContract.address.data,
+      erc20Contract.address.data
     )
   }
 
@@ -75,7 +80,7 @@ export default class TokenManager {
    * @param addr address of token contract
    */
   getDepositContractAddress(addr: Address): string | undefined {
-    return this.contractAddressMap.get(addr.data)
+    return this.tokenContractAddressMap.get(addr.data)
   }
 
   /**
@@ -105,17 +110,11 @@ export default class TokenManager {
   }
 
   /**
-   * Get Token Contract by deposit contract address.
-   * @param depositContractAddress The address of deposit Contract
+   * get token contract address by deposit contract address
+   * @param addr address of deposit contract
    */
-  getTokenContractByDepositContractAddress(
-    depositContractAddress: Address
-  ): IERC20DetailedContract | undefined {
-    for (const [key, value] of this.contractAddressMap.entries()) {
-      if (value === depositContractAddress.data) {
-        return this.tokenContracts.get(key)
-      }
-    }
+  getTokenContractAddress(addr: Address): string | undefined {
+    return this.depositContractAddressMap.get(addr.data)
   }
 
   /**
