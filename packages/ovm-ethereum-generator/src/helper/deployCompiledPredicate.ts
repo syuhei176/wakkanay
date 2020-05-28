@@ -51,6 +51,7 @@ export async function deployCompiledPredicate(
       testContext.mockAtomicPredicate,
       testContext.mockAtomicPredicate,
       testContext.mockAtomicPredicate,
+      testContext.mockAtomicPredicate,
       testContext.payout
     )
   }

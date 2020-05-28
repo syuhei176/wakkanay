@@ -14,6 +14,7 @@ import {
   IsLessThanDecider,
   IsSameAmountDecider,
   IsContainedDecider,
+  HasIntersectionDecider,
   LogicalConnective,
   VerifyInclusionDecider,
   IsStoredDecider,
@@ -77,6 +78,10 @@ export const VerifyInclusionDeciderAddress = Address.from(
 
 export const IsStoredDeciderAddress = Address.from(
   '0x0000000000000000000000000000000000000026'
+)
+
+export const HasIntersectionDeciderAddress = Address.from(
+  '0x0000000000000000000000000000000000000027'
 )
 
 export function initializeDeciderManager() {
@@ -151,6 +156,11 @@ export function initializeDeciderManager() {
     IsContainedDeciderAddress,
     new IsContainedDecider(),
     AtomicPredicate.IsContained
+  )
+  deciderManager.setDecider(
+    HasIntersectionDeciderAddress,
+    new HasIntersectionDecider(),
+    AtomicPredicate.HasIntersection
   )
   deciderManager.setDecider(
     VerifyInclusionDeciderAddress,
