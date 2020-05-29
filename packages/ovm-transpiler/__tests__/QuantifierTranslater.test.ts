@@ -305,7 +305,7 @@ def IncludedAt(p, l, t, r, b) :=
 def IncludedWithin(su, b, t, r) := 
   IncludedAt(su, su.0, su.1, b).any()
   and Equal(su.0, t)
-  and IsContained(su.1, range)
+  and HasIntersection(su.1, range)
         
 @library
 @quantifier("su.block\${token}.range\${range},RANGE,\${block}")
@@ -357,7 +357,7 @@ def SU(su, token, range, block) := IncludedWithin(su, block, token, range)
                           },
                           {
                             type: 'PropertyNode',
-                            predicate: 'IsContained',
+                            predicate: 'HasIntersection',
                             inputs: ['su.1', 'range']
                           }
                         ]
@@ -404,7 +404,7 @@ def SU(su, token, range, block) := IncludedWithin(su, block, token, range)
 def IsTx(tx, t, r, b) := 
   Equal(tx.address, $TransactionAddress)
   and Equal(tx.0, t)
-  and IsContained(tx.1, range)
+  and HasIntersection(tx.1, range)
   and IsLessThan(tx.2, b)
         
 @library
@@ -443,7 +443,7 @@ def Tx(tx, token, range, block) := IsTx(tx, token, range, block)
                       },
                       {
                         type: 'PropertyNode',
-                        predicate: 'IsContained',
+                        predicate: 'HasIntersection',
                         inputs: ['tx.1', 'range']
                       },
                       {
