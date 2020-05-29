@@ -18,7 +18,7 @@ export const STATEUPDATE_SOURCE = `
 def IsValidTx(tx, token, range, block_number) :=
   Equal(tx.address, $txAddress)
   and Equal(tx.0, token)
-  and IsContained(range, tx.1)
+  and HasIntersection(range, tx.1)
   and IsLessThan(block_number, tx.2)
 
 @library
