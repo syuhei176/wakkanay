@@ -15,8 +15,8 @@ export default class TokenManager {
   private tokenNames: Map<string, string> = new Map() // key: tokenContractAddress, value: name
   private tokenSymbols: Map<string, string> = new Map() // key: tokenContractAddress, value: symbol
   private tokenDecimals: Map<string, Integer> = new Map() // key: tokenContractAddress, value: decimals
-  private tokenContractAddressMap: Map<string, string> = new Map() // key: tokenContractAddress, value: depositContractAddress
-  private depositContractAddressMap: Map<string, string> = new Map() // key: depositContractAddress, value: tokenContractAddress
+  private tokenToDeposit: Map<string, string> = new Map()
+  private depositToToken: Map<string, string> = new Map()
 
   get depositContractAddresses(): Address[] {
     return Array.from(this.depositContractAddressStrings).map(addr =>
@@ -42,11 +42,11 @@ export default class TokenManager {
     const depositContractAddress = depositContract.address
     this.addDepositContract(depositContractAddress, depositContract)
     await this.addTokenContract(erc20Contract)
-    this.tokenContractAddressMap.set(
+    this.tokenToDeposit.set(
       erc20Contract.address.data,
       depositContract.address.data
     )
-    this.depositContractAddressMap.set(
+    this.depositToToken.set(
       depositContract.address.data,
       erc20Contract.address.data
     )
@@ -80,7 +80,7 @@ export default class TokenManager {
    * @param addr address of token contract
    */
   getDepositContractAddress(addr: Address): string | undefined {
-    return this.tokenContractAddressMap.get(addr.data)
+    return this.tokenToDeposit.get(addr.data)
   }
 
   /**
@@ -114,7 +114,7 @@ export default class TokenManager {
    * @param addr address of deposit contract
    */
   getTokenContractAddress(addr: Address): string | undefined {
-    return this.depositContractAddressMap.get(addr.data)
+    return this.depositToToken.get(addr.data)
   }
 
   /**
