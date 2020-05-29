@@ -905,7 +905,7 @@ export default class LightClient {
    * @param amount amount to exit
    * @param tokenContractAddress token contract address to exit
    */
-  public async initializeWithdrawal(
+  public async startWithdrawal(
     amount: Numberish,
     tokenContractAddress: string
   ) {

@@ -307,7 +307,7 @@ describe('LightClient', () => {
     })
   })
 
-  describe('initializeWithdrawal', () => {
+  describe('startWithdrawal', () => {
     let su1: StateUpdate
     let su2: StateUpdate
     let proof: DoubleLayerInclusionProof
@@ -388,9 +388,9 @@ describe('LightClient', () => {
       )
     })
 
-    test('initializeWithdrawal calls claimProperty of adjudicationContract', async () => {
+    test('startWithdrawal calls claimProperty of adjudicationContract', async () => {
       const { coder } = ovmContext
-      await client.initializeWithdrawal(20, erc20Address)
+      await client.startWithdrawal(20, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -409,7 +409,7 @@ describe('LightClient', () => {
       expect(exitingStateUpdate).toEqual([su1])
     })
 
-    test('initializeWithdrawal calls claimProperty with exitDeposit property', async () => {
+    test('startWithdrawal calls claimProperty with exitDeposit property', async () => {
       // store checkpoint
       await client['checkpointManager'].insertCheckpointWithRange(
         Address.from(depositContractAddress),
@@ -417,7 +417,7 @@ describe('LightClient', () => {
       )
 
       const { coder } = ovmContext
-      await client.initializeWithdrawal(20, erc20Address)
+      await client.startWithdrawal(20, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'ExitDeposit'
@@ -433,9 +433,9 @@ describe('LightClient', () => {
       ])
     })
 
-    test('initializeWithdrawal with multiple range', async () => {
+    test('startWithdrawal with multiple range', async () => {
       const { coder } = ovmContext
-      await client.initializeWithdrawal(25, erc20Address)
+      await client.startWithdrawal(25, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -465,14 +465,14 @@ describe('LightClient', () => {
       expect(exitingStateUpdates).toEqual([su1, su2])
     })
 
-    test('initializeWithdrawal calls fail with unsufficient amount', async () => {
-      await expect(
-        client.initializeWithdrawal(31, erc20Address)
-      ).rejects.toEqual(new Error('Insufficient amount'))
+    test('startWithdrawal calls fail with unsufficient amount', async () => {
+      await expect(client.startWithdrawal(31, erc20Address)).rejects.toEqual(
+        new Error('Insufficient amount')
+      )
     })
 
     test('pendingWithdrawals', async () => {
-      await client.initializeWithdrawal(25, erc20Address)
+      await client.startWithdrawal(25, erc20Address)
       const pendingWithdrawals = await client.getPendingWithdrawals()
 
       const { coder } = ovmContext
