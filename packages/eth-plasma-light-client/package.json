@@ -1,6 +1,6 @@
 {
   "name": "@cryptoeconomicslab/eth-plasma-light-client",
-  "version": "0.4.1-alpha.0",
+  "version": "0.4.1-alpha.19+7fc394b",
   "description": "Ethereum Plasma light client",
   "author": {
     "name": "Cryptoeconomics Lab",
@@ -30,10 +30,10 @@
   },
   "dependencies": {
     "@cryptoeconomicslab/eth-coder": "^0.4.1-alpha.0",
-    "@cryptoeconomicslab/eth-contract": "^0.4.1-alpha.0",
+    "@cryptoeconomicslab/eth-contract": "^0.4.1-alpha.19+7fc394b",
     "@cryptoeconomicslab/eth-wallet": "^0.4.1-alpha.0",
-    "@cryptoeconomicslab/ovm": "^0.4.1-alpha.0",
-    "@cryptoeconomicslab/plasma-light-client": "^0.4.1-alpha.0"
+    "@cryptoeconomicslab/ovm": "^0.4.1-alpha.19+7fc394b",
+    "@cryptoeconomicslab/plasma-light-client": "^0.4.1-alpha.19+7fc394b"
   },
   "devDependencies": {
     "@cryptoeconomicslab/coder": "^0.4.0",
@@ -47,5 +47,5 @@
     "@cryptoeconomicslab/primitives": "^0.0.36",
     "ethers": "4.0.47"
   },
-  "gitHead": "21764a1554bc98825f094d8ce514e9799a391e5d"
+  "gitHead": "7fc394b1b6fa00c275cf580edc8395268726be85"
 }
