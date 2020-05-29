@@ -116,6 +116,15 @@ contract OrTest {
         if(input0 == keccak256(OrTestO)) {
             return decideOrTestO(subInputs, _witness);
         }
+        return false;
+    }
+
+
+    function decideWithWitness(
+        bytes[] memory _inputs,
+        bytes[] memory _witness
+    ) public view returns (bool) {
+      return decide(_inputs, _witness);
     }
 
     function decideTrue(bytes[] memory _inputs, bytes[] memory _witness) public {
