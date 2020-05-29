@@ -116,6 +116,10 @@ export default class Aggregator {
       '/checkpoint_witness',
       this.handleGetCheckpointWitness.bind(this)
     )
+    // NOTE: for debug API
+    if (process.env.NODE_ENV === 'DEBUG') {
+      this.httpServer.get('/faucet', this.handleFaucet.bind(this))
+    }
     this.httpServer.listen(this.option.port, () =>
       console.log(`server is listening on port ${this.option.port}!`)
     )
@@ -360,6 +364,14 @@ export default class Aggregator {
       })
       .status(200)
       .end()
+  }
+
+  /**
+   * TODO: implement faucet API
+   * faucet dummy token for development when started in debug mode
+   */
+  private async handleFaucet(req: Request, res: Response) {
+    throw new Error('not implemented')
   }
 
   /**
