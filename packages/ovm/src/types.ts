@@ -4,7 +4,8 @@ import {
   FixedBytes,
   List,
   Struct,
-  BigNumber
+  BigNumber,
+  FixedBytes
 } from '@cryptoeconomicslab/primitives'
 import { TraceInfo } from './Tracer'
 
