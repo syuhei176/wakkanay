@@ -1028,7 +1028,6 @@ export default class LightClient {
             challengingPropertyBytes
           )
           const decision = await this.deciderManager.decide(challengeProperty)
-
           if (!decision.outcome && decision.challenge) {
             // challenge again
             await this.executeChallenge(challengeProperty, decision.challenge)
