@@ -63,7 +63,6 @@ import {
 import APIClient from './APIClient'
 import TokenManager from './managers/TokenManager'
 import { executeChallenge } from './helper/challenge'
-import { decode } from 'punycode'
 
 type Numberish =
   | {
@@ -1015,18 +1014,16 @@ export default class LightClient {
         const challengingPropertyBytes = await db.get(challengeGameId)
         if (propertyBytes && challengingPropertyBytes) {
           // challenged property is the one this client claimed
-          const game = await this.adjudicationContract.getGame(challengeGameId)
-          const decision = await this.deciderManager.decide(game.property)
+          const challengeProperty = decodeStructable(
+            Property,
+            ovmContext.coder,
+            challengingPropertyBytes
+          )
+          const decision = await this.deciderManager.decide(challengeProperty)
+
           if (!decision.outcome && decision.challenge) {
             // challenge again
-            await this.executeChallenge(
-              decodeStructable(
-                Property,
-                ovmContext.coder,
-                challengingPropertyBytes
-              ),
-              decision.challenge
-            )
+            await this.executeChallenge(challengeProperty, decision.challenge)
           }
         }
       }

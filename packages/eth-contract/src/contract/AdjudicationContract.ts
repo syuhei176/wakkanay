@@ -1,5 +1,11 @@
 import * as ethers from 'ethers'
-import { Bytes, Address, BigNumber, List } from '@cryptoeconomicslab/primitives'
+import {
+  Bytes,
+  Address,
+  BigNumber,
+  FixedBytes,
+  List
+} from '@cryptoeconomicslab/primitives'
 import { Property, ChallengeGame } from '@cryptoeconomicslab/ovm'
 import { EventLog, IAdjudicationContract } from '@cryptoeconomicslab/contract'
 import { KeyValueStore } from '@cryptoeconomicslab/db'
@@ -15,16 +21,17 @@ export class AdjudicationContract implements IAdjudicationContract {
     'event ClaimChallenged(bytes32 gameId, bytes32 challengeGameId)',
     'event ClaimDecided(bytes32 gameId, bool decision)',
     'event ChallengeRemoved(bytes32 gameId, bytes32 challengeGameId)',
-    'function getGame(bytes32 gameId) view returns(tuple(tuple(address, bytes[]), bytes[], bool, uint256))',
+    'function getGame(bytes32 gameId) view returns(tuple(bytes32, bytes[], bool, uint256))',
     'function isDecided(bytes32 gameId) view returns(bool)',
     'function isDecidedById(bytes32 gameId) view returns(bool)',
     'function isDecidable(bytes32 gameId) view returns(bool)',
     'function claimProperty(tuple(address, bytes[]))',
     'function decideClaimToTrue(bytes32 gameId)',
-    'function decideClaimToFalse(bytes32 gameId, bytes32 challengingGameId)',
-    'function removeChallenge(bytes32 gameId, bytes32 challengingGameId)',
+    'function decideClaimToFalse(tuple(address, bytes[]) property, tuple(address, bytes[]) challengingProperty)',
+    'function decideClaimWithWitness(tuple(address, bytes[]) property, bytes[] witnesses)',
+    'function removeChallenge(tuple(address, bytes[]) property, tuple(address, bytes[]) challengingProperty)',
     'function setPredicateDecision(bytes32 gameId, bool decision)',
-    'function challenge(bytes32 gameId, bytes[] challengeInputs, bytes32 challengingGameId)'
+    'function challenge(tuple(address, bytes[]) property, bytes[] challengeInputs, tuple(address, bytes[]) challengingProperty)'
   ]
   constructor(address: Address, eventDb: KeyValueStore, signer: ethers.Signer) {
     this.connection = new ethers.Contract(
@@ -51,7 +58,7 @@ export class AdjudicationContract implements IAdjudicationContract {
   async getGame(gameId: Bytes): Promise<ChallengeGame> {
     const challengeGame = await this.connection.getGame(gameId.toHexString())
     return new ChallengeGame(
-      this.getProperty(challengeGame[0]),
+      FixedBytes.fromHexString(32, challengeGame[0]),
       challengeGame[1].map((challenge: string) =>
         Bytes.fromHexString(challenge)
       ),
