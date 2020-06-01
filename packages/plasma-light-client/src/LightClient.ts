@@ -1131,7 +1131,7 @@ export default class LightClient {
    * get user actions at given blockNumber
    * @param blockNumber blockNumber to get userAction
    */
-  public async getUserActions(blockNumber: BigNumber): Promise<UserAction[]> {
+  private async getUserActions(blockNumber: BigNumber): Promise<UserAction[]> {
     const bucket = await this.getUserActionDb(blockNumber)
     const iter = bucket.iter(JSBI.BigInt(0))
     let item = await iter.next()
