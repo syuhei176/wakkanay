@@ -50,7 +50,8 @@ import UserAction, {
   createDepositUserAction,
   createExitUserAction,
   createReceiveUserAction,
-  createSendUserAction
+  createSendUserAction,
+  ActionType
 } from './UserAction'
 
 import EventEmitter from 'event-emitter'
@@ -75,6 +76,13 @@ type Numberish =
   | {
       [Symbol.toPrimitive]
     }
+
+enum UserActionEvent {
+  DEPOSIT = 'DEPOSIT',
+  SEND = 'SEND',
+  RECIEVE = 'RECIEVE',
+  EXIT = 'EXIT'
+}
 
 enum EmitterEvent {
   CHECKPOINT_FINALIZED = 'CHECKPOINT_FINALIZED',
@@ -374,6 +382,7 @@ export default class LightClient {
           range.end.data,
           ovmContext.coder.encode(action.toStruct())
         )
+        this.ee.emit(UserActionEvent.RECIEVE, action)
       })
       await Promise.all(promises)
       await this.syncManager.updateSyncedBlockNumber(blockNumber, root)
@@ -459,7 +468,7 @@ export default class LightClient {
             range.end.data,
             ovmContext.coder.encode(action.toStruct())
           )
-
+          this.ee.emit(UserActionEvent.SEND, action)
           this.ee.emit(EmitterEvent.TRANSFER_COMPLETE, su)
         }
       })
@@ -866,6 +875,7 @@ export default class LightClient {
             range.end.data,
             ovmContext.coder.encode(action.toStruct())
           )
+          this.ee.emit(UserActionEvent.DEPOSIT, action)
         }
         this.ee.emit(
           EmitterEvent.CHECKPOINT_FINALIZED,
@@ -1110,6 +1120,7 @@ export default class LightClient {
       range.end.data,
       ovmContext.coder.encode(action.toStruct())
     )
+    this.ee.emit(UserActionEvent.EXIT, action)
   }
 
   /**
@@ -1170,6 +1181,22 @@ export default class LightClient {
   //
   // Events subscriptions
   //
+
+  public subscribeDepositEvent(handler: (action: UserAction) => void) {
+    this.ee.on(UserActionEvent.DEPOSIT, handler)
+  }
+
+  public subscribeSendEvent(handler: (action: UserAction) => void) {
+    this.ee.on(UserActionEvent.SEND, handler)
+  }
+
+  public subscribeRecieveEvent(handler: (action: UserAction) => void) {
+    this.ee.on(UserActionEvent.RECIEVE, handler)
+  }
+
+  public subscribeExitEvent(handler: (action: UserAction) => void) {
+    this.ee.on(UserActionEvent.EXIT, handler)
+  }
 
   public subscribeCheckpointFinalized(
     handler: (checkpointId: Bytes, checkpoint: [Range, Property]) => void
