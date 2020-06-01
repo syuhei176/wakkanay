@@ -1,6 +1,7 @@
 import {
   Address,
   Bytes,
+  FixedBytes,
   List,
   Struct,
   BigNumber
@@ -66,7 +67,7 @@ export class Property {
  */
 export class ChallengeGame {
   constructor(
-    readonly property: Property,
+    readonly propertyHash: FixedBytes,
     readonly challenges: Bytes[],
     readonly decision: boolean,
     readonly createdBlock: BigNumber
