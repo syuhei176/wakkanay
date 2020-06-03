@@ -307,7 +307,7 @@ describe('LightClient', () => {
     })
   })
 
-  describe('exit', () => {
+  describe('startWithdrawal', () => {
     let su1: StateUpdate
     let su2: StateUpdate
     let proof: DoubleLayerInclusionProof
@@ -388,9 +388,9 @@ describe('LightClient', () => {
       )
     })
 
-    test('exit calls claimProperty of adjudicationContract', async () => {
+    test('startWithdrawal calls claimProperty of adjudicationContract', async () => {
       const { coder } = ovmContext
-      await client.exit(20, erc20Address)
+      await client.startWithdrawal(20, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -409,7 +409,7 @@ describe('LightClient', () => {
       expect(exitingStateUpdate).toEqual([su1])
     })
 
-    test('exit calls claimProperty with exitDeposit property', async () => {
+    test('startWithdrawal calls claimProperty with exitDeposit property', async () => {
       // store checkpoint
       await client['checkpointManager'].insertCheckpointWithRange(
         Address.from(depositContractAddress),
@@ -417,7 +417,7 @@ describe('LightClient', () => {
       )
 
       const { coder } = ovmContext
-      await client.exit(20, erc20Address)
+      await client.startWithdrawal(20, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'ExitDeposit'
@@ -426,14 +426,16 @@ describe('LightClient', () => {
         coder.encode(checkpoint.property.toStruct())
       ])
       expect(mockClaimProperty).toHaveBeenLastCalledWith(exitProperty)
-      // check exit list
-      const exitList = await client.getExitList()
-      expect(exitList).toEqual([ExitDeposit.fromProperty(exitProperty)])
+      // check pending withdrawal list
+      const pendingWithdrawals = await client.getPendingWithdrawals()
+      expect(pendingWithdrawals).toEqual([
+        ExitDeposit.fromProperty(exitProperty)
+      ])
     })
 
-    test('exit with multiple range', async () => {
+    test('startWithdrawal with multiple range', async () => {
       const { coder } = ovmContext
-      await client.exit(25, erc20Address)
+      await client.startWithdrawal(25, erc20Address)
 
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
         'Exit'
@@ -463,15 +465,15 @@ describe('LightClient', () => {
       expect(exitingStateUpdates).toEqual([su1, su2])
     })
 
-    test('exit calls fail with unsufficient amount', async () => {
-      await expect(client.exit(31, erc20Address)).rejects.toEqual(
+    test('startWithdrawal calls fail with unsufficient amount', async () => {
+      await expect(client.startWithdrawal(31, erc20Address)).rejects.toEqual(
         new Error('Insufficient amount')
       )
     })
 
-    test('exitList', async () => {
-      await client.exit(25, erc20Address)
-      const exitList = await client.getExitList()
+    test('pendingWithdrawals', async () => {
+      await client.startWithdrawal(25, erc20Address)
+      const pendingWithdrawals = await client.getPendingWithdrawals()
 
       const { coder } = ovmContext
       const exitProperty = (client['deciderManager'].compiledPredicateMap.get(
@@ -490,13 +492,13 @@ describe('LightClient', () => {
         coder.encode(proof.toStruct())
       ])
 
-      expect(exitList).toEqual([
+      expect(pendingWithdrawals).toEqual([
         Exit.fromProperty(exitProperty),
         Exit.fromProperty(exitProperty2)
       ])
     })
 
-    test('finalizeExit', async () => {
+    test('completeWithdrawal', async () => {
       // setup depositedRangeId
       await client['depositedRangeManager'].extendRange(
         Address.from(depositContractAddress),
@@ -511,7 +513,7 @@ describe('LightClient', () => {
         coder.encode(proof.toStruct())
       ])
       const exit = Exit.fromProperty(exitProperty)
-      await client.finalizeExit(exit)
+      await client.completeWithdrawal(exit)
 
       expect(mockFinalizeExit).toHaveBeenLastCalledWith(
         exit.stateUpdate.depositContractAddress,
@@ -521,7 +523,7 @@ describe('LightClient', () => {
       )
     })
 
-    test('finalizeExit with exitDeposit', async () => {
+    test('completeWithdrawal with exitDeposit', async () => {
       // setup depositedRangeId
       await client['depositedRangeManager'].extendRange(
         Address.from(depositContractAddress),
@@ -536,7 +538,7 @@ describe('LightClient', () => {
         coder.encode(checkpoint.property.toStruct())
       ])
       const exit = ExitDeposit.fromProperty(exitProperty)
-      await client.finalizeExit(exit)
+      await client.completeWithdrawal(exit)
 
       expect(mockFinalizeExit).toHaveBeenLastCalledWith(
         exit.stateUpdate.depositContractAddress,
@@ -546,7 +548,7 @@ describe('LightClient', () => {
       )
     })
 
-    test('fail to finalizeExit property is not decidable', async () => {
+    test('fail to completeWithdrawal property is not decidable', async () => {
       mockIsDecided.mockResolvedValueOnce(false)
       mockIsDecidable.mockResolvedValueOnce(false)
       const { coder } = ovmContext
@@ -557,7 +559,7 @@ describe('LightClient', () => {
         coder.encode(proof.toStruct())
       ])
       const exit = Exit.fromProperty(exitProperty)
-      await expect(client.finalizeExit(exit)).rejects.toEqual(
+      await expect(client.completeWithdrawal(exit)).rejects.toEqual(
         new Error(`Exit property is not decidable`)
       )
     })
