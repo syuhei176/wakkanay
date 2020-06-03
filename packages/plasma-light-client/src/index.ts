@@ -1,4 +1,6 @@
 import LightClient from './LightClient'
-export * from './managers'
+import UserAction, { ActionType } from './UserAction'
 
+export * from './managers'
 export default LightClient
+export { ActionType, UserAction }
