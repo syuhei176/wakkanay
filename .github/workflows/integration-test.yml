@@ -1,0 +1,25 @@
+name: IntegrationTest
+on:
+  repository_dispatch:
+    types: [integration_test]
+
+jobs:
+  integration-test:
+    name: IntegrationTest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.client_payload.branch }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: test
+        run: |
+          npm install -g npm@latest
+          npm run docker:build
+          npm run docker:test
