@@ -23,3 +23,11 @@ jobs:
           npm install -g npm@latest
           npm run docker:build
           npm run docker:test
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_CHANNEL: git 
+          SLACK_COLOR: '#3278BD'
+          SLACK_TITLE: Integration test
+          SLACK_USERNAME: IntegrationTestRunner
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
