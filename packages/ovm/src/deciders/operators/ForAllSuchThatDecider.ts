@@ -35,9 +35,12 @@ export class ForAllSuchThatDecider implements Decider {
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     let witnesses: Bytes[]
-    if (!isHint(inputs[0])) {
+    if (inputs[0].equals(Bytes.fromString(''))) {
       inputs[0] = recoverHint(manager, inputs)
-      // throw new Error('inputs[0] must be valid hint data.')
+    }
+
+    if (!isHint(inputs[0])) {
+      throw new Error('inputs[0] must be valid hint data.')
     }
     witnesses = await getWitnesses(
       manager.witnessDb,

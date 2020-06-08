@@ -145,12 +145,8 @@ export const bindVariables = (
 ): Bytes[] => {
   return inputs.map(input => {
     const key = FreeVariable.getVariableName(input)
-    if (key) {
-      if (substitutions[key]) {
-        return substitutions[key]
-      } else {
-        throw new Error(`substitutions ${key} not found`)
-      }
+    if (key && substitutions[key]) {
+      return substitutions[key]
     }
     return input
   })
