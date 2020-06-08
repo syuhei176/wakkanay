@@ -34,15 +34,13 @@ export class ForAllSuchThatDecider implements Decider {
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
-    let witnesses: Bytes[]
     if (inputs[0].equals(Bytes.fromString(''))) {
       inputs[0] = recoverHint(manager, inputs)
     }
-
     if (!isHint(inputs[0])) {
       throw new Error('inputs[0] must be valid hint data.')
     }
-    witnesses = await getWitnesses(
+    const witnesses = await getWitnesses(
       manager.witnessDb,
       replaceHint(inputs[0].intoString(), substitutions)
     )
@@ -84,7 +82,6 @@ export class ForAllSuchThatDecider implements Decider {
         }
         return {
           outcome: false,
-          witnesses: undefined,
           challenge,
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createFor(q, decision.traceInfo)
@@ -96,7 +93,6 @@ export class ForAllSuchThatDecider implements Decider {
     return (
       falseDecision || {
         outcome: true,
-        witnesses: undefined,
         challenge: null
       }
     )
