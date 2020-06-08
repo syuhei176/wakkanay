@@ -11,6 +11,17 @@ import { ActionType } from '@cryptoeconomicslab/plasma-light-client/lib/UserActi
 
 import config from '../config.local.json'
 
+declare type Numberish =
+  | {
+      toString(): string
+    }
+  | {
+      valueOf: string | number
+    }
+  | {
+      [Symbol.toPrimitive]: any
+    }
+
 jest.setTimeout(120000)
 
 function sleep(ms: number) {
@@ -23,7 +34,7 @@ function parseUnitsToJsbi(amount: string) {
   return JSBI.BigInt(parseUnits(amount, 18).toString())
 }
 
-function formatUnitsFromJsbi(amount: JSBI) {
+function formatUnitsFromJsbi(amount: Numberish) {
   return formatUnits(amount.toString(), 18)
 }
 
@@ -60,7 +71,10 @@ describe('light client', () => {
 
   async function checkBalance(lightClient: LightClient, amount: string) {
     const balance = await lightClient.getBalance()
-    expect(JSBI.equal(balance[0].amount, parseUnitsToJsbi(amount))).toBeTruthy()
+    // compare string rep because jsbi version varies
+    expect(balance[0].amount.toString()).toBe(
+      parseUnitsToJsbi(amount).toString()
+    )
   }
 
   async function getBalance(lightClient: LightClient) {
@@ -80,9 +94,9 @@ describe('light client', () => {
   }
 
   async function finalizeExit(lightClient: LightClient) {
-    const exitList = await lightClient.getExitList()
+    const exitList = await lightClient.getPendingWithdrawals()
     for (let i = 0; i < exitList.length; i++) {
-      await lightClient.finalizeExit(exitList[i])
+      await lightClient.completeWithdrawal(exitList[i])
       // Consecutive finalizeExit call must fail because of invalid Deposited range ID
       await sleep(10000)
     }
@@ -141,12 +155,15 @@ describe('light client', () => {
     expect(await getBalance(aliceLightClient)).toEqual('0.0')
     expect(await getBalance(bobLightClient)).toEqual('0.1')
 
-    await bobLightClient.exit(parseUnitsToJsbi('0.05'), config.PlasmaETH)
+    await bobLightClient.startWithdrawal(
+      parseUnitsToJsbi('0.05'),
+      config.PlasmaETH
+    )
     await sleep(10000)
 
     expect(await getBalance(bobLightClient)).toEqual('0.05')
 
-    const exitList = await bobLightClient.getExitList()
+    const exitList = await bobLightClient.getPendingWithdrawals()
     expect(exitList.length).toBe(1)
 
     await increaseBlock()
@@ -185,7 +202,10 @@ describe('light client', () => {
 
     expect(await getBalance(aliceLightClient)).toEqual('0.1')
 
-    await aliceLightClient.exit(parseUnitsToJsbi('0.05'), config.PlasmaETH)
+    await aliceLightClient.startWithdrawal(
+      parseUnitsToJsbi('0.05'),
+      config.PlasmaETH
+    )
     await sleep(10000)
     const client = await createClientFromPrivateKey(
       aliceLightClient['wallet']['ethersWallet'].privateKey
@@ -194,9 +214,9 @@ describe('light client', () => {
 
     expect(await getBalance(aliceLightClient)).toEqual('0.05')
 
-    const exitList = await aliceLightClient.getExitList()
+    const exitList = await aliceLightClient.getPendingWithdrawals()
     expect(exitList.length).toBe(1)
-    const syncedExitList = await client.getExitList()
+    const syncedExitList = await client.getPendingWithdrawals()
     expect(syncedExitList.length).toBe(1)
 
     await increaseBlock()
@@ -245,8 +265,14 @@ describe('light client', () => {
     await checkBalance(aliceLightClient, '0.4')
     await checkBalance(bobLightClient, '0.6')
 
-    await aliceLightClient.exit(parseUnitsToJsbi('0.4'), config.PlasmaETH)
-    await bobLightClient.exit(parseUnitsToJsbi('0.6'), config.PlasmaETH)
+    await aliceLightClient.startWithdrawal(
+      parseUnitsToJsbi('0.4'),
+      config.PlasmaETH
+    )
+    await bobLightClient.startWithdrawal(
+      parseUnitsToJsbi('0.6'),
+      config.PlasmaETH
+    )
     await sleep(10000)
 
     await checkBalance(aliceLightClient, '0.0')
@@ -288,7 +314,10 @@ describe('light client', () => {
     expect(await getBalance(aliceLightClient)).toEqual('0.0')
     expect(await getBalance(bobLightClient)).toEqual('0.5')
 
-    await bobLightClient.exit(parseUnitsToJsbi('0.2'), config.PlasmaETH)
+    await bobLightClient.startWithdrawal(
+      parseUnitsToJsbi('0.2'),
+      config.PlasmaETH
+    )
     await sleep(10000)
 
     expect(await getBalance(bobLightClient)).toEqual('0.3')
@@ -330,7 +359,10 @@ describe('light client', () => {
     ).rejects.toEqual(new Error('Not enough amount'))
 
     await expect(
-      aliceLightClient.exit(parseUnitsToJsbi('0.5'), config.PlasmaETH)
+      aliceLightClient.startWithdrawal(
+        parseUnitsToJsbi('0.5'),
+        config.PlasmaETH
+      )
     ).rejects.toEqual(new Error('Insufficient amount'))
 
     await checkBalance(aliceLightClient, '0.2')
