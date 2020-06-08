@@ -108,7 +108,9 @@ describe('light client', () => {
     const OwnershipPredicateAddress = Address.from(
       config.deployedPredicateTable.OwnershipPredicate.deployedAddress
     )
-    const depositContractAddress = Address.from(config.PlasmaETH)
+    const depositContractAddress = Address.from(
+      config.payoutContracts.DepositContract
+    )
     const owner = Address.from(client.address)
     const stateUpdates: StateUpdate[] = await client[
       'stateManager'
@@ -154,7 +156,7 @@ describe('light client', () => {
     senderWallet = ethers.Wallet.createRandom().connect(provider)
     recieverWallet = ethers.Wallet.createRandom().connect(provider)
     operatorWallet = new ethers.Wallet(
-      '0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f',
+      '0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
       provider
     )
     const kvs1 = new LevelKeyValueStore(
@@ -498,7 +500,6 @@ describe('light client', () => {
     const blockNumber: BigNumber = await aliceLightClient[
       'commitmentContract'
     ].getCurrentBlock()
-    console.log(1)
 
     const invalidStateUpdate = await createInvalidStateUpdate(
       bobLightClient,

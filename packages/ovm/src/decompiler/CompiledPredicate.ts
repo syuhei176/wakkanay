@@ -72,6 +72,47 @@ export class CompiledPredicate {
     return new Property(this.deployedAddress, inputs)
   }
 
+  recoverHint(property: Property): Bytes {
+    const label = PredicateLabel.getVariableName(property.inputs[0])
+    if (label === null) {
+      property.inputs.unshift(Bytes.fromString(this.compiled.entryPoint))
+    }
+    const findContract = (name: string) => {
+      return this.compiled.contracts.find(c => c.name == name)
+    }
+    const findParent = (name: string) => {
+      return this.compiled.contracts.find(c =>
+        c.inputs.some(
+          i =>
+            typeof i !== 'string' &&
+            i.type == 'AtomicProposition' &&
+            i.predicate.type == 'AtomicPredicateCall' &&
+            i.predicate.source === name
+        )
+      )
+    }
+    const name = label || this.compiled.entryPoint
+    const c = findContract(name)
+    if (c === undefined) {
+      throw new Error(`cannot find ${name} in contracts`)
+    }
+    const there = findParent(c.name)
+    if (there === undefined) {
+      throw new Error(`cannot find ${c.name} in contracts`)
+    }
+    const hint = there.inputs[0] as string
+    return Bytes.fromString(
+      replaceHint(
+        hint,
+        createSubstitutions(
+          c.inputDefs,
+          property.inputs,
+          parseHintToGetVariables(hint).map(parseVariable)
+        )
+      )
+    )
+  }
+
   /**
    * decompileProperty expands a compiled property to original property
    * @param compiledProperty source compiled property
