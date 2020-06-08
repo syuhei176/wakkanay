@@ -24,10 +24,10 @@ jobs:
           npm run docker:build
           npm run docker:test
       - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2.0.2
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow # selectable (default: repo,message)
         env:
-          SLACK_CHANNEL: git 
-          SLACK_COLOR: '#3278BD'
-          SLACK_TITLE: Integration test
-          SLACK_USERNAME: IntegrationTestRunner
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
+        if: always() # Pick up events even if the job fails or is canceled.
