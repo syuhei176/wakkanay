@@ -144,6 +144,8 @@ export default class StateManager {
       })
     )
 
+    decisions.map(d => console.log(d.traceInfo?.toJson()))
+
     if (decisions.some(d => !d.outcome)) {
       throw new Error('InvalidTransaction')
     }

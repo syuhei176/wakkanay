@@ -36,6 +36,7 @@ export class ThereExistsSuchThatDecider implements Decider {
 
     const decisions = await Promise.all(
       witnesses.map(async variable => {
+        console.log('variableName', variableName, variable.toHexString())
         return await manager.decide(innerProperty, {
           ...substitutions,
           [variableName]: variable
@@ -49,7 +50,7 @@ export class ThereExistsSuchThatDecider implements Decider {
       property: new Property(
         manager.getDeciderAddress(LogicalConnective.ForAllSuchThat),
         [
-          inputs[0],
+          Bytes.default(), //inputs[0],
           inputs[1],
           coder.encode(
             new Property(manager.getDeciderAddress(LogicalConnective.Not), [

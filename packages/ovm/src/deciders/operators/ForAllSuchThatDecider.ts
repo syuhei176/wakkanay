@@ -4,6 +4,22 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
 import { TraceInfoCreator } from '../../Tracer'
+import { CompiledDecider } from '../../decompiler'
+
+function recoverHint(manager: DeciderManager, inputs: Bytes[]): Bytes {
+  const notProperty = Property.fromStruct(
+    ovmContext.coder.decode(Property.getParamType(), inputs[2])
+  )
+  const innerProperty = Property.fromStruct(
+    ovmContext.coder.decode(Property.getParamType(), notProperty.inputs[0])
+  )
+  const decider = manager.getDecider(innerProperty.deciderAddress)
+  if (decider) {
+    return (decider as CompiledDecider).recoverHint(innerProperty.inputs)
+  } else {
+    throw new Error('decider not found')
+  }
+}
 
 /**
  * ForAllSuchThatDecider decides property to true if all quantified values fulfill proposition.
@@ -19,14 +35,14 @@ export class ForAllSuchThatDecider implements Decider {
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
     let witnesses: Bytes[]
-    if (isHint(inputs[0])) {
-      witnesses = await getWitnesses(
-        manager.witnessDb,
-        replaceHint(inputs[0].intoString(), substitutions)
-      )
-    } else {
-      throw new Error('inputs[0] must be valid hint data.')
+    if (!isHint(inputs[0])) {
+      inputs[0] = recoverHint(manager, inputs)
+      // throw new Error('inputs[0] must be valid hint data.')
     }
+    witnesses = await getWitnesses(
+      manager.witnessDb,
+      replaceHint(inputs[0].intoString(), substitutions)
+    )
 
     const innerProperty = Property.fromStruct(
       ovmContext.coder.decode(Property.getParamType(), inputs[2])
@@ -65,7 +81,7 @@ export class ForAllSuchThatDecider implements Decider {
         }
         return {
           outcome: false,
-          witnesses: [],
+          witnesses: undefined,
           challenge,
           traceInfo: decision.traceInfo
             ? TraceInfoCreator.createFor(q, decision.traceInfo)
@@ -77,7 +93,7 @@ export class ForAllSuchThatDecider implements Decider {
     return (
       falseDecision || {
         outcome: true,
-        witnesses: [],
+        witnesses: undefined,
         challenge: null
       }
     )
