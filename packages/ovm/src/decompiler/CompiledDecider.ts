@@ -3,7 +3,6 @@ import { Decider } from '../interfaces/Decider'
 import { Decision, Property } from '../types'
 import { DeciderManager } from '../DeciderManager'
 import { CompiledPredicate } from './CompiledPredicate'
-import { ThereExistsSuchThatDecider } from '../deciders'
 
 function constantSubstitutions(constantTable: { [key: string]: Bytes }) {
   return Object.keys(constantTable).reduce((acc, key) => {
@@ -41,8 +40,8 @@ export class CompiledDecider implements Decider {
     )
   }
 
-  public recoverHint(inputs: Bytes[]): Bytes {
-    return this.predicateSource.recoverHint(
+  public restoreHint(inputs: Bytes[]): Bytes {
+    return this.predicateSource.restoreHint(
       new Property(this.predicateSource.deployedAddress, inputs)
     )
   }

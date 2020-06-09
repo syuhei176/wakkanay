@@ -38,8 +38,8 @@ describe('CompiledPredicate', () => {
   const encodeBoolDecider = (input: Bytes) =>
     encodeProperty(new Property(BoolDeciderAddress, [input]))
 
-  describe('recoverHint', () => {
-    it('recover hint from compiled predicate', async () => {
+  describe('restoreHint', () => {
+    it('restote hint from compiled predicate', async () => {
       const compiledPredicate = CompiledPredicate.fromSource(
         TestPredicateAddress,
         `@library
@@ -50,7 +50,7 @@ def SampleQuantifier(a, b) :=
 def test(a) := SampleQuantifier(a).any(b -> b())
 `
       )
-      const hint = compiledPredicate.recoverHint(
+      const hint = compiledPredicate.restoreHint(
         new Property(TestPredicateAddress, [
           PredicateLabel.from('TestTA'),
           Coder.encode(BigNumber.from(1)),

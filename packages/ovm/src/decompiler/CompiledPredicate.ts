@@ -96,7 +96,7 @@ export class CompiledPredicate {
    * get hint of `∃t: p(t)` from `p`
    * @param property p of `∃t: p(t)`
    */
-  recoverHint(property: Property): Bytes {
+  restoreHint(property: Property): Bytes {
     const findParent = (name: string) => {
       return this.compiled.contracts.find(
         c =>

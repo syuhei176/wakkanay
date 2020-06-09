@@ -7,26 +7,6 @@ import { TraceInfoCreator } from '../../Tracer'
 import { CompiledDecider } from '../../decompiler'
 
 /**
- * recover hint for `∀t: ¬p(t)` from `∃t: p(t)`
- * @param manager
- * @param inputs
- */
-function recoverHint(manager: DeciderManager, inputs: Bytes[]): Bytes {
-  const notProperty = Property.fromStruct(
-    ovmContext.coder.decode(Property.getParamType(), inputs[2])
-  )
-  const innerProperty = Property.fromStruct(
-    ovmContext.coder.decode(Property.getParamType(), notProperty.inputs[0])
-  )
-  const decider = manager.getDecider(innerProperty.deciderAddress)
-  if (decider) {
-    return (decider as CompiledDecider).recoverHint(innerProperty.inputs)
-  } else {
-    throw new Error('decider not found')
-  }
-}
-
-/**
  * ForAllSuchThatDecider decides property to true if all quantified values fulfill proposition.
  * inputs:Array<Bytes> [HintString, variableName, Property]
  * ForAllSuchThatDecider never return witnesses.
@@ -39,9 +19,6 @@ export class ForAllSuchThatDecider implements Decider {
     inputs: Bytes[],
     substitutions: { [key: string]: Bytes } = {}
   ): Promise<Decision> {
-    if (inputs[0].equals(Bytes.fromString(''))) {
-      inputs[0] = recoverHint(manager, inputs)
-    }
     if (!isHint(inputs[0])) {
       throw new Error('inputs[0] must be valid hint data.')
     }
