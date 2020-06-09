@@ -6,6 +6,11 @@ import { DeciderManager } from '../../DeciderManager'
 import { TraceInfoCreator } from '../../Tracer'
 import { CompiledDecider } from '../../decompiler'
 
+/**
+ * recover hint for `∀t: ¬p(t)` from `∃t: p(t)`
+ * @param manager
+ * @param inputs
+ */
 function recoverHint(manager: DeciderManager, inputs: Bytes[]): Bytes {
   const notProperty = Property.fromStruct(
     ovmContext.coder.decode(Property.getParamType(), inputs[2])

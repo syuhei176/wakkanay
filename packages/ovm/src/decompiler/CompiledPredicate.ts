@@ -47,6 +47,26 @@ export class CompiledPredicate {
     }
   }
 
+  private getIntermediateCompiledPredicate(
+    compiledProperty: Property
+  ): IntermediateCompiledPredicate {
+    const label = PredicateLabel.getVariableName(compiledProperty.inputs[0])
+    if (label === null) {
+      compiledProperty.inputs.unshift(
+        Bytes.fromString(this.compiled.entryPoint)
+      )
+    }
+    const findContract = (name: string) => {
+      return this.compiled.contracts.find(c => c.name == name)
+    }
+    const name = label || this.compiled.entryPoint
+    const c = findContract(name)
+    if (c === undefined) {
+      throw new Error(`cannot find ${name} in contracts`)
+    }
+    return c
+  }
+
   static fromSource(
     deployedAddress: Address,
     source: string,
@@ -72,40 +92,36 @@ export class CompiledPredicate {
     return new Property(this.deployedAddress, inputs)
   }
 
+  /**
+   * get hint of `∃t: p(t)` from `p`
+   * @param property p of `∃t: p(t)`
+   */
   recoverHint(property: Property): Bytes {
-    const label = PredicateLabel.getVariableName(property.inputs[0])
-    if (label === null) {
-      property.inputs.unshift(Bytes.fromString(this.compiled.entryPoint))
-    }
-    const findContract = (name: string) => {
-      return this.compiled.contracts.find(c => c.name == name)
-    }
     const findParent = (name: string) => {
-      return this.compiled.contracts.find(c =>
-        c.inputs.some(
-          i =>
-            typeof i !== 'string' &&
-            i.type == 'AtomicProposition' &&
-            i.predicate.type == 'AtomicPredicateCall' &&
-            i.predicate.source === name
-        )
+      return this.compiled.contracts.find(
+        c =>
+          c.connective == 'ThereExistsSuchThat' &&
+          typeof c.inputs[2] !== 'string' &&
+          c.inputs[2].type == 'AtomicProposition' &&
+          c.inputs[2].predicate.type == 'AtomicPredicateCall' &&
+          c.inputs[2].predicate.source === name
       )
     }
-    const name = label || this.compiled.entryPoint
-    const c = findContract(name)
-    if (c === undefined) {
-      throw new Error(`cannot find ${name} in contracts`)
+    const intermediateCompiledPredicate = this.getIntermediateCompiledPredicate(
+      property
+    )
+    const therePredicate = findParent(intermediateCompiledPredicate.name)
+    if (therePredicate === undefined) {
+      throw new Error(
+        `cannot find ${intermediateCompiledPredicate.name} in contracts`
+      )
     }
-    const there = findParent(c.name)
-    if (there === undefined) {
-      throw new Error(`cannot find ${c.name} in contracts`)
-    }
-    const hint = there.inputs[0] as string
+    const hint = therePredicate.inputs[0] as string
     return Bytes.fromString(
       replaceHint(
         hint,
         createSubstitutions(
-          c.inputDefs,
+          intermediateCompiledPredicate.inputDefs,
           property.inputs,
           parseHintToGetVariables(hint).map(parseVariable)
         )
@@ -124,20 +140,7 @@ export class CompiledPredicate {
     predicateTable: ReadonlyMap<string, Address>,
     constantTable: { [key: string]: Bytes } = {}
   ): Property {
-    const label = PredicateLabel.getVariableName(compiledProperty.inputs[0])
-    if (label === null) {
-      compiledProperty.inputs.unshift(
-        Bytes.fromString(this.compiled.entryPoint)
-      )
-    }
-    const findContract = (name: string) => {
-      return this.compiled.contracts.find(c => c.name == name)
-    }
-    const name = label || this.compiled.entryPoint
-    const c = findContract(name)
-    if (c === undefined) {
-      throw new Error(`cannot find ${name} in contracts`)
-    }
+    const c = this.getIntermediateCompiledPredicate(compiledProperty)
     const def = c
     const context = {
       compiledProperty,
