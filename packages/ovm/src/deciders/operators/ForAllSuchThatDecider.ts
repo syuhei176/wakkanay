@@ -4,7 +4,6 @@ import { Decider } from '../../interfaces/Decider'
 import { Decision, Property, Challenge, LogicalConnective } from '../../types'
 import { DeciderManager } from '../../DeciderManager'
 import { TraceInfoCreator } from '../../Tracer'
-import { CompiledDecider } from '../../decompiler'
 
 /**
  * ForAllSuchThatDecider decides property to true if all quantified values fulfill proposition.
